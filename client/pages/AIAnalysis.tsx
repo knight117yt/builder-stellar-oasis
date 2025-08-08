@@ -18,7 +18,7 @@ export default function AIAnalysis() {
   const symbols = [
     { value: "NIFTY", label: "NIFTY 50", price: 19850.5 },
     { value: "BANKNIFTY", label: "BANK NIFTY", price: 44250.75 },
-    { value: "FINNIFTY", label: "FINNIFTY", price: 21120.25 },
+    { value: "SENSEX", label: "SENSEX", price: 65875.25 },
   ];
 
   const handleSymbolChange = (symbol: string) => {
