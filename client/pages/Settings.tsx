@@ -299,9 +299,9 @@ export default function Settings() {
                   Get notified when prices hit your target levels
                 </p>
               </div>
-              <Switch 
+              <Switch
                 checked={notifications.priceAlerts}
-                onCheckedChange={(checked) => setNotifications(prev => ({...prev, priceAlerts: checked}))}
+                onCheckedChange={(checked) => handleNotificationChange('priceAlerts', checked)}
               />
             </div>
             <Separator />
@@ -312,9 +312,9 @@ export default function Settings() {
                   Get alerts when candlestick patterns are detected
                 </p>
               </div>
-              <Switch 
+              <Switch
                 checked={notifications.patternDetection}
-                onCheckedChange={(checked) => setNotifications(prev => ({...prev, patternDetection: checked}))}
+                onCheckedChange={(checked) => handleNotificationChange('patternDetection', checked)}
               />
             </div>
             <Separator />
@@ -325,9 +325,9 @@ export default function Settings() {
                   Real-time profit and loss notifications
                 </p>
               </div>
-              <Switch 
+              <Switch
                 checked={notifications.pnlUpdates}
-                onCheckedChange={(checked) => setNotifications(prev => ({...prev, pnlUpdates: checked}))}
+                onCheckedChange={(checked) => handleNotificationChange('pnlUpdates', checked)}
               />
             </div>
             <Separator />
@@ -338,9 +338,9 @@ export default function Settings() {
                   Important market news and updates
                 </p>
               </div>
-              <Switch 
+              <Switch
                 checked={notifications.marketNews}
-                onCheckedChange={(checked) => setNotifications(prev => ({...prev, marketNews: checked}))}
+                onCheckedChange={(checked) => handleNotificationChange('marketNews', checked)}
               />
             </div>
           </CardContent>
