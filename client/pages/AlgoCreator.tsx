@@ -688,6 +688,12 @@ export default function AlgoCreator() {
                     <Shield className="h-4 w-4" />
                     Risk Management
                   </CardTitle>
+                  {accountInfo && (
+                    <CardDescription>
+                      Account Balance: ₹{accountInfo.balance.toLocaleString()} |
+                      Available: ₹{accountInfo.available_margin.toLocaleString()}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
