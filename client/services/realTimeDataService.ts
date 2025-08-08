@@ -1,6 +1,5 @@
 import React from 'react';
 import create from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
 
 // Types for real-time data
 export interface MarketData {
