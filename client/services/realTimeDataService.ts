@@ -145,7 +145,9 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
 
       ws.onclose = (event) => {
         const reason = event.reason || "No reason provided";
-        console.log(`WebSocket disconnected - Code: ${event.code}, Reason: ${reason}`);
+        console.log(
+          `WebSocket disconnected - Code: ${event.code}, Reason: ${reason}`,
+        );
 
         set({
           websocket: null,
@@ -157,15 +159,24 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
         });
 
         // Auto-reconnect if not intentionally closed and haven't exceeded max attempts
-        if (event.code !== 1000 && get().connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        if (
+          event.code !== 1000 &&
+          get().connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS
+        ) {
           scheduleReconnect(set, get);
-        } else if (get().connectionStatus.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-          console.warn("Max WebSocket reconnection attempts reached. Stopping auto-reconnect.");
+        } else if (
+          get().connectionStatus.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS
+        ) {
+          console.warn(
+            "Max WebSocket reconnection attempts reached. Stopping auto-reconnect.",
+          );
         }
       };
 
       ws.onerror = (error) => {
-        console.warn("WebSocket connection failed - Python backend may not be running. Using mock data mode.");
+        console.warn(
+          "WebSocket connection failed - Python backend may not be running. Using mock data mode.",
+        );
         console.debug("WebSocket error details:", error);
         set({
           connectionStatus: {
@@ -177,7 +188,9 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
 
       set({ websocket: ws });
     } catch (error) {
-      console.warn("Failed to create WebSocket connection - Python backend unavailable. Using mock data mode.");
+      console.warn(
+        "Failed to create WebSocket connection - Python backend unavailable. Using mock data mode.",
+      );
       console.debug("Connection error:", error);
       set({
         connectionStatus: {
@@ -333,7 +346,9 @@ function scheduleReconnect(set: any, get: () => RealTimeDataStore) {
   const { connectionStatus } = get();
 
   if (connectionStatus.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-    console.warn("Max WebSocket reconnection attempts reached. Backend may be unavailable.");
+    console.warn(
+      "Max WebSocket reconnection attempts reached. Backend may be unavailable.",
+    );
     return;
   }
 
@@ -354,12 +369,18 @@ function scheduleReconnect(set: any, get: () => RealTimeDataStore) {
     30000,
   );
 
-  console.log(`Scheduling WebSocket reconnection in ${delay}ms (attempt ${connectionStatus.reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+  console.log(
+    `Scheduling WebSocket reconnection in ${delay}ms (attempt ${connectionStatus.reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`,
+  );
 
   setTimeout(() => {
     const currentState = get();
-    if (currentState.connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      console.log(`Attempting WebSocket reconnection (attempt ${currentState.connectionStatus.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+    if (
+      currentState.connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS
+    ) {
+      console.log(
+        `Attempting WebSocket reconnection (attempt ${currentState.connectionStatus.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
+      );
       get().connect();
     }
   }, delay);
