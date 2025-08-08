@@ -19,6 +19,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme, ColorTheme } from '@/contexts/ThemeContext';
 
 export default function Settings() {
+  const { colorTheme, setColorTheme } = useTheme();
+
   const [notifications, setNotifications] = useState({
     priceAlerts: true,
     patternDetection: true,
@@ -31,6 +33,14 @@ export default function Settings() {
     autoRefresh: true,
     refreshInterval: 5
   });
+
+  const colorThemes: { value: ColorTheme; label: string; color: string }[] = [
+    { value: 'default', label: 'Default', color: 'bg-gray-600' },
+    { value: 'blue', label: 'Blue', color: 'bg-blue-600' },
+    { value: 'green', label: 'Green', color: 'bg-green-600' },
+    { value: 'purple', label: 'Purple', color: 'bg-purple-600' },
+    { value: 'orange', label: 'Orange', color: 'bg-orange-600' },
+  ];
 
   const handleDownloadPNL = async () => {
     try {
