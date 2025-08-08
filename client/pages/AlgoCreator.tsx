@@ -635,6 +635,52 @@ export default function AlgoCreator() {
                 </div>
               )}
 
+              {/* Custom Strategy Code */}
+              {strategyForm.strategy_type === "custom" && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Custom Strategy Code</Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Write your Python strategy code. The function must be named 'execute' and take market_data as parameter.
+                    </p>
+                  </div>
+
+                  <Textarea
+                    placeholder={`def execute(market_data):
+    # Your strategy logic here
+    # Return a dictionary with signal, quantity, price, etc.
+
+    symbol = list(market_data.keys())[0]
+    current_price = market_data[symbol]['ltp']
+
+    # Example: Simple moving average crossover
+    if current_price > 20000:  # Simple condition
+        return {
+            'signal': 'BUY',
+            'symbol': symbol,
+            'quantity': 1,
+            'price': current_price,
+            'order_type': 'MARKET'
+        }
+
+    return {'signal': 'HOLD'}`}
+                    value={customCode}
+                    onChange={(e) => setCustomCode(e.target.value)}
+                    className="min-h-64 font-mono text-sm"
+                  />
+
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm font-medium mb-1">Available Variables:</div>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• <code>market_data</code> - Dictionary containing real-time market data</li>
+                      <li>• Return <code>{'signal\': \'BUY\'|\'SELL\'|\'HOLD'}</code> with optional quantity, price</li>
+                      <li>• Access current price: <code>market_data[symbol]['ltp']</code></li>
+                      <li>• Access volume: <code>market_data[symbol]['v']</code></li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {/* Risk Management */}
               <Card>
                 <CardHeader>
