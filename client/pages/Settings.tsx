@@ -1,16 +1,10 @@
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import {
   Settings as SettingsIcon,
   Download,
@@ -19,44 +13,47 @@ import {
   User,
   Database,
   FileText,
-} from "lucide-react";
+  Palette
+} from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme, ColorTheme } from '@/contexts/ThemeContext';
 
 export default function Settings() {
   const [notifications, setNotifications] = useState({
     priceAlerts: true,
     patternDetection: true,
     pnlUpdates: false,
-    marketNews: true,
+    marketNews: true
   });
 
   const [apiSettings, setApiSettings] = useState({
-    fyersAppId: "POEXISKB7W-100",
+    fyersAppId: 'POEXISKB7W-100',
     autoRefresh: true,
-    refreshInterval: 5,
+    refreshInterval: 5
   });
 
   const handleDownloadPNL = async () => {
     try {
-      const response = await fetch("/api/reports/pnl-download", {
-        method: "GET",
+      const response = await fetch('/api/reports/pnl-download', {
+        method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("fyers_token")}`,
-        },
+          'Authorization': `Bearer ${localStorage.getItem('fyers_token')}`
+        }
       });
-
+      
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
+        const a = document.createElement('a');
+        a.style.display = 'none';
         a.href = url;
-        a.download = `pnl-report-${new Date().toISOString().split("T")[0]}.pdf`;
+        a.download = `pnl-report-${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error("Error downloading PNL report:", error);
+      console.error('Error downloading PNL report:', error);
     }
   };
 
@@ -115,15 +112,10 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fyers-app-id">Fyers App ID</Label>
-              <Input
-                id="fyers-app-id"
+              <Input 
+                id="fyers-app-id" 
                 value={apiSettings.fyersAppId}
-                onChange={(e) =>
-                  setApiSettings((prev) => ({
-                    ...prev,
-                    fyersAppId: e.target.value,
-                  }))
-                }
+                onChange={(e) => setApiSettings(prev => ({...prev, fyersAppId: e.target.value}))}
                 disabled
                 className="bg-muted"
               />
@@ -135,27 +127,18 @@ export default function Settings() {
                   Automatically refresh market data
                 </p>
               </div>
-              <Switch
+              <Switch 
                 checked={apiSettings.autoRefresh}
-                onCheckedChange={(checked) =>
-                  setApiSettings((prev) => ({ ...prev, autoRefresh: checked }))
-                }
+                onCheckedChange={(checked) => setApiSettings(prev => ({...prev, autoRefresh: checked}))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="refresh-interval">
-                Refresh Interval (seconds)
-              </Label>
-              <Input
-                id="refresh-interval"
+              <Label htmlFor="refresh-interval">Refresh Interval (seconds)</Label>
+              <Input 
+                id="refresh-interval" 
                 type="number"
                 value={apiSettings.refreshInterval}
-                onChange={(e) =>
-                  setApiSettings((prev) => ({
-                    ...prev,
-                    refreshInterval: parseInt(e.target.value),
-                  }))
-                }
+                onChange={(e) => setApiSettings(prev => ({...prev, refreshInterval: parseInt(e.target.value)}))}
                 min={1}
                 max={60}
               />
@@ -182,14 +165,9 @@ export default function Settings() {
                   Get notified when prices hit your target levels
                 </p>
               </div>
-              <Switch
+              <Switch 
                 checked={notifications.priceAlerts}
-                onCheckedChange={(checked) =>
-                  setNotifications((prev) => ({
-                    ...prev,
-                    priceAlerts: checked,
-                  }))
-                }
+                onCheckedChange={(checked) => setNotifications(prev => ({...prev, priceAlerts: checked}))}
               />
             </div>
             <Separator />
@@ -200,14 +178,9 @@ export default function Settings() {
                   Get alerts when candlestick patterns are detected
                 </p>
               </div>
-              <Switch
+              <Switch 
                 checked={notifications.patternDetection}
-                onCheckedChange={(checked) =>
-                  setNotifications((prev) => ({
-                    ...prev,
-                    patternDetection: checked,
-                  }))
-                }
+                onCheckedChange={(checked) => setNotifications(prev => ({...prev, patternDetection: checked}))}
               />
             </div>
             <Separator />
@@ -218,11 +191,9 @@ export default function Settings() {
                   Real-time profit and loss notifications
                 </p>
               </div>
-              <Switch
+              <Switch 
                 checked={notifications.pnlUpdates}
-                onCheckedChange={(checked) =>
-                  setNotifications((prev) => ({ ...prev, pnlUpdates: checked }))
-                }
+                onCheckedChange={(checked) => setNotifications(prev => ({...prev, pnlUpdates: checked}))}
               />
             </div>
             <Separator />
@@ -233,11 +204,9 @@ export default function Settings() {
                   Important market news and updates
                 </p>
               </div>
-              <Switch
+              <Switch 
                 checked={notifications.marketNews}
-                onCheckedChange={(checked) =>
-                  setNotifications((prev) => ({ ...prev, marketNews: checked }))
-                }
+                onCheckedChange={(checked) => setNotifications(prev => ({...prev, marketNews: checked}))}
               />
             </div>
           </CardContent>
@@ -262,10 +231,7 @@ export default function Settings() {
                   Download your comprehensive profit & loss report
                 </p>
               </div>
-              <Button
-                onClick={handleDownloadPNL}
-                className="flex items-center gap-2"
-              >
+              <Button onClick={handleDownloadPNL} className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 Download
               </Button>
