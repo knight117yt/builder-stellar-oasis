@@ -9,14 +9,17 @@ const originalConsoleError = console.error;
 
 // Patterns of warnings to suppress
 const SUPPRESSED_WARNING_PATTERNS = [
-  // Recharts defaultProps warnings
-  /Support for defaultProps will be removed from function components.*XAxis/,
-  /Support for defaultProps will be removed from function components.*YAxis/,
-  /Support for defaultProps will be removed from function components.*CartesianGrid/,
-  /Support for defaultProps will be removed from function components.*Tooltip/,
-  /Support for defaultProps will be removed from function components.*Bar/,
-  /Support for defaultProps will be removed from function components.*Line/,
-  /Support for defaultProps will be removed from function components.*ReferenceLine/,
+  // Recharts defaultProps warnings - more flexible pattern matching
+  /Support for defaultProps will be removed from function components/,
+  /defaultProps will be removed from function components/,
+  // Specific Recharts components
+  /XAxis.*defaultProps/,
+  /YAxis.*defaultProps/,
+  /ReferenceLine.*defaultProps/,
+  /CartesianGrid.*defaultProps/,
+  /Tooltip.*defaultProps/,
+  /Bar.*defaultProps/,
+  /Line.*defaultProps/,
   // Add other third-party warnings here as needed
 ];
 
