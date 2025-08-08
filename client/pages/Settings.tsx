@@ -79,6 +79,44 @@ export default function Settings() {
       </div>
 
       <div className="grid gap-6">
+        {/* Appearance Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize the look and feel of your dashboard
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <ThemeToggle variant="settings" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Color Theme</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {colorThemes.map((theme) => (
+                    <Button
+                      key={theme.value}
+                      variant={colorTheme === theme.value ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setColorTheme(theme.value)}
+                      className="flex flex-col items-center gap-1 h-auto p-2"
+                    >
+                      <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
+                      <span className="text-xs">{theme.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Settings */}
         <Card>
           <CardHeader>
