@@ -16,6 +16,8 @@ import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
 import Analysis from "./pages/Analysis";
 import AIAnalysis from "./pages/AIAnalysis";
+import Screener from "./pages/Screener";
+import AlgoCreator from "./pages/AlgoCreator";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
