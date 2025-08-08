@@ -90,6 +90,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Mode Indicator */}
+      {authMode === 'mock' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-yellow-800">
+              Demo Mode - Using mock data for demonstration
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Market Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
