@@ -27,7 +27,9 @@ from config import Settings
 from models import (
     LoginRequest, AuthResponse, MarketDataRequest, OptionChainRequest,
     ScreenerRequest, AlgoStrategyRequest, WebSocketMessage, AccountInfo,
-    CustomStrategyRequest, StraddleDataRequest, RiskManagementConfig
+    CustomStrategyRequest, StraddleDataRequest, RiskManagementConfig,
+    BacktestRequest, BacktestResult, BacktestTrade, StraddleHistoryRequest,
+    StraddleHistoryData, StraddleHistoricalPoint, StraddlePerformanceMetrics
 )
 
 # Setup logging
@@ -116,6 +118,36 @@ def init_database():
             code TEXT NOT NULL,
             parameters TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS backtest_results (
+            id TEXT PRIMARY KEY,
+            strategy_id TEXT NOT NULL,
+            symbol TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            result_data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS straddle_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol TEXT NOT NULL,
+            expiry TEXT NOT NULL,
+            date TEXT NOT NULL,
+            spot_price REAL NOT NULL,
+            atm_strike REAL NOT NULL,
+            straddle_premium REAL NOT NULL,
+            call_price REAL NOT NULL,
+            put_price REAL NOT NULL,
+            implied_volatility REAL,
+            time_to_expiry REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(symbol, expiry, date)
         )
     ''')
     
