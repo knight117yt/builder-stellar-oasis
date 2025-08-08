@@ -82,13 +82,21 @@ export function AlertProvider({ children }: AlertProviderProps) {
     (PriceAlert | LogicAlert)[]
   >([]);
 
-  // Persist alerts to localStorage
+  // Persist alerts to localStorage with error handling
   useEffect(() => {
-    localStorage.setItem("priceAlerts", JSON.stringify(priceAlerts));
+    try {
+      localStorage.setItem("priceAlerts", JSON.stringify(priceAlerts));
+    } catch (error) {
+      console.warn("Failed to save price alerts to localStorage:", error);
+    }
   }, [priceAlerts]);
 
   useEffect(() => {
-    localStorage.setItem("logicAlerts", JSON.stringify(logicAlerts));
+    try {
+      localStorage.setItem("logicAlerts", JSON.stringify(logicAlerts));
+    } catch (error) {
+      console.warn("Failed to save logic alerts to localStorage:", error);
+    }
   }, [logicAlerts]);
 
   const addPriceAlert = (
