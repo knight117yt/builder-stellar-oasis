@@ -286,8 +286,8 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Qty: {position.quantity} • Avg: ₹{position.avgPrice} •
-                        LTP: ₹{position.ltp}
+                        Qty: {position.quantity || 0} • Avg: ₹{(position.avgPrice || 0).toFixed(2)} •
+                        LTP: ₹{(position.ltp || 0).toFixed(2)}
                       </div>
                     </div>
                     <div className="text-right">
