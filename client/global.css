@@ -54,6 +54,14 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --trading-bull: 120 60% 50%;
+    --trading-bear: 0 60% 50%;
+    --trading-neutral: 220 13% 69%;
+    --trading-bull-light: 120 40% 95%;
+    --trading-bear-light: 0 40% 95%;
+    --trading-chart-bg: 220 13% 98%;
+    --trading-grid: 220 13% 91%;
   }
 
   .dark {
@@ -92,6 +100,14 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --trading-bull: 120 60% 60%;
+    --trading-bear: 0 60% 60%;
+    --trading-neutral: 220 13% 69%;
+    --trading-bull-light: 120 40% 15%;
+    --trading-bear-light: 0 40% 15%;
+    --trading-chart-bg: 240 5.9% 8%;
+    --trading-grid: 240 3.7% 15.9%;
   }
 }
 
