@@ -24,6 +24,8 @@ const navigation = [
   { name: "Option Chain", href: "/option-chain", icon: PieChart },
   { name: "Analysis", href: "/analysis", icon: LineChart },
   { name: "AI Analysis", href: "/ai-analysis", icon: Brain },
+  { name: "Screener", href: "/screener", icon: Search },
+  { name: "Algo Creator", href: "/algo-creator", icon: Bot },
   { name: "Alerts", href: "/alerts", icon: AlertTriangle },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
