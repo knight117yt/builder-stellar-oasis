@@ -200,6 +200,16 @@ export default function Login() {
                 >
                   Fyers OAuth
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  onClick={handleMockLogin}
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Demo Mode (Mock Data)'}
+                </Button>
               </div>
             </form>
           </CardContent>
