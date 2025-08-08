@@ -57,6 +57,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        trading: {
+          bull: "hsl(var(--trading-bull))",
+          bear: "hsl(var(--trading-bear))",
+          neutral: "hsl(var(--trading-neutral))",
+          "bull-light": "hsl(var(--trading-bull-light))",
+          "bear-light": "hsl(var(--trading-bear-light))",
+          "chart-bg": "hsl(var(--trading-chart-bg))",
+          "grid": "hsl(var(--trading-grid))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
