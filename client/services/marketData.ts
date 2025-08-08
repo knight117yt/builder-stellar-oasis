@@ -377,15 +377,15 @@ class MarketDataService {
   // Account information
   async getAccountInfo(): Promise<any> {
     try {
-      const response = await this.makeRequest<any>('/account/info');
+      const response = await this.makeRequest<any>("/account/info");
       return response.data;
     } catch (error) {
-      console.error('Failed to get account info:', error);
+      console.error("Failed to get account info:", error);
       return {
         balance: 100000,
         available_margin: 80000,
         used_margin: 20000,
-        total_balance: 100000
+        total_balance: 100000,
       };
     }
   }
@@ -455,26 +455,28 @@ class MarketDataService {
   }): Promise<any> {
     try {
       const response = await this.makeRequest<any>(
-        '/strategies/custom/create',
+        "/strategies/custom/create",
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(strategy),
-        }
+        },
       );
 
       return response;
     } catch (error) {
-      console.error('Failed to create custom strategy:', error);
+      console.error("Failed to create custom strategy:", error);
       return null;
     }
   }
 
   async getCustomStrategies(): Promise<{ strategies: any[] }> {
     try {
-      const response = await this.makeRequest<{ strategies: any[] }>('/strategies/custom');
+      const response = await this.makeRequest<{ strategies: any[] }>(
+        "/strategies/custom",
+      );
       return response;
     } catch (error) {
-      console.error('Failed to get custom strategies:', error);
+      console.error("Failed to get custom strategies:", error);
       return { strategies: [] };
     }
   }

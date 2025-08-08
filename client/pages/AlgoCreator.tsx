@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -192,7 +198,7 @@ export default function AlgoCreator() {
         balance: 100000,
         available_margin: 80000,
         used_margin: 20000,
-        total_balance: 100000
+        total_balance: 100000,
       });
     }
   };
@@ -224,7 +230,7 @@ export default function AlgoCreator() {
         });
 
         if (result) {
-          console.log('Custom strategy created:', result);
+          console.log("Custom strategy created:", result);
         }
       }
 
@@ -234,7 +240,8 @@ export default function AlgoCreator() {
         symbol: strategyForm.symbol,
         strategy_type: strategyForm.strategy_type,
         parameters: strategyForm.parameters,
-        custom_code: strategyForm.strategy_type === "custom" ? customCode : undefined,
+        custom_code:
+          strategyForm.strategy_type === "custom" ? customCode : undefined,
         risk_management: strategyForm.risk_management,
         position_sizing: strategyForm.position_sizing,
       });
@@ -642,7 +649,8 @@ export default function AlgoCreator() {
                   <div>
                     <Label>Custom Strategy Code</Label>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Write your Python strategy code. The function must be named 'execute' and take market_data as parameter.
+                      Write your Python strategy code. The function must be
+                      named 'execute' and take market_data as parameter.
                     </p>
                   </div>
 
@@ -671,12 +679,25 @@ export default function AlgoCreator() {
                   />
 
                   <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="text-sm font-medium mb-1">Available Variables:</div>
+                    <div className="text-sm font-medium mb-1">
+                      Available Variables:
+                    </div>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• <code>market_data</code> - Dictionary containing real-time market data</li>
-                      <li>• Return <code>{'signal\': \'BUY\'|\'SELL\'|\'HOLD'}</code> with optional quantity, price</li>
-                      <li>• Access current price: <code>market_data[symbol]['ltp']</code></li>
-                      <li>• Access volume: <code>market_data[symbol]['v']</code></li>
+                      <li>
+                        • <code>market_data</code> - Dictionary containing
+                        real-time market data
+                      </li>
+                      <li>
+                        • Return <code>{"signal': 'BUY'|'SELL'|'HOLD"}</code>{" "}
+                        with optional quantity, price
+                      </li>
+                      <li>
+                        • Access current price:{" "}
+                        <code>market_data[symbol]['ltp']</code>
+                      </li>
+                      <li>
+                        • Access volume: <code>market_data[symbol]['v']</code>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -692,7 +713,8 @@ export default function AlgoCreator() {
                   {accountInfo && (
                     <CardDescription>
                       Account Balance: ₹{accountInfo.balance.toLocaleString()} |
-                      Available: ₹{accountInfo.available_margin.toLocaleString()}
+                      Available: ₹
+                      {accountInfo.available_margin.toLocaleString()}
                     </CardDescription>
                   )}
                 </CardHeader>
@@ -700,19 +722,27 @@ export default function AlgoCreator() {
                   {/* Account-based Risk Suggestions */}
                   {accountInfo && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="text-sm font-medium text-blue-800 mb-2">Suggested Risk Limits</div>
+                      <div className="text-sm font-medium text-blue-800 mb-2">
+                        Suggested Risk Limits
+                      </div>
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <div className="text-blue-600">Conservative (2%)</div>
-                          <div className="font-mono">₹{(accountInfo.balance * 0.02).toLocaleString()}</div>
+                          <div className="font-mono">
+                            ₹{(accountInfo.balance * 0.02).toLocaleString()}
+                          </div>
                         </div>
                         <div>
                           <div className="text-blue-600">Moderate (5%)</div>
-                          <div className="font-mono">₹{(accountInfo.balance * 0.05).toLocaleString()}</div>
+                          <div className="font-mono">
+                            ₹{(accountInfo.balance * 0.05).toLocaleString()}
+                          </div>
                         </div>
                         <div>
                           <div className="text-blue-600">Aggressive (10%)</div>
-                          <div className="font-mono">₹{(accountInfo.balance * 0.10).toLocaleString()}</div>
+                          <div className="font-mono">
+                            ₹{(accountInfo.balance * 0.1).toLocaleString()}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -735,9 +765,13 @@ export default function AlgoCreator() {
                         }
                         max={accountInfo?.available_margin}
                       />
-                      {accountInfo && strategyForm.risk_management.max_position_size > accountInfo.available_margin && (
-                        <p className="text-sm text-red-600">Exceeds available margin</p>
-                      )}
+                      {accountInfo &&
+                        strategyForm.risk_management.max_position_size >
+                          accountInfo.available_margin && (
+                          <p className="text-sm text-red-600">
+                            Exceeds available margin
+                          </p>
+                        )}
                     </div>
                     <div className="space-y-2">
                       <Label>Daily Loss Limit (₹)</Label>
