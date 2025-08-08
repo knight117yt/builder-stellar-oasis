@@ -12,13 +12,16 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:python": "python python_backend/main.py",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
     "start": "node dist/server/node-build.mjs",
+    "start:python": "python python_backend/main.py",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "python:install": "pip install -r python_backend/requirements.txt"
   },
   "dependencies": {
     "dotenv": "^17.2.0",
