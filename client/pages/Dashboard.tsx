@@ -180,25 +180,7 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="chart" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Chart</CardTitle>
-              <CardDescription>Real-time candlestick chart with technical indicators</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-96 bg-trading-chart-bg rounded-lg border-2 border-dashed border-trading-grid flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Chart component will be integrated here
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    This will show real-time candlestick data from Fyers API
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TradingChart symbol="NIFTY50" interval="1D" />
         </TabsContent>
 
         <TabsContent value="positions" className="space-y-4">
