@@ -96,7 +96,7 @@ export function AlertProvider({ children }: AlertProviderProps) {
   ) => {
     const newAlert: PriceAlert = {
       ...alertData,
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: new Date(),
       isTriggered: false,
     };
@@ -108,7 +108,7 @@ export function AlertProvider({ children }: AlertProviderProps) {
   ) => {
     const newAlert: LogicAlert = {
       ...alertData,
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: new Date(),
       isTriggered: false,
     };
