@@ -73,7 +73,8 @@ export default function Dashboard() {
   
   const authMode = localStorage.getItem("auth_mode") || "mock";
   const connectionStatus = useConnectionStatus();
-  
+  const connect = useRealTimeDataStore(state => state.connect);
+
   // Subscribe to real-time market data
   const { data: niftyData } = useMarketData("NSE:NIFTY50-INDEX");
   const { data: bankNiftyData } = useMarketData("NSE:NIFTYBANK-INDEX");
