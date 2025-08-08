@@ -99,4 +99,13 @@ const App = () => (
   </QueryClientProvider>
 );
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Only create root if it doesn't exist
+const rootElement = document.getElementById("root")!;
+if (!rootElement._reactRootContainer) {
+  const root = createRoot(rootElement);
+  rootElement._reactRootContainer = root;
+  root.render(<App />);
+} else {
+  // If root already exists, just re-render
+  rootElement._reactRootContainer.render(<App />);
+}
