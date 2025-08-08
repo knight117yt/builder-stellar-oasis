@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Search,
   Bot,
+  Target,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
