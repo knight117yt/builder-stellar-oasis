@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { safeStorage, generateSafeId, featureDetection } from "@/lib/errorUtils";
 
 export interface PriceAlert {
   id: string;
