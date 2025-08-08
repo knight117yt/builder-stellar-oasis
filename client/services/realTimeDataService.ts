@@ -173,8 +173,15 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
 
       set({ websocket: ws });
     } catch (error) {
-      console.error("Failed to create WebSocket connection:", error);
-      scheduleReconnect(set, get);
+      console.warn("Failed to create WebSocket connection - Python backend unavailable. Using mock data mode.");
+      console.debug("Connection error:", error);
+      set({
+        connectionStatus: {
+          connected: false,
+          reconnecting: false,
+          reconnectAttempts: MAX_RECONNECT_ATTEMPTS, // Prevent further attempts
+        },
+      });
     }
   },
 
