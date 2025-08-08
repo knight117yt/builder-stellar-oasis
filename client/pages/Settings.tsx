@@ -192,17 +192,41 @@ export default function Settings() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Enter your full name" />
+                <Input
+                  id="name"
+                  placeholder="Enter your full name"
+                  value={profile.name}
+                  onChange={(e) => handleProfileChange('name', e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter your email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={profile.email}
+                  onChange={(e) => handleProfileChange('email', e.target.value)}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" placeholder="Enter your phone number" />
+              <Input
+                id="phone"
+                placeholder="Enter your phone number"
+                value={profile.phone}
+                onChange={(e) => handleProfileChange('phone', e.target.value)}
+              />
             </div>
+            <Button onClick={handleSaveSettings} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Profile'}
+            </Button>
+            {saveMessage && (
+              <div className={`text-sm ${saveMessage.includes('Error') ? 'text-destructive' : 'text-green-600'}`}>
+                {saveMessage}
+              </div>
+            )}
           </CardContent>
         </Card>
 
