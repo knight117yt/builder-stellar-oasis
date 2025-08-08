@@ -183,8 +183,8 @@ export function AlertProvider({ children }: AlertProviderProps) {
     if (triggered.length > 0) {
       setTriggeredAlerts((prev) => [...prev, ...triggered]);
 
-      // Show browser notification if permission granted
-      if (typeof Notification !== 'undefined' && Notification.permission === "granted") {
+      // Show browser notification if available and permission granted
+      if (featureDetection.hasNotifications() && Notification.permission === "granted") {
         triggered.forEach((alert) => {
           try {
             new Notification("Trading Alert", {
