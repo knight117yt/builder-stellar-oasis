@@ -86,6 +86,7 @@ const candlestickPatterns = [
 export default function Dashboard() {
   const [marketData, setMarketData] = useState<MarketData>(mockMarketData);
   const [positions, setPositions] = useState<Position[]>(mockPositions);
+  const authMode = localStorage.getItem('auth_mode') || 'mock';
 
   return (
     <div className="space-y-6">
