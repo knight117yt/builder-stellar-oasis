@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { safeStorage, generateSafeId, featureDetection } from "@/lib/errorUtils";
+import {
+  safeStorage,
+  generateSafeId,
+  featureDetection,
+} from "@/lib/errorUtils";
 
 export interface PriceAlert {
   id: string;
@@ -184,11 +188,14 @@ export function AlertProvider({ children }: AlertProviderProps) {
       setTriggeredAlerts((prev) => [...prev, ...triggered]);
 
       // Show browser notification if available and permission granted
-      if (featureDetection.hasNotifications() && Notification.permission === "granted") {
+      if (
+        featureDetection.hasNotifications() &&
+        Notification.permission === "granted"
+      ) {
         triggered.forEach((alert) => {
           try {
             new Notification("Trading Alert", {
-              body: `Alert triggered: ${'name' in alert ? alert.name : "Price Alert"}`,
+              body: `Alert triggered: ${"name" in alert ? alert.name : "Price Alert"}`,
               icon: "/favicon.ico",
             });
           } catch (error) {

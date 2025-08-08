@@ -12,9 +12,13 @@ export class AppError extends Error {
   public readonly code: string;
   public readonly context?: Record<string, any>;
 
-  constructor(message: string, code: string = 'UNKNOWN_ERROR', context?: Record<string, any>) {
+  constructor(
+    message: string,
+    code: string = "UNKNOWN_ERROR",
+    context?: Record<string, any>,
+  ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
     this.code = code;
     this.context = context;
   }
@@ -63,7 +67,7 @@ export const safeStorage = {
       console.warn(`Failed to remove ${key} from localStorage:`, error);
       return false;
     }
-  }
+  },
 };
 
 /**
@@ -82,16 +86,16 @@ export function generateSafeId(): string {
  * Error logger
  */
 export function logError(error: Error, context?: Record<string, any>) {
-  console.error('Application Error:', {
+  console.error("Application Error:", {
     message: error.message,
     stack: error.stack,
     name: error.name,
     context,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // In production, you might want to send this to an error tracking service
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // Example: Send to error tracking service
     // errorTrackingService.captureException(error, context);
   }
@@ -102,7 +106,7 @@ export function logError(error: Error, context?: Record<string, any>) {
  */
 export function withErrorHandler<T extends (...args: any[]) => Promise<any>>(
   fn: T,
-  context?: string
+  context?: string,
 ): T {
   return (async (...args: any[]) => {
     try {
@@ -110,7 +114,9 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<any>>(
     } catch (error) {
       logError(error instanceof Error ? error : new Error(String(error)), {
         context,
-        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg))
+        args: args.map((arg) =>
+          typeof arg === "object" ? JSON.stringify(arg) : String(arg),
+        ),
       });
       throw error;
     }
@@ -144,7 +150,7 @@ export const safeDOMUtils = {
     } catch {
       return false;
     }
-  }
+  },
 };
 
 /**
@@ -153,7 +159,7 @@ export const safeDOMUtils = {
 export const featureDetection = {
   hasLocalStorage: () => {
     try {
-      const test = '__storage_test__';
+      const test = "__storage_test__";
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
       return true;
@@ -163,16 +169,16 @@ export const featureDetection = {
   },
 
   hasNotifications: () => {
-    return 'Notification' in window;
+    return "Notification" in window;
   },
 
   hasCrypto: () => {
-    return 'crypto' in window && 'randomUUID' in crypto;
+    return "crypto" in window && "randomUUID" in crypto;
   },
 
   hasWebSocket: () => {
-    return 'WebSocket' in window;
-  }
+    return "WebSocket" in window;
+  },
 };
 
 /**
@@ -181,7 +187,7 @@ export const featureDetection = {
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
-  delay: number = 1000
+  delay: number = 1000,
 ): Promise<T> {
   let lastError: Error;
 
@@ -190,13 +196,13 @@ export async function withRetry<T>(
       return await operation();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt === maxRetries) {
         throw lastError;
       }
 
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
     }
   }
 

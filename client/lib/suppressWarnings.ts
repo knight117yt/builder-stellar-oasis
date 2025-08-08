@@ -20,25 +20,28 @@ const SUPPRESSED_WARNING_PATTERNS = [
 ];
 
 function shouldSuppressWarning(message: string): boolean {
-  return SUPPRESSED_WARNING_PATTERNS.some(pattern => pattern.test(message));
+  return SUPPRESSED_WARNING_PATTERNS.some((pattern) => pattern.test(message));
 }
 
 function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
   return (...args: any[]) => {
-    const message = args.join(' ');
-    
+    const message = args.join(" ");
+
     // Only suppress in development
-    if (process.env.NODE_ENV === 'development' && shouldSuppressWarning(message)) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      shouldSuppressWarning(message)
+    ) {
       return; // Suppress the warning
     }
-    
+
     // Call original method for all other warnings/errors
     originalMethod.apply(console, args);
   };
 }
 
 export function suppressThirdPartyWarnings() {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.warn = createFilteredConsoleMethod(originalConsoleWarn);
     console.error = createFilteredConsoleMethod(originalConsoleError);
   }
@@ -50,6 +53,6 @@ export function restoreConsole() {
 }
 
 // Auto-apply suppression in development
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   suppressThirdPartyWarnings();
 }

@@ -1,7 +1,13 @@
-import React, { Component, ReactNode } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { Component, ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -25,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
     this.setState({ error, errorInfo });
   }
 
@@ -48,7 +54,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 Something went wrong
               </CardTitle>
               <CardDescription>
-                An unexpected error occurred. This might be due to a temporary issue.
+                An unexpected error occurred. This might be due to a temporary
+                issue.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -59,22 +66,26 @@ export class ErrorBoundary extends Component<Props, State> {
                   </p>
                 </div>
               )}
-              
+
               <div className="flex gap-2">
-                <Button onClick={this.handleRetry} className="flex items-center gap-2">
+                <Button
+                  onClick={this.handleRetry}
+                  className="flex items-center gap-2"
+                >
                   <RefreshCw className="h-4 w-4" />
                   Try Again
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => window.location.reload()}
                 >
                   Reload Page
                 </Button>
               </div>
-              
+
               <div className="text-xs text-muted-foreground">
-                If this problem persists, try clearing your browser cache or contact support.
+                If this problem persists, try clearing your browser cache or
+                contact support.
               </div>
             </CardContent>
           </Card>
@@ -89,7 +100,7 @@ export class ErrorBoundary extends Component<Props, State> {
 // Wrapper for functional components that need error boundaries
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: ReactNode
+  fallback?: ReactNode,
 ) {
   return function WrappedComponent(props: P) {
     return (

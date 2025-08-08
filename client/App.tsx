@@ -120,5 +120,5 @@ if (import.meta.hot) {
 root.render(
   <ErrorBoundary>
     <App />
-  </ErrorBoundary>
+  </ErrorBoundary>,
 );
