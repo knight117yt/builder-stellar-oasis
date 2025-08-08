@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PieChart, TrendingUp, TrendingDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PieChart, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { OptionChainTable } from '@/components/OptionChainTable';
+import { useState } from 'react';
 
 export default function OptionChain() {
   return (
