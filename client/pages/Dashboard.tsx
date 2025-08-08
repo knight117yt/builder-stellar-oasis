@@ -24,7 +24,12 @@ import {
 } from "lucide-react";
 import { TradingChart } from "@/components/TradingChart";
 import { marketDataService } from "@/services/marketData";
-import { useMarketData, useConnectionStatus, useSubscription, useRealTimeDataStore } from "@/services/realTimeDataService";
+import {
+  useMarketData,
+  useConnectionStatus,
+  useSubscription,
+  useRealTimeDataStore,
+} from "@/services/realTimeDataService";
 import { cn } from "@/lib/utils";
 
 interface Position {
@@ -40,9 +45,24 @@ interface Position {
 }
 
 interface MarketData {
-  nifty: { price: number; change: number; changePercent: number; volume?: number };
-  bankNifty: { price: number; change: number; changePercent: number; volume?: number };
-  sensex: { price: number; change: number; changePercent: number; volume?: number };
+  nifty: {
+    price: number;
+    change: number;
+    changePercent: number;
+    volume?: number;
+  };
+  bankNifty: {
+    price: number;
+    change: number;
+    changePercent: number;
+    volume?: number;
+  };
+  sensex: {
+    price: number;
+    change: number;
+    changePercent: number;
+    volume?: number;
+  };
   totalPnl: number;
   totalInvested: number;
   dayPnl: number;
@@ -60,8 +80,8 @@ interface CandlestickPattern {
 
 const TRACKED_SYMBOLS = [
   "NSE:NIFTY50-INDEX",
-  "NSE:NIFTYBANK-INDEX", 
-  "BSE:SENSEX-INDEX"
+  "NSE:NIFTYBANK-INDEX",
+  "BSE:SENSEX-INDEX",
 ];
 
 export default function Dashboard() {
@@ -70,16 +90,16 @@ export default function Dashboard() {
   const [patterns, setPatterns] = useState<CandlestickPattern[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  
+
   const authMode = localStorage.getItem("auth_mode") || "mock";
   const connectionStatus = useConnectionStatus();
-  const connect = useRealTimeDataStore(state => state.connect);
+  const connect = useRealTimeDataStore((state) => state.connect);
 
   // Subscribe to real-time market data
   const { data: niftyData } = useMarketData("NSE:NIFTY50-INDEX");
   const { data: bankNiftyData } = useMarketData("NSE:NIFTYBANK-INDEX");
   const { data: sensexData } = useMarketData("BSE:SENSEX-INDEX");
-  
+
   // Subscribe to symbols for real-time updates
   useSubscription("NSE:NIFTY50-INDEX", true);
   useSubscription("NSE:NIFTYBANK-INDEX", true);
@@ -90,11 +110,13 @@ export default function Dashboard() {
     setLoading(true);
     try {
       // Fetch live market data for all tracked symbols
-      const liveData = await marketDataService.getLiveMarketData(TRACKED_SYMBOLS);
-      
+      const liveData =
+        await marketDataService.getLiveMarketData(TRACKED_SYMBOLS);
+
       // Get AI analysis for pattern detection
-      const niftyAnalysis = await marketDataService.getAIAnalysis("NSE:NIFTY50-INDEX");
-      
+      const niftyAnalysis =
+        await marketDataService.getAIAnalysis("NSE:NIFTY50-INDEX");
+
       // Mock positions for demo (replace with actual position API call)
       const mockPositions: Position[] = [
         {
@@ -134,8 +156,11 @@ export default function Dashboard() {
 
       // Calculate portfolio metrics
       const totalPnl = mockPositions.reduce((sum, pos) => sum + pos.pnl, 0);
-      const totalInvested = mockPositions.reduce((sum, pos) => sum + (pos.avgPrice * pos.quantity), 0);
-      
+      const totalInvested = mockPositions.reduce(
+        (sum, pos) => sum + pos.avgPrice * pos.quantity,
+        0,
+      );
+
       // Update market data with real values or fallbacks
       const updatedMarketData: MarketData = {
         nifty: {
@@ -147,24 +172,26 @@ export default function Dashboard() {
         bankNifty: {
           price: liveData["NSE:NIFTYBANK-INDEX"]?.ltp || 44250.75,
           change: liveData["NSE:NIFTYBANK-INDEX"]?.change || -89.25,
-          changePercent: liveData["NSE:NIFTYBANK-INDEX"]?.change_percent || -0.2,
+          changePercent:
+            liveData["NSE:NIFTYBANK-INDEX"]?.change_percent || -0.2,
           volume: liveData["NSE:NIFTYBANK-INDEX"]?.volume,
         },
         sensex: {
           price: liveData["BSE:SENSEX-INDEX"]?.ltp || 72240.26,
-          change: liveData["BSE:SENSEX-INDEX"]?.change || 180.50,
+          change: liveData["BSE:SENSEX-INDEX"]?.change || 180.5,
           changePercent: liveData["BSE:SENSEX-INDEX"]?.change_percent || 0.25,
           volume: liveData["BSE:SENSEX-INDEX"]?.volume,
         },
         totalPnl,
         totalInvested,
         dayPnl: totalPnl * 0.8, // Approximate day P&L
-        dayPnlPercent: totalInvested !== 0 ? (totalPnl * 0.8 / totalInvested) * 100 : 0,
+        dayPnlPercent:
+          totalInvested !== 0 ? ((totalPnl * 0.8) / totalInvested) * 100 : 0,
       };
 
       setMarketData(updatedMarketData);
       setPositions(mockPositions);
-      
+
       // Set patterns from AI analysis or mock data
       if (niftyAnalysis?.analysis) {
         const analysisPatterns: CandlestickPattern[] = [
@@ -173,16 +200,31 @@ export default function Dashboard() {
             signal: niftyAnalysis.analysis.recommendation,
             confidence: Math.round(niftyAnalysis.analysis.confidence * 100),
             detected: "Just now",
-            symbol: "NIFTY50"
-          }
+            symbol: "NIFTY50",
+          },
         ];
         setPatterns(analysisPatterns);
       } else {
         // Fallback patterns
         setPatterns([
-          { name: "Hammer", signal: "Bullish", confidence: 85, detected: "2 min ago" },
-          { name: "Dark Cloud Cover", signal: "Bearish", confidence: 72, detected: "5 min ago" },
-          { name: "Doji", signal: "Neutral", confidence: 68, detected: "8 min ago" },
+          {
+            name: "Hammer",
+            signal: "Bullish",
+            confidence: 85,
+            detected: "2 min ago",
+          },
+          {
+            name: "Dark Cloud Cover",
+            signal: "Bearish",
+            confidence: 72,
+            detected: "5 min ago",
+          },
+          {
+            name: "Doji",
+            signal: "Neutral",
+            confidence: 68,
+            detected: "8 min ago",
+          },
         ]);
       }
 
@@ -193,7 +235,7 @@ export default function Dashboard() {
       setMarketData({
         nifty: { price: 19850.5, change: 125.75, changePercent: 0.64 },
         bankNifty: { price: 44250.75, change: -89.25, changePercent: -0.2 },
-        sensex: { price: 72240.26, change: 180.50, changePercent: 0.25 },
+        sensex: { price: 72240.26, change: 180.5, changePercent: 0.25 },
         totalPnl: 1268.75,
         totalInvested: 15137.5,
         dayPnl: 1015.0,
@@ -208,7 +250,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (marketData && (niftyData || bankNiftyData || sensexData)) {
       const updatedData = { ...marketData };
-      
+
       if (niftyData) {
         updatedData.nifty = {
           price: niftyData.ltp,
@@ -217,7 +259,7 @@ export default function Dashboard() {
           volume: niftyData.volume,
         };
       }
-      
+
       if (bankNiftyData) {
         updatedData.bankNifty = {
           price: bankNiftyData.ltp,
@@ -226,7 +268,7 @@ export default function Dashboard() {
           volume: bankNiftyData.volume,
         };
       }
-      
+
       if (sensexData) {
         updatedData.sensex = {
           price: sensexData.ltp,
@@ -235,7 +277,7 @@ export default function Dashboard() {
           volume: sensexData.volume,
         };
       }
-      
+
       setMarketData(updatedData);
       setLastUpdate(new Date());
     }
@@ -264,7 +306,9 @@ export default function Dashboard() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading dashboard...
+            </p>
           </div>
         </div>
       </div>
@@ -317,7 +361,7 @@ export default function Dashboard() {
             onClick={refreshData}
             disabled={loading}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>
@@ -338,19 +382,22 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {marketData?.nifty.price.toLocaleString() || "---"}
             </div>
-            <p className={cn(
-              "text-xs flex items-center gap-1",
-              (marketData?.nifty.change || 0) >= 0
-                ? "text-trading-bull"
-                : "text-trading-bear",
-            )}>
+            <p
+              className={cn(
+                "text-xs flex items-center gap-1",
+                (marketData?.nifty.change || 0) >= 0
+                  ? "text-trading-bull"
+                  : "text-trading-bear",
+              )}
+            >
               {(marketData?.nifty.change || 0) >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
               {(marketData?.nifty.change || 0) > 0 ? "+" : ""}
-              {(marketData?.nifty.change || 0).toFixed(2)} ({(marketData?.nifty.changePercent || 0).toFixed(2)}%)
+              {(marketData?.nifty.change || 0).toFixed(2)} (
+              {(marketData?.nifty.changePercent || 0).toFixed(2)}%)
             </p>
             {marketData?.nifty.volume && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -374,19 +421,22 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {marketData?.bankNifty.price.toLocaleString() || "---"}
             </div>
-            <p className={cn(
-              "text-xs flex items-center gap-1",
-              (marketData?.bankNifty.change || 0) >= 0
-                ? "text-trading-bull"
-                : "text-trading-bear",
-            )}>
+            <p
+              className={cn(
+                "text-xs flex items-center gap-1",
+                (marketData?.bankNifty.change || 0) >= 0
+                  ? "text-trading-bull"
+                  : "text-trading-bear",
+              )}
+            >
               {(marketData?.bankNifty.change || 0) >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
               {(marketData?.bankNifty.change || 0) > 0 ? "+" : ""}
-              {(marketData?.bankNifty.change || 0).toFixed(2)} ({(marketData?.bankNifty.changePercent || 0).toFixed(2)}%)
+              {(marketData?.bankNifty.change || 0).toFixed(2)} (
+              {(marketData?.bankNifty.changePercent || 0).toFixed(2)}%)
             </p>
             {marketData?.bankNifty.volume && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -410,19 +460,22 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {marketData?.sensex.price.toLocaleString() || "---"}
             </div>
-            <p className={cn(
-              "text-xs flex items-center gap-1",
-              (marketData?.sensex.change || 0) >= 0
-                ? "text-trading-bull"
-                : "text-trading-bear",
-            )}>
+            <p
+              className={cn(
+                "text-xs flex items-center gap-1",
+                (marketData?.sensex.change || 0) >= 0
+                  ? "text-trading-bull"
+                  : "text-trading-bear",
+              )}
+            >
               {(marketData?.sensex.change || 0) >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
               {(marketData?.sensex.change || 0) > 0 ? "+" : ""}
-              {(marketData?.sensex.change || 0).toFixed(2)} ({(marketData?.sensex.changePercent || 0).toFixed(2)}%)
+              {(marketData?.sensex.change || 0).toFixed(2)} (
+              {(marketData?.sensex.changePercent || 0).toFixed(2)}%)
             </p>
             {marketData?.sensex.volume && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -438,24 +491,36 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={cn(
-              "text-2xl font-bold",
-              (marketData?.totalPnl || 0) >= 0
-                ? "text-trading-bull"
-                : "text-trading-bear",
-            )}>
+            <div
+              className={cn(
+                "text-2xl font-bold",
+                (marketData?.totalPnl || 0) >= 0
+                  ? "text-trading-bull"
+                  : "text-trading-bear",
+              )}
+            >
               ₹{(marketData?.totalPnl || 0).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               {marketData?.totalInvested !== 0
-                ? ((marketData?.totalPnl || 0) / (marketData?.totalInvested || 1) * 100).toFixed(2)
-                : "0.00"}% return
+                ? (
+                    ((marketData?.totalPnl || 0) /
+                      (marketData?.totalInvested || 1)) *
+                    100
+                  ).toFixed(2)
+                : "0.00"}
+              % return
             </p>
-            <p className={cn(
-              "text-xs mt-1",
-              (marketData?.dayPnl || 0) >= 0 ? "text-trading-bull" : "text-trading-bear"
-            )}>
-              Day: {(marketData?.dayPnl || 0) >= 0 ? "+" : ""}₹{(marketData?.dayPnl || 0).toFixed(2)}
+            <p
+              className={cn(
+                "text-xs mt-1",
+                (marketData?.dayPnl || 0) >= 0
+                  ? "text-trading-bull"
+                  : "text-trading-bear",
+              )}
+            >
+              Day: {(marketData?.dayPnl || 0) >= 0 ? "+" : ""}₹
+              {(marketData?.dayPnl || 0).toFixed(2)}
             </p>
           </CardContent>
         </Card>
@@ -465,14 +530,18 @@ export default function Dashboard() {
       <Tabs defaultValue="chart" className="space-y-4">
         <TabsList>
           <TabsTrigger value="chart">Live Chart</TabsTrigger>
-          <TabsTrigger value="positions">Positions ({positions.length})</TabsTrigger>
-          <TabsTrigger value="patterns">AI Patterns ({patterns.length})</TabsTrigger>
+          <TabsTrigger value="positions">
+            Positions ({positions.length})
+          </TabsTrigger>
+          <TabsTrigger value="patterns">
+            AI Patterns ({patterns.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="chart" className="space-y-4">
-          <TradingChart 
-            symbol="NSE:NIFTY50-INDEX" 
-            interval="1D" 
+          <TradingChart
+            symbol="NSE:NIFTY50-INDEX"
+            interval="1D"
             autoUpdate={true}
             showPatterns={true}
             showVolume={true}
@@ -504,8 +573,8 @@ export default function Dashboard() {
                         <span className="font-medium">{position.symbol}</span>
                         <Badge
                           variant={
-                            position.type === "CALL" 
-                              ? "default" 
+                            position.type === "CALL"
+                              ? "default"
                               : position.type === "PUT"
                                 ? "secondary"
                                 : "outline"
@@ -520,21 +589,32 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Qty: {position.quantity} • Avg: ₹{position.avgPrice.toFixed(2)} • LTP: ₹{position.ltp.toFixed(2)}
+                        Qty: {position.quantity} • Avg: ₹
+                        {position.avgPrice.toFixed(2)} • LTP: ₹
+                        {position.ltp.toFixed(2)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={cn(
-                        "font-medium text-lg",
-                        position.pnl >= 0 ? "text-trading-bull" : "text-trading-bear",
-                      )}>
+                      <div
+                        className={cn(
+                          "font-medium text-lg",
+                          position.pnl >= 0
+                            ? "text-trading-bull"
+                            : "text-trading-bear",
+                        )}
+                      >
                         {position.pnl >= 0 ? "+" : ""}₹{position.pnl.toFixed(2)}
                       </div>
-                      <div className={cn(
-                        "text-sm",
-                        position.pnl >= 0 ? "text-trading-bull" : "text-trading-bear",
-                      )}>
-                        {position.pnlPercent >= 0 ? "+" : ""}{position.pnlPercent.toFixed(2)}%
+                      <div
+                        className={cn(
+                          "text-sm",
+                          position.pnl >= 0
+                            ? "text-trading-bull"
+                            : "text-trading-bear",
+                        )}
+                      >
+                        {position.pnlPercent >= 0 ? "+" : ""}
+                        {position.pnlPercent.toFixed(2)}%
                       </div>
                     </div>
                   </div>
@@ -545,7 +625,9 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No open positions</p>
-                  <p className="text-sm">Your positions will appear here once you start trading</p>
+                  <p className="text-sm">
+                    Your positions will appear here once you start trading
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -566,7 +648,9 @@ export default function Dashboard() {
                   {connectionStatus.connected && (
                     <>
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-muted-foreground">Live AI</span>
+                      <span className="text-xs text-muted-foreground">
+                        Live AI
+                      </span>
                     </>
                   )}
                 </div>
@@ -580,14 +664,18 @@ export default function Dashboard() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <AlertTriangle className={cn(
-                        "h-5 w-5",
-                        pattern.signal === "Bullish" || pattern.signal === "BUY"
-                          ? "text-trading-bull"
-                          : pattern.signal === "Bearish" || pattern.signal === "SELL"
-                            ? "text-trading-bear"
-                            : "text-trading-neutral",
-                      )} />
+                      <AlertTriangle
+                        className={cn(
+                          "h-5 w-5",
+                          pattern.signal === "Bullish" ||
+                            pattern.signal === "BUY"
+                            ? "text-trading-bull"
+                            : pattern.signal === "Bearish" ||
+                                pattern.signal === "SELL"
+                              ? "text-trading-bear"
+                              : "text-trading-neutral",
+                        )}
+                      />
                       <div>
                         <div className="font-medium">{pattern.name}</div>
                         <div className="text-sm text-muted-foreground">
@@ -597,13 +685,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant={
-                        pattern.signal === "Bullish" || pattern.signal === "BUY"
-                          ? "default"
-                          : pattern.signal === "Bearish" || pattern.signal === "SELL"
-                            ? "destructive"
-                            : "secondary"
-                      }>
+                      <Badge
+                        variant={
+                          pattern.signal === "Bullish" ||
+                          pattern.signal === "BUY"
+                            ? "default"
+                            : pattern.signal === "Bearish" ||
+                                pattern.signal === "SELL"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
                         {pattern.signal}
                       </Badge>
                       <div className="text-sm text-muted-foreground mt-1">
@@ -618,7 +710,9 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No patterns detected</p>
-                  <p className="text-sm">AI is analyzing market data for patterns</p>
+                  <p className="text-sm">
+                    AI is analyzing market data for patterns
+                  </p>
                 </div>
               )}
 

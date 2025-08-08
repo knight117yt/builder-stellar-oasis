@@ -1,17 +1,23 @@
-import { MarketData, HistoricalCandle, OptionData } from './realTimeDataService';
+import {
+  MarketData,
+  HistoricalCandle,
+  OptionData,
+} from "./realTimeDataService";
 
-const API_BASE_URL = import.meta.env.DEV 
-  ? 'http://localhost:8000' 
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:8000"
   : `http://${window.location.hostname}:8000`;
 
 // Authentication token management
 function getAuthToken(): string | null {
-  return localStorage.getItem('fyers_token') || localStorage.getItem('mock_token');
+  return (
+    localStorage.getItem("fyers_token") || localStorage.getItem("mock_token")
+  );
 }
 
 function getAuthHeaders() {
   const token = getAuthToken();
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 // API response interfaces
@@ -109,7 +115,10 @@ interface AlgoStrategyResponse {
 }
 
 class MarketDataService {
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<
+    string,
+    { data: any; timestamp: number; ttl: number }
+  >();
 
   // Cache management
   private setCacheItem(key: string, data: any, ttlSeconds = 60) {
@@ -135,13 +144,13 @@ class MarketDataService {
   // HTTP request helper
   private async makeRequest<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...getAuthHeaders(),
           ...options.headers,
         },
@@ -159,9 +168,12 @@ class MarketDataService {
   }
 
   // Authentication
-  async login(authMode: 'fyers' | 'mock', accessToken: string): Promise<APIResponse> {
-    return this.makeRequest('/auth/login', {
-      method: 'POST',
+  async login(
+    authMode: "fyers" | "mock",
+    accessToken: string,
+  ): Promise<APIResponse> {
+    return this.makeRequest("/auth/login", {
+      method: "POST",
       body: JSON.stringify({
         auth_mode: authMode,
         access_token: accessToken,
@@ -170,36 +182,38 @@ class MarketDataService {
   }
 
   // Market data endpoints
-  async getLiveMarketData(symbols: string[]): Promise<Record<string, MarketData>> {
-    const symbolsParam = symbols.join(',');
+  async getLiveMarketData(
+    symbols: string[],
+  ): Promise<Record<string, MarketData>> {
+    const symbolsParam = symbols.join(",");
     const cacheKey = `live_data_${symbolsParam}`;
-    
+
     // Check cache first (1 second TTL for live data)
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
 
     try {
-      const response = await this.makeRequest<APIResponse<Record<string, MarketData>>>(
-        `/market/live-data?symbols=${encodeURIComponent(symbolsParam)}`
-      );
-      
+      const response = await this.makeRequest<
+        APIResponse<Record<string, MarketData>>
+      >(`/market/live-data?symbols=${encodeURIComponent(symbolsParam)}`);
+
       const data = response.data || {};
       this.setCacheItem(cacheKey, data, 1);
       return data;
     } catch (error) {
-      console.error('Failed to fetch live market data:', error);
+      console.error("Failed to fetch live market data:", error);
       return this.getMockMarketData(symbols);
     }
   }
 
   async getHistoricalData(
     symbol: string,
-    timeframe = 'D',
+    timeframe = "D",
     fromDate?: string,
-    toDate?: string
+    toDate?: string,
   ): Promise<HistoricalCandle[]> {
     const cacheKey = `historical_${symbol}_${timeframe}_${fromDate}_${toDate}`;
-    
+
     // Check cache first (5 minute TTL for historical data)
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
@@ -213,11 +227,11 @@ class MarketDataService {
       });
 
       const response = await this.makeRequest<HistoricalDataResponse>(
-        `/market/historical?${params}`
+        `/market/historical?${params}`,
       );
 
-      if (response.s === 'ok' && response.candles) {
-        const candles = response.candles.map(candle => ({
+      if (response.s === "ok" && response.candles) {
+        const candles = response.candles.map((candle) => ({
           timestamp: candle[0],
           open: candle[1],
           high: candle[2],
@@ -225,21 +239,21 @@ class MarketDataService {
           close: candle[4],
           volume: candle[5],
         }));
-        
+
         this.setCacheItem(cacheKey, candles, 300);
         return candles;
       }
 
-      throw new Error('Invalid historical data response');
+      throw new Error("Invalid historical data response");
     } catch (error) {
-      console.error('Failed to fetch historical data:', error);
+      console.error("Failed to fetch historical data:", error);
       return this.getMockHistoricalData(symbol);
     }
   }
 
   async getOptionChain(symbol: string, expiry?: string): Promise<OptionData[]> {
-    const cacheKey = `option_chain_${symbol}_${expiry || 'default'}`;
-    
+    const cacheKey = `option_chain_${symbol}_${expiry || "default"}`;
+
     // Check cache first (10 second TTL for option chain)
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
@@ -251,17 +265,17 @@ class MarketDataService {
       });
 
       const response = await this.makeRequest<OptionChainResponse>(
-        `/market/option-chain?${params}`
+        `/market/option-chain?${params}`,
       );
 
-      if (response.s === 'ok' && response.data) {
+      if (response.s === "ok" && response.data) {
         this.setCacheItem(cacheKey, response.data, 10);
         return response.data;
       }
 
-      throw new Error('Invalid option chain response');
+      throw new Error("Invalid option chain response");
     } catch (error) {
-      console.error('Failed to fetch option chain:', error);
+      console.error("Failed to fetch option chain:", error);
       return this.getMockOptionChain(symbol);
     }
   }
@@ -269,38 +283,38 @@ class MarketDataService {
   // Stock search and details
   async searchStocks(query: string): Promise<StockSearchResponse> {
     const cacheKey = `search_${query}`;
-    
+
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
 
     try {
       const response = await this.makeRequest<StockSearchResponse>(
-        `/stocks/search?query=${encodeURIComponent(query)}`
+        `/stocks/search?query=${encodeURIComponent(query)}`,
       );
-      
+
       this.setCacheItem(cacheKey, response, 300);
       return response;
     } catch (error) {
-      console.error('Failed to search stocks:', error);
+      console.error("Failed to search stocks:", error);
       return { stocks: [] };
     }
   }
 
   async getStockDetails(symbol: string): Promise<StockDetailsResponse | null> {
     const cacheKey = `stock_details_${symbol}`;
-    
+
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
 
     try {
       const response = await this.makeRequest<StockDetailsResponse>(
-        `/stocks/${encodeURIComponent(symbol)}/details`
+        `/stocks/${encodeURIComponent(symbol)}/details`,
       );
-      
+
       this.setCacheItem(cacheKey, response, 60);
       return response;
     } catch (error) {
-      console.error('Failed to get stock details:', error);
+      console.error("Failed to get stock details:", error);
       return null;
     }
   }
@@ -322,37 +336,40 @@ class MarketDataService {
   }): Promise<ScreenerResponse> {
     try {
       const response = await this.makeRequest<ScreenerResponse>(
-        '/screener/filter',
+        "/screener/filter",
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(filters),
-        }
+        },
       );
-      
+
       return response;
     } catch (error) {
-      console.error('Failed to screen stocks:', error);
+      console.error("Failed to screen stocks:", error);
       return { stocks: [], total: 0 };
     }
   }
 
   // AI Analysis
-  async getAIAnalysis(symbol: string, timeframe = 'D'): Promise<AIAnalysisResponse | null> {
+  async getAIAnalysis(
+    symbol: string,
+    timeframe = "D",
+  ): Promise<AIAnalysisResponse | null> {
     const cacheKey = `ai_analysis_${symbol}_${timeframe}`;
-    
+
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
 
     try {
       const response = await this.makeRequest<AIAnalysisResponse>(
         `/analysis/ai-analyze?symbol=${encodeURIComponent(symbol)}&timeframe=${timeframe}`,
-        { method: 'POST' }
+        { method: "POST" },
       );
-      
+
       this.setCacheItem(cacheKey, response, 300);
       return response;
     } catch (error) {
-      console.error('Failed to get AI analysis:', error);
+      console.error("Failed to get AI analysis:", error);
       return null;
     }
   }
@@ -370,40 +387,44 @@ class MarketDataService {
   }): Promise<AlgoStrategyResponse | null> {
     try {
       const response = await this.makeRequest<AlgoStrategyResponse>(
-        '/algo/create-strategy',
+        "/algo/create-strategy",
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(strategy),
-        }
+        },
       );
-      
+
       return response;
     } catch (error) {
-      console.error('Failed to create strategy:', error);
+      console.error("Failed to create strategy:", error);
       return null;
     }
   }
 
   async getStrategies(): Promise<{ strategies: any[] }> {
     try {
-      const response = await this.makeRequest<{ strategies: any[] }>('/algo/strategies');
+      const response = await this.makeRequest<{ strategies: any[] }>(
+        "/algo/strategies",
+      );
       return response;
     } catch (error) {
-      console.error('Failed to get strategies:', error);
+      console.error("Failed to get strategies:", error);
       return { strategies: [] };
     }
   }
 
-  async toggleStrategy(strategyId: string): Promise<{ strategy_id: string; status: string } | null> {
+  async toggleStrategy(
+    strategyId: string,
+  ): Promise<{ strategy_id: string; status: string } | null> {
     try {
-      const response = await this.makeRequest<{ strategy_id: string; status: string }>(
-        `/algo/strategies/${strategyId}/toggle`,
-        { method: 'POST' }
-      );
-      
+      const response = await this.makeRequest<{
+        strategy_id: string;
+        status: string;
+      }>(`/algo/strategies/${strategyId}/toggle`, { method: "POST" });
+
       return response;
     } catch (error) {
-      console.error('Failed to toggle strategy:', error);
+      console.error("Failed to toggle strategy:", error);
       return null;
     }
   }
@@ -411,10 +432,10 @@ class MarketDataService {
   // Health check
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await this.makeRequest('/health');
-      return response.status === 'healthy';
+      const response = await this.makeRequest("/health");
+      return response.status === "healthy";
     } catch (error) {
-      console.error('Health check failed:', error);
+      console.error("Health check failed:", error);
       return false;
     }
   }
@@ -422,11 +443,11 @@ class MarketDataService {
   // Mock data fallbacks
   private getMockMarketData(symbols: string[]): Record<string, MarketData> {
     const data: Record<string, MarketData> = {};
-    
-    symbols.forEach(symbol => {
-      const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
+
+    symbols.forEach((symbol) => {
+      const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
       const change = (Math.random() - 0.5) * 200;
-      
+
       data[symbol] = {
         symbol,
         ltp: basePrice + change,
@@ -441,22 +462,22 @@ class MarketDataService {
         timestamp: new Date().toISOString(),
       };
     });
-    
+
     return data;
   }
 
   private getMockHistoricalData(symbol: string): HistoricalCandle[] {
     const candles: HistoricalCandle[] = [];
-    const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
+    const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
     const now = Date.now();
-    
+
     for (let i = 30; i >= 0; i--) {
-      const timestamp = now - (i * 24 * 60 * 60 * 1000);
+      const timestamp = now - i * 24 * 60 * 60 * 1000;
       const open = basePrice + (Math.random() - 0.5) * 100;
       const close = open + (Math.random() - 0.5) * 50;
       const high = Math.max(open, close) + Math.random() * 20;
       const low = Math.min(open, close) - Math.random() * 20;
-      
+
       candles.push({
         timestamp: Math.floor(timestamp / 1000),
         open,
@@ -466,20 +487,23 @@ class MarketDataService {
         volume: Math.floor(Math.random() * 100000) + 10000,
       });
     }
-    
+
     return candles;
   }
 
   private getMockOptionChain(symbol: string): OptionData[] {
     const options: OptionData[] = [];
-    const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
-    
+    const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
+
     for (let i = -10; i <= 10; i++) {
-      const strike = basePrice + (i * 50);
-      
+      const strike = basePrice + i * 50;
+
       options.push({
         strike,
-        call_ltp: Math.max(0.1, basePrice - strike + (Math.random() - 0.5) * 40),
+        call_ltp: Math.max(
+          0.1,
+          basePrice - strike + (Math.random() - 0.5) * 40,
+        ),
         put_ltp: Math.max(0.1, strike - basePrice + (Math.random() - 0.5) * 40),
         call_oi: Math.floor(Math.random() * 10000) + 100,
         put_oi: Math.floor(Math.random() * 10000) + 100,
@@ -489,7 +513,7 @@ class MarketDataService {
         put_iv: Math.random() * 20 + 15,
       });
     }
-    
+
     return options;
   }
 }

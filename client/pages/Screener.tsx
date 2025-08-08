@@ -21,11 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Search, 
-  Filter, 
-  RotateCcw, 
-  TrendingUp, 
+import {
+  Search,
+  Filter,
+  RotateCcw,
+  TrendingUp,
   TrendingDown,
   DollarSign,
   BarChart3,
@@ -73,9 +73,17 @@ interface StockSearchResult {
 }
 
 const SECTORS = [
-  "Technology", "Financial Services", "Healthcare", "Energy", "Consumer Cyclical",
-  "Industrials", "Consumer Defensive", "Real Estate", "Basic Materials", 
-  "Communication Services", "Utilities"
+  "Technology",
+  "Financial Services",
+  "Healthcare",
+  "Energy",
+  "Consumer Cyclical",
+  "Industrials",
+  "Consumer Defensive",
+  "Real Estate",
+  "Basic Materials",
+  "Communication Services",
+  "Utilities",
 ];
 
 const EXCHANGES = ["NSE", "BSE"];
@@ -96,7 +104,7 @@ export default function Screener() {
 
   // Load watchlist from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('screener_watchlist');
+    const saved = localStorage.getItem("screener_watchlist");
     if (saved) {
       setWatchlist(JSON.parse(saved));
     }
@@ -105,7 +113,7 @@ export default function Screener() {
   // Save watchlist to localStorage
   const saveWatchlist = (newWatchlist: string[]) => {
     setWatchlist(newWatchlist);
-    localStorage.setItem('screener_watchlist', JSON.stringify(newWatchlist));
+    localStorage.setItem("screener_watchlist", JSON.stringify(newWatchlist));
   };
 
   // Run screening based on filters
@@ -155,14 +163,14 @@ export default function Screener() {
   // Toggle watchlist
   const toggleWatchlist = (symbol: string) => {
     const newWatchlist = watchlist.includes(symbol)
-      ? watchlist.filter(s => s !== symbol)
+      ? watchlist.filter((s) => s !== symbol)
       : [...watchlist, symbol];
     saveWatchlist(newWatchlist);
   };
 
   // Filter input handlers
   const updateFilter = (key: keyof ScreenerFilters, value: any) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [key]: value || undefined,
     }));
@@ -174,9 +182,9 @@ export default function Screener() {
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 2,
     }).format(value);
   };
@@ -233,13 +241,17 @@ export default function Screener() {
                       type="number"
                       placeholder="Min"
                       value={filters.min_price || ""}
-                      onChange={(e) => updateFilter("min_price", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("min_price", parseFloat(e.target.value))
+                      }
                     />
                     <Input
                       type="number"
                       placeholder="Max"
                       value={filters.max_price || ""}
-                      onChange={(e) => updateFilter("max_price", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("max_price", parseFloat(e.target.value))
+                      }
                     />
                   </div>
                 </div>
@@ -252,13 +264,17 @@ export default function Screener() {
                       type="number"
                       placeholder="Min"
                       value={filters.min_volume || ""}
-                      onChange={(e) => updateFilter("min_volume", parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("min_volume", parseInt(e.target.value))
+                      }
                     />
                     <Input
                       type="number"
                       placeholder="Max"
                       value={filters.max_volume || ""}
-                      onChange={(e) => updateFilter("max_volume", parseInt(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("max_volume", parseInt(e.target.value))
+                      }
                     />
                   </div>
                 </div>
@@ -271,13 +287,23 @@ export default function Screener() {
                       type="number"
                       placeholder="Min"
                       value={filters.min_market_cap || ""}
-                      onChange={(e) => updateFilter("min_market_cap", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter(
+                          "min_market_cap",
+                          parseFloat(e.target.value),
+                        )
+                      }
                     />
                     <Input
                       type="number"
                       placeholder="Max"
                       value={filters.max_market_cap || ""}
-                      onChange={(e) => updateFilter("max_market_cap", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter(
+                          "max_market_cap",
+                          parseFloat(e.target.value),
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -290,13 +316,17 @@ export default function Screener() {
                       type="number"
                       placeholder="Min"
                       value={filters.min_pe_ratio || ""}
-                      onChange={(e) => updateFilter("min_pe_ratio", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("min_pe_ratio", parseFloat(e.target.value))
+                      }
                     />
                     <Input
                       type="number"
                       placeholder="Max"
                       value={filters.max_pe_ratio || ""}
-                      onChange={(e) => updateFilter("max_pe_ratio", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter("max_pe_ratio", parseFloat(e.target.value))
+                      }
                     />
                   </div>
                 </div>
@@ -309,13 +339,23 @@ export default function Screener() {
                       type="number"
                       placeholder="Min"
                       value={filters.price_change_min || ""}
-                      onChange={(e) => updateFilter("price_change_min", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter(
+                          "price_change_min",
+                          parseFloat(e.target.value),
+                        )
+                      }
                     />
                     <Input
                       type="number"
                       placeholder="Max"
                       value={filters.price_change_max || ""}
-                      onChange={(e) => updateFilter("price_change_max", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateFilter(
+                          "price_change_max",
+                          parseFloat(e.target.value),
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -323,14 +363,23 @@ export default function Screener() {
                 {/* Exchange Filter */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Exchange</Label>
-                  <Select onValueChange={(value) => updateFilter("exchanges", value === "all" ? undefined : [value])}>
+                  <Select
+                    onValueChange={(value) =>
+                      updateFilter(
+                        "exchanges",
+                        value === "all" ? undefined : [value],
+                      )
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Exchanges" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Exchanges</SelectItem>
-                      {EXCHANGES.map(exchange => (
-                        <SelectItem key={exchange} value={exchange}>{exchange}</SelectItem>
+                      {EXCHANGES.map((exchange) => (
+                        <SelectItem key={exchange} value={exchange}>
+                          {exchange}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -340,10 +389,18 @@ export default function Screener() {
 
                 {/* Action Buttons */}
                 <div className="space-y-2">
-                  <Button onClick={runScreener} disabled={loading} className="w-full">
+                  <Button
+                    onClick={runScreener}
+                    disabled={loading}
+                    className="w-full"
+                  >
                     {loading ? "Screening..." : "Run Screener"}
                   </Button>
-                  <Button onClick={clearFilters} variant="outline" className="w-full">
+                  <Button
+                    onClick={clearFilters}
+                    variant="outline"
+                    className="w-full"
+                  >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Clear Filters
                   </Button>
@@ -382,13 +439,21 @@ export default function Screener() {
                       <TableBody>
                         {screenedStocks.map((stock) => (
                           <TableRow key={stock.symbol}>
-                            <TableCell className="font-medium">{stock.symbol}</TableCell>
-                            <TableCell className="max-w-48 truncate">{stock.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {stock.symbol}
+                            </TableCell>
+                            <TableCell className="max-w-48 truncate">
+                              {stock.name}
+                            </TableCell>
                             <TableCell>{formatCurrency(stock.price)}</TableCell>
                             <TableCell>
-                              <div className={`flex items-center gap-1 ${
-                                stock.change >= 0 ? 'text-trading-bull' : 'text-trading-bear'
-                              }`}>
+                              <div
+                                className={`flex items-center gap-1 ${
+                                  stock.change >= 0
+                                    ? "text-trading-bull"
+                                    : "text-trading-bear"
+                                }`}
+                              >
                                 {stock.change >= 0 ? (
                                   <TrendingUp className="h-3 w-3" />
                                 ) : (
@@ -399,9 +464,13 @@ export default function Screener() {
                             </TableCell>
                             <TableCell>{formatVolume(stock.volume)}</TableCell>
                             <TableCell>
-                              {stock.market_cap ? formatMarketCap(stock.market_cap) : "-"}
+                              {stock.market_cap
+                                ? formatMarketCap(stock.market_cap)
+                                : "-"}
                             </TableCell>
-                            <TableCell>{stock.pe_ratio?.toFixed(2) || "-"}</TableCell>
+                            <TableCell>
+                              {stock.pe_ratio?.toFixed(2) || "-"}
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1">
                                 <Button
@@ -416,12 +485,12 @@ export default function Screener() {
                                   variant="ghost"
                                   onClick={() => toggleWatchlist(stock.symbol)}
                                 >
-                                  <Star 
+                                  <Star
                                     className={`h-3 w-3 ${
-                                      watchlist.includes(stock.symbol) 
-                                        ? 'fill-current text-yellow-500' 
-                                        : ''
-                                    }`} 
+                                      watchlist.includes(stock.symbol)
+                                        ? "fill-current text-yellow-500"
+                                        : ""
+                                    }`}
                                   />
                                 </Button>
                               </div>
@@ -431,12 +500,14 @@ export default function Screener() {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   {screenedStocks.length === 0 && !loading && (
                     <div className="text-center py-8 text-muted-foreground">
                       <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No stocks found matching your criteria</p>
-                      <p className="text-sm">Try adjusting your filters and run the screener again</p>
+                      <p className="text-sm">
+                        Try adjusting your filters and run the screener again
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -481,7 +552,9 @@ export default function Screener() {
                   >
                     <div>
                       <div className="font-medium">{stock.symbol}</div>
-                      <div className="text-sm text-muted-foreground">{stock.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {stock.name}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {stock.exchange} {stock.sector && `• ${stock.sector}`}
                       </div>
@@ -495,12 +568,12 @@ export default function Screener() {
                           toggleWatchlist(stock.symbol);
                         }}
                       >
-                        <Star 
+                        <Star
                           className={`h-4 w-4 ${
-                            watchlist.includes(stock.symbol) 
-                              ? 'fill-current text-yellow-500' 
-                              : ''
-                          }`} 
+                            watchlist.includes(stock.symbol)
+                              ? "fill-current text-yellow-500"
+                              : ""
+                          }`}
                         />
                       </Button>
                       <Button size="sm" variant="ghost">
@@ -515,7 +588,9 @@ export default function Screener() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No stocks found for "{searchQuery}"</p>
-                  <p className="text-sm">Try searching with different keywords</p>
+                  <p className="text-sm">
+                    Try searching with different keywords
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -526,41 +601,61 @@ export default function Screener() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{stockDetails.name} ({selectedStock})</span>
-                  <Badge variant={stockDetails.has_options ? "default" : "secondary"}>
-                    {stockDetails.has_options ? "Options Available" : "Equity Only"}
+                  <span>
+                    {stockDetails.name} ({selectedStock})
+                  </span>
+                  <Badge
+                    variant={stockDetails.has_options ? "default" : "secondary"}
+                  >
+                    {stockDetails.has_options
+                      ? "Options Available"
+                      : "Equity Only"}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <Label className="text-sm text-muted-foreground">Last Price</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Last Price
+                    </Label>
                     <div className="text-lg font-semibold">
                       {formatCurrency(stockDetails.market_data?.ltp || 0)}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm text-muted-foreground">Change</Label>
-                    <div className={`text-lg font-semibold ${
-                      (stockDetails.market_data?.change || 0) >= 0 ? 'text-trading-bull' : 'text-trading-bear'
-                    }`}>
-                      {(stockDetails.market_data?.change_percent || 0).toFixed(2)}%
+                    <Label className="text-sm text-muted-foreground">
+                      Change
+                    </Label>
+                    <div
+                      className={`text-lg font-semibold ${
+                        (stockDetails.market_data?.change || 0) >= 0
+                          ? "text-trading-bull"
+                          : "text-trading-bear"
+                      }`}
+                    >
+                      {(stockDetails.market_data?.change_percent || 0).toFixed(
+                        2,
+                      )}
+                      %
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm text-muted-foreground">Volume</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Volume
+                    </Label>
                     <div className="text-lg font-semibold">
                       {formatVolume(stockDetails.market_data?.volume || 0)}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm text-muted-foreground">Market Cap</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Market Cap
+                    </Label>
                     <div className="text-lg font-semibold">
-                      {stockDetails.fundamentals?.market_cap 
+                      {stockDetails.fundamentals?.market_cap
                         ? formatMarketCap(stockDetails.fundamentals.market_cap)
-                        : "-"
-                      }
+                        : "-"}
                     </div>
                   </div>
                 </div>
@@ -582,7 +677,9 @@ export default function Screener() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Your watchlist is empty</p>
-                  <p className="text-sm">Add stocks from the screener or search to track them here</p>
+                  <p className="text-sm">
+                    Add stocks from the screener or search to track them here
+                  </p>
                 </div>
               ) : (
                 <div className="grid gap-3">
@@ -597,7 +694,8 @@ export default function Screener() {
                           <div className="font-medium">{symbol}</div>
                           {data && (
                             <div className="text-sm text-muted-foreground">
-                              {formatCurrency(data.ltp)} • {data.change_percent.toFixed(2)}%
+                              {formatCurrency(data.ltp)} •{" "}
+                              {data.change_percent.toFixed(2)}%
                             </div>
                           )}
                         </div>

@@ -23,7 +23,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { marketDataService } from "@/services/marketData";
-import { useMarketData, useSubscription, HistoricalCandle } from "@/services/realTimeDataService";
+import {
+  useMarketData,
+  useSubscription,
+  HistoricalCandle,
+} from "@/services/realTimeDataService";
 import { Pause, Play, RotateCcw, TrendingUp, TrendingDown } from "lucide-react";
 
 interface CandleData {
@@ -103,15 +107,19 @@ const CandlestickBar = (props: any) => {
 };
 
 // Technical indicator calculations
-const calculateSMA = (data: CandleData[], period: number): TechnicalIndicator => {
+const calculateSMA = (
+  data: CandleData[],
+  period: number,
+): TechnicalIndicator => {
   const smaData = data.map((item, index) => {
     if (index < period - 1) {
       return { time: item.time, value: 0 };
     }
-    
-    const sum = data.slice(index - period + 1, index + 1)
+
+    const sum = data
+      .slice(index - period + 1, index + 1)
       .reduce((acc, curr) => acc + curr.close, 0);
-    
+
     return { time: item.time, value: sum / period };
   });
 
@@ -123,7 +131,10 @@ const calculateSMA = (data: CandleData[], period: number): TechnicalIndicator =>
   };
 };
 
-const calculateEMA = (data: CandleData[], period: number): TechnicalIndicator => {
+const calculateEMA = (
+  data: CandleData[],
+  period: number,
+): TechnicalIndicator => {
   const multiplier = 2 / (period + 1);
   const emaData: Array<{ time: string; value: number }> = [];
 
@@ -147,7 +158,12 @@ const calculateEMA = (data: CandleData[], period: number): TechnicalIndicator =>
 
 const detectPatterns = (
   data: CandleData[],
-): Array<{ name: string; signal: string; index: number; confidence: number }> => {
+): Array<{
+  name: string;
+  signal: string;
+  index: number;
+  confidence: number;
+}> => {
   const patterns = [];
 
   for (let i = 2; i < data.length; i++) {
@@ -158,46 +174,59 @@ const detectPatterns = (
     // Enhanced pattern detection with confidence scores
     const bodySize = Math.abs(current.close - current.open);
     const totalRange = current.high - current.low;
-    const lowerShadow = current.open < current.close
-      ? current.open - current.low
-      : current.close - current.low;
+    const lowerShadow =
+      current.open < current.close
+        ? current.open - current.low
+        : current.close - current.low;
     const upperShadow = current.high - Math.max(current.open, current.close);
 
     // Hammer pattern with confidence
-    if (lowerShadow > bodySize * 2 && upperShadow < bodySize * 0.5 && totalRange > 0) {
+    if (
+      lowerShadow > bodySize * 2 &&
+      upperShadow < bodySize * 0.5 &&
+      totalRange > 0
+    ) {
       const confidence = Math.min(0.95, (lowerShadow / bodySize) * 0.3);
-      patterns.push({ 
-        name: "Hammer", 
-        signal: "Bullish", 
-        index: i, 
-        confidence 
+      patterns.push({
+        name: "Hammer",
+        signal: "Bullish",
+        index: i,
+        confidence,
       });
     }
 
     // Doji pattern with confidence
     if (bodySize < totalRange * 0.1 && totalRange > 0) {
       const confidence = Math.min(0.9, (totalRange - bodySize) / totalRange);
-      patterns.push({ 
-        name: "Doji", 
-        signal: "Neutral", 
-        index: i, 
-        confidence 
+      patterns.push({
+        name: "Doji",
+        signal: "Neutral",
+        index: i,
+        confidence,
       });
     }
 
     // Engulfing patterns with confidence
     const prevBodySize = Math.abs(prev.close - prev.open);
     if (bodySize > prevBodySize * 1.3) {
-      if (prev.close < prev.open && current.close > current.open && current.close > prev.open) {
-        const confidence = Math.min(0.95, bodySize / prevBodySize * 0.5);
+      if (
+        prev.close < prev.open &&
+        current.close > current.open &&
+        current.close > prev.open
+      ) {
+        const confidence = Math.min(0.95, (bodySize / prevBodySize) * 0.5);
         patterns.push({
           name: "Bullish Engulfing",
           signal: "Bullish",
           index: i,
           confidence,
         });
-      } else if (prev.close > prev.open && current.close < current.open && current.close < prev.open) {
-        const confidence = Math.min(0.95, bodySize / prevBodySize * 0.5);
+      } else if (
+        prev.close > prev.open &&
+        current.close < current.open &&
+        current.close < prev.open
+      ) {
+        const confidence = Math.min(0.95, (bodySize / prevBodySize) * 0.5);
         patterns.push({
           name: "Bearish Engulfing",
           signal: "Bearish",
@@ -212,12 +241,14 @@ const detectPatterns = (
       const candle1 = data[i - 2];
       const candle2 = prev;
       const candle3 = current;
-      
-      const allBullish = candle1.close > candle1.open && 
-                        candle2.close > candle2.open && 
-                        candle3.close > candle3.open;
-      const ascending = candle2.close > candle1.close && candle3.close > candle2.close;
-      
+
+      const allBullish =
+        candle1.close > candle1.open &&
+        candle2.close > candle2.open &&
+        candle3.close > candle3.open;
+      const ascending =
+        candle2.close > candle1.close && candle3.close > candle2.close;
+
       if (allBullish && ascending) {
         patterns.push({
           name: "Three White Soldiers",
@@ -227,11 +258,13 @@ const detectPatterns = (
         });
       }
 
-      const allBearish = candle1.close < candle1.open && 
-                        candle2.close < candle2.open && 
-                        candle3.close < candle3.open;
-      const descending = candle2.close < candle1.close && candle3.close < candle2.close;
-      
+      const allBearish =
+        candle1.close < candle1.open &&
+        candle2.close < candle2.open &&
+        candle3.close < candle3.open;
+      const descending =
+        candle2.close < candle1.close && candle3.close < candle2.close;
+
       if (allBearish && descending) {
         patterns.push({
           name: "Three Black Crows",
@@ -243,7 +276,7 @@ const detectPatterns = (
     }
   }
 
-  return patterns.slice(-8).filter(p => p.confidence > 0.6); // Return high-confidence patterns
+  return patterns.slice(-8).filter((p) => p.confidence > 0.6); // Return high-confidence patterns
 };
 
 export function TradingChart({
@@ -255,13 +288,15 @@ export function TradingChart({
   autoUpdate = true,
 }: TradingChartProps) {
   const [data, setData] = useState<CandleData[]>([]);
-  const [patterns, setPatterns] = useState<Array<{ name: string; signal: string; index: number; confidence: number }>>([]);
+  const [patterns, setPatterns] = useState<
+    Array<{ name: string; signal: string; index: number; confidence: number }>
+  >([]);
   const [indicators, setIndicators] = useState<TechnicalIndicator[]>([]);
   const [selectedInterval, setSelectedInterval] = useState(interval);
   const [loading, setLoading] = useState(false);
   const [liveMode, setLiveMode] = useState(autoUpdate);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { data: marketData } = useMarketData(symbol);
   const { subscribe, unsubscribe } = useSubscription(symbol, liveMode);
@@ -279,13 +314,15 @@ export function TradingChart({
     setLoading(true);
     try {
       const fromDate = new Date();
-      fromDate.setDate(fromDate.getDate() - (selectedInterval === "1D" ? 30 : 100));
-      
+      fromDate.setDate(
+        fromDate.getDate() - (selectedInterval === "1D" ? 30 : 100),
+      );
+
       const historicalData = await marketDataService.getHistoricalData(
         symbol,
         selectedInterval,
-        fromDate.toISOString().split('T')[0],
-        new Date().toISOString().split('T')[0]
+        fromDate.toISOString().split("T")[0],
+        new Date().toISOString().split("T")[0],
       );
 
       const formattedData: CandleData[] = historicalData.map((candle) => ({
@@ -302,7 +339,7 @@ export function TradingChart({
       }));
 
       setData(formattedData);
-      
+
       if (showPatterns) {
         setPatterns(detectPatterns(formattedData));
       }
@@ -326,17 +363,19 @@ export function TradingChart({
   const updateLiveData = useCallback(() => {
     if (!liveMode || !marketData) return;
 
-    setData(prevData => {
+    setData((prevData) => {
       if (prevData.length === 0) return prevData;
 
       const newData = [...prevData];
       const lastCandle = newData[newData.length - 1];
       const currentTime = new Date();
-      
+
       // Determine if we should create a new candle or update the existing one
-      const intervalSeconds = intervals.find(i => i.value === selectedInterval)?.seconds || 86400;
-      const timeDiff = Math.floor(currentTime.getTime() / 1000) - lastCandle.timestamp;
-      
+      const intervalSeconds =
+        intervals.find((i) => i.value === selectedInterval)?.seconds || 86400;
+      const timeDiff =
+        Math.floor(currentTime.getTime() / 1000) - lastCandle.timestamp;
+
       if (timeDiff >= intervalSeconds) {
         // Create new candle
         const newCandle: CandleData = {
@@ -401,7 +440,8 @@ export function TradingChart({
   }, [data, showPatterns]);
 
   const currentPrice = data.length > 0 ? data[data.length - 1].close : 0;
-  const prevPrice = data.length > 1 ? data[data.length - 2].close : currentPrice;
+  const prevPrice =
+    data.length > 1 ? data[data.length - 2].close : currentPrice;
   const change = currentPrice - prevPrice;
   const changePercent = prevPrice !== 0 ? (change / prevPrice) * 100 : 0;
 
@@ -437,21 +477,24 @@ export function TradingChart({
               </div>
             </CardTitle>
             <CardDescription>
-              Real-time candlestick chart with pattern detection and technical indicators
+              Real-time candlestick chart with pattern detection and technical
+              indicators
             </CardDescription>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Live Mode Toggle */}
             <div className="flex items-center gap-2">
-              <Label htmlFor="live-mode" className="text-sm">Live</Label>
+              <Label htmlFor="live-mode" className="text-sm">
+                Live
+              </Label>
               <Switch
                 id="live-mode"
                 checked={liveMode}
                 onCheckedChange={toggleLiveMode}
               />
             </div>
-            
+
             {/* Refresh Button */}
             <Button
               variant="outline"
@@ -459,9 +502,11 @@ export function TradingChart({
               onClick={refreshData}
               disabled={loading}
             >
-              <RotateCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RotateCcw
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
             </Button>
-            
+
             {/* Interval Buttons */}
             {intervals.map((int) => (
               <Button
@@ -482,11 +527,17 @@ export function TradingChart({
           <div className="text-3xl font-bold">
             ₹{currentPrice.toLocaleString()}
           </div>
-          <div className={cn(
-            "flex items-center gap-2 text-lg font-medium",
-            change >= 0 ? "text-trading-bull" : "text-trading-bear",
-          )}>
-            {change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+          <div
+            className={cn(
+              "flex items-center gap-2 text-lg font-medium",
+              change >= 0 ? "text-trading-bull" : "text-trading-bear",
+            )}
+          >
+            {change >= 0 ? (
+              <TrendingUp className="h-4 w-4" />
+            ) : (
+              <TrendingDown className="h-4 w-4" />
+            )}
             <span>
               {change >= 0 ? "+" : ""}
               {change.toFixed(2)}
@@ -547,27 +598,33 @@ export function TradingChart({
                     type="number"
                     allowDecimals={true}
                   />
-                  
+
                   {/* Support and Resistance Lines */}
                   {data.length > 0 && (
                     <>
-                      <ReferenceLine 
-                        y={Math.max(...data.map(d => d.high))} 
-                        stroke="#dc2626" 
-                        strokeDasharray="5 5" 
+                      <ReferenceLine
+                        y={Math.max(...data.map((d) => d.high))}
+                        stroke="#dc2626"
+                        strokeDasharray="5 5"
                         strokeOpacity={0.7}
-                        label={{ value: "Resistance", position: "insideTopRight" }}
+                        label={{
+                          value: "Resistance",
+                          position: "insideTopRight",
+                        }}
                       />
-                      <ReferenceLine 
-                        y={Math.min(...data.map(d => d.low))} 
-                        stroke="#16a34a" 
-                        strokeDasharray="5 5" 
+                      <ReferenceLine
+                        y={Math.min(...data.map((d) => d.low))}
+                        stroke="#16a34a"
+                        strokeDasharray="5 5"
                         strokeOpacity={0.7}
-                        label={{ value: "Support", position: "insideBottomRight" }}
+                        label={{
+                          value: "Support",
+                          position: "insideBottomRight",
+                        }}
                       />
                     </>
                   )}
-                  
+
                   <Tooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
@@ -578,7 +635,9 @@ export function TradingChart({
                             <div className="space-y-1 text-sm">
                               <div className="flex justify-between gap-4">
                                 <span>Open:</span>
-                                <span className="font-mono">₹{data.open.toFixed(2)}</span>
+                                <span className="font-mono">
+                                  ₹{data.open.toFixed(2)}
+                                </span>
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>High:</span>
@@ -594,7 +653,9 @@ export function TradingChart({
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>Close:</span>
-                                <span className="font-mono">₹{data.close.toFixed(2)}</span>
+                                <span className="font-mono">
+                                  ₹{data.close.toFixed(2)}
+                                </span>
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>Volume:</span>
@@ -609,31 +670,33 @@ export function TradingChart({
                       return null;
                     }}
                   />
-                  
+
                   {/* Candlesticks */}
                   <Bar
                     dataKey={(entry) => [entry.low, entry.high]}
                     shape={(props) => <CandlestickBar {...props} />}
                   />
-                  
+
                   {/* Technical Indicators */}
-                  {indicators.map((indicator, index) => 
-                    indicator.enabled && (
-                      <Line
-                        key={indicator.name}
-                        type="monotone"
-                        dataKey={`indicator_${index}`}
-                        stroke={indicator.color}
-                        strokeWidth={1.5}
-                        dot={false}
-                        connectNulls={false}
-                        strokeOpacity={0.8}
-                        data={data.map((item, i) => ({
-                          ...item,
-                          [`indicator_${index}`]: indicator.data[i]?.value || null
-                        }))}
-                      />
-                    )
+                  {indicators.map(
+                    (indicator, index) =>
+                      indicator.enabled && (
+                        <Line
+                          key={indicator.name}
+                          type="monotone"
+                          dataKey={`indicator_${index}`}
+                          stroke={indicator.color}
+                          strokeWidth={1.5}
+                          dot={false}
+                          connectNulls={false}
+                          strokeOpacity={0.8}
+                          data={data.map((item, i) => ({
+                            ...item,
+                            [`indicator_${index}`]:
+                              indicator.data[i]?.value || null,
+                          }))}
+                        />
+                      ),
                   )}
                 </ComposedChart>
               </ResponsiveContainer>
@@ -645,11 +708,14 @@ export function TradingChart({
                 <h4 className="font-medium mb-2">Technical Indicators</h4>
                 <div className="flex flex-wrap gap-2">
                   {indicators.map((indicator, index) => (
-                    <Badge 
-                      key={indicator.name} 
-                      variant="outline" 
+                    <Badge
+                      key={indicator.name}
+                      variant="outline"
                       className="text-xs"
-                      style={{ borderColor: indicator.color, color: indicator.color }}
+                      style={{
+                        borderColor: indicator.color,
+                        color: indicator.color,
+                      }}
                     >
                       {indicator.name}
                     </Badge>
@@ -675,7 +741,8 @@ export function TradingChart({
                       }
                       className="text-xs"
                     >
-                      {pattern.name} - {pattern.signal} ({(pattern.confidence * 100).toFixed(0)}%)
+                      {pattern.name} - {pattern.signal} (
+                      {(pattern.confidence * 100).toFixed(0)}%)
                     </Badge>
                   ))}
                 </div>

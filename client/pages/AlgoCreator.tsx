@@ -32,13 +32,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Bot, 
-  Plus, 
-  Play, 
-  Pause, 
-  Trash2, 
-  Settings, 
+import {
+  Bot,
+  Plus,
+  Play,
+  Pause,
+  Trash2,
+  Settings,
   TrendingUp,
   TrendingDown,
   Activity,
@@ -96,43 +96,54 @@ interface StrategyForm {
 }
 
 const STRATEGY_TYPES = [
-  { 
-    value: "technical", 
+  {
+    value: "technical",
     label: "Technical Indicators",
-    description: "Strategies based on technical analysis indicators like RSI, MACD, Moving Averages"
+    description:
+      "Strategies based on technical analysis indicators like RSI, MACD, Moving Averages",
   },
-  { 
-    value: "ai_based", 
+  {
+    value: "ai_based",
     label: "AI Based",
-    description: "Machine learning powered strategies using AI pattern recognition"
+    description:
+      "Machine learning powered strategies using AI pattern recognition",
   },
-  { 
-    value: "option_strategy", 
+  {
+    value: "option_strategy",
     label: "Option Strategies",
-    description: "Complex option spreads with IV and volatility-based triggers"
+    description: "Complex option spreads with IV and volatility-based triggers",
   },
-  { 
-    value: "momentum", 
+  {
+    value: "momentum",
     label: "Momentum",
-    description: "Strategies that follow price momentum and trend continuation"
+    description: "Strategies that follow price momentum and trend continuation",
   },
-  { 
-    value: "mean_reversion", 
+  {
+    value: "mean_reversion",
     label: "Mean Reversion",
-    description: "Strategies that profit from price returning to average levels"
-  }
+    description:
+      "Strategies that profit from price returning to average levels",
+  },
 ];
 
 const TECHNICAL_INDICATORS = [
-  "RSI", "MACD", "SMA", "EMA", "Bollinger Bands", "Stochastic", 
-  "Williams %R", "CCI", "ADX", "Ichimoku Cloud"
+  "RSI",
+  "MACD",
+  "SMA",
+  "EMA",
+  "Bollinger Bands",
+  "Stochastic",
+  "Williams %R",
+  "CCI",
+  "ADX",
+  "Ichimoku Cloud",
 ];
 
 const POSITION_SIZING_METHODS = [
   { value: "fixed", label: "Fixed Amount" },
   { value: "percent_equity", label: "Percentage of Equity" },
   { value: "kelly", label: "Kelly Criterion" },
-  { value: "risk_parity", label: "Risk Parity" }
+  { value: "risk_parity", label: "Risk Parity" },
 ];
 
 export default function AlgoCreator() {
@@ -230,28 +241,32 @@ export default function AlgoCreator() {
   };
 
   const addParameter = () => {
-    setStrategyForm(prev => ({
+    setStrategyForm((prev) => ({
       ...prev,
       parameters: [
         ...prev.parameters,
-        { name: "", value: "", description: "" }
-      ]
+        { name: "", value: "", description: "" },
+      ],
     }));
   };
 
-  const updateParameter = (index: number, field: keyof StrategyParameter, value: any) => {
-    setStrategyForm(prev => ({
+  const updateParameter = (
+    index: number,
+    field: keyof StrategyParameter,
+    value: any,
+  ) => {
+    setStrategyForm((prev) => ({
       ...prev,
-      parameters: prev.parameters.map((param, i) => 
-        i === index ? { ...param, [field]: value } : param
-      )
+      parameters: prev.parameters.map((param, i) =>
+        i === index ? { ...param, [field]: value } : param,
+      ),
     }));
   };
 
   const removeParameter = (index: number) => {
-    setStrategyForm(prev => ({
+    setStrategyForm((prev) => ({
       ...prev,
-      parameters: prev.parameters.filter((_, i) => i !== index)
+      parameters: prev.parameters.filter((_, i) => i !== index),
     }));
   };
 
@@ -261,78 +276,156 @@ export default function AlgoCreator() {
     switch (strategyType) {
       case "technical":
         baseParameters.push(
-          { name: "indicator", value: "RSI", description: "Primary technical indicator" },
+          {
+            name: "indicator",
+            value: "RSI",
+            description: "Primary technical indicator",
+          },
           { name: "period", value: 14, description: "Indicator period" },
-          { name: "oversold_level", value: 30, description: "Oversold threshold" },
-          { name: "overbought_level", value: 70, description: "Overbought threshold" }
+          {
+            name: "oversold_level",
+            value: 30,
+            description: "Oversold threshold",
+          },
+          {
+            name: "overbought_level",
+            value: 70,
+            description: "Overbought threshold",
+          },
         );
         break;
       case "ai_based":
         baseParameters.push(
           { name: "model_type", value: "lstm", description: "AI model type" },
-          { name: "lookback_period", value: 50, description: "Historical data lookback" },
-          { name: "confidence_threshold", value: 0.8, description: "Minimum prediction confidence" },
-          { name: "prediction_horizon", value: 1, description: "Prediction horizon in days" }
+          {
+            name: "lookback_period",
+            value: 50,
+            description: "Historical data lookback",
+          },
+          {
+            name: "confidence_threshold",
+            value: 0.8,
+            description: "Minimum prediction confidence",
+          },
+          {
+            name: "prediction_horizon",
+            value: 1,
+            description: "Prediction horizon in days",
+          },
         );
         break;
       case "option_strategy":
         baseParameters.push(
-          { name: "strategy_name", value: "iron_condor", description: "Option strategy type" },
-          { name: "iv_threshold", value: 25, description: "Implied volatility threshold" },
+          {
+            name: "strategy_name",
+            value: "iron_condor",
+            description: "Option strategy type",
+          },
+          {
+            name: "iv_threshold",
+            value: 25,
+            description: "Implied volatility threshold",
+          },
           { name: "dte_min", value: 15, description: "Minimum days to expiry" },
           { name: "dte_max", value: 45, description: "Maximum days to expiry" },
-          { name: "profit_target", value: 50, description: "Profit target percentage" }
+          {
+            name: "profit_target",
+            value: 50,
+            description: "Profit target percentage",
+          },
         );
         break;
       case "momentum":
         baseParameters.push(
-          { name: "momentum_period", value: 20, description: "Momentum calculation period" },
-          { name: "momentum_threshold", value: 5, description: "Momentum threshold percentage" },
-          { name: "confirmation_period", value: 3, description: "Confirmation candles" },
-          { name: "volume_filter", value: true, description: "Use volume confirmation" }
+          {
+            name: "momentum_period",
+            value: 20,
+            description: "Momentum calculation period",
+          },
+          {
+            name: "momentum_threshold",
+            value: 5,
+            description: "Momentum threshold percentage",
+          },
+          {
+            name: "confirmation_period",
+            value: 3,
+            description: "Confirmation candles",
+          },
+          {
+            name: "volume_filter",
+            value: true,
+            description: "Use volume confirmation",
+          },
         );
         break;
       case "mean_reversion":
         baseParameters.push(
-          { name: "deviation_threshold", value: 2, description: "Standard deviations from mean" },
-          { name: "lookback_period", value: 20, description: "Mean calculation period" },
-          { name: "reversion_target", value: 1, description: "Reversion target (std devs)" },
-          { name: "max_hold_period", value: 5, description: "Maximum holding period" }
+          {
+            name: "deviation_threshold",
+            value: 2,
+            description: "Standard deviations from mean",
+          },
+          {
+            name: "lookback_period",
+            value: 20,
+            description: "Mean calculation period",
+          },
+          {
+            name: "reversion_target",
+            value: 1,
+            description: "Reversion target (std devs)",
+          },
+          {
+            name: "max_hold_period",
+            value: 5,
+            description: "Maximum holding period",
+          },
         );
         break;
     }
 
-    setStrategyForm(prev => ({
+    setStrategyForm((prev) => ({
       ...prev,
-      parameters: baseParameters
+      parameters: baseParameters,
     }));
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 0,
     }).format(value);
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "active": return "default";
-      case "inactive": return "secondary";
-      case "error": return "destructive";
-      default: return "outline";
+      case "active":
+        return "default";
+      case "inactive":
+        return "secondary";
+      case "error":
+        return "destructive";
+      default:
+        return "outline";
     }
   };
 
   const getStrategyTypeIcon = (type: string) => {
     switch (type) {
-      case "technical": return <BarChart3 className="h-4 w-4" />;
-      case "ai_based": return <Brain className="h-4 w-4" />;
-      case "option_strategy": return <Target className="h-4 w-4" />;
-      case "momentum": return <TrendingUp className="h-4 w-4" />;
-      case "mean_reversion": return <Activity className="h-4 w-4" />;
-      default: return <Bot className="h-4 w-4" />;
+      case "technical":
+        return <BarChart3 className="h-4 w-4" />;
+      case "ai_based":
+        return <Brain className="h-4 w-4" />;
+      case "option_strategy":
+        return <Target className="h-4 w-4" />;
+      case "momentum":
+        return <TrendingUp className="h-4 w-4" />;
+      case "mean_reversion":
+        return <Activity className="h-4 w-4" />;
+      default:
+        return <Bot className="h-4 w-4" />;
     }
   };
 
@@ -356,7 +449,8 @@ export default function AlgoCreator() {
             <DialogHeader>
               <DialogTitle>Create New Trading Strategy</DialogTitle>
               <DialogDescription>
-                Configure your automated trading strategy with custom parameters and risk management rules.
+                Configure your automated trading strategy with custom parameters
+                and risk management rules.
               </DialogDescription>
             </DialogHeader>
 
@@ -369,7 +463,12 @@ export default function AlgoCreator() {
                     id="strategy-name"
                     placeholder="My Trading Strategy"
                     value={strategyForm.name}
-                    onChange={(e) => setStrategyForm(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setStrategyForm((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -378,7 +477,12 @@ export default function AlgoCreator() {
                     id="strategy-symbol"
                     placeholder="NSE:NIFTY50-INDEX"
                     value={strategyForm.symbol}
-                    onChange={(e) => setStrategyForm(prev => ({ ...prev, symbol: e.target.value }))}
+                    onChange={(e) =>
+                      setStrategyForm((prev) => ({
+                        ...prev,
+                        symbol: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -392,11 +496,14 @@ export default function AlgoCreator() {
                       key={type.value}
                       className={`cursor-pointer transition-colors ${
                         strategyForm.strategy_type === type.value
-                          ? 'border-primary bg-primary/5'
-                          : 'hover:border-muted-foreground/50'
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-muted-foreground/50"
                       }`}
                       onClick={() => {
-                        setStrategyForm(prev => ({ ...prev, strategy_type: type.value }));
+                        setStrategyForm((prev) => ({
+                          ...prev,
+                          strategy_type: type.value,
+                        }));
                         generateParametersForStrategy(type.value);
                       }}
                     >
@@ -405,7 +512,9 @@ export default function AlgoCreator() {
                           {getStrategyTypeIcon(type.value)}
                           <div>
                             <div className="font-medium">{type.label}</div>
-                            <div className="text-sm text-muted-foreground">{type.description}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {type.description}
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -419,34 +528,52 @@ export default function AlgoCreator() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label>Strategy Parameters</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addParameter}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addParameter}
+                    >
                       <Plus className="h-3 w-3 mr-1" />
                       Add Parameter
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {strategyForm.parameters.map((param, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                      <div
+                        key={index}
+                        className="grid grid-cols-12 gap-2 items-end"
+                      >
                         <div className="col-span-3">
                           <Input
                             placeholder="Parameter name"
                             value={param.name}
-                            onChange={(e) => updateParameter(index, "name", e.target.value)}
+                            onChange={(e) =>
+                              updateParameter(index, "name", e.target.value)
+                            }
                           />
                         </div>
                         <div className="col-span-3">
                           <Input
                             placeholder="Value"
                             value={param.value}
-                            onChange={(e) => updateParameter(index, "value", e.target.value)}
+                            onChange={(e) =>
+                              updateParameter(index, "value", e.target.value)
+                            }
                           />
                         </div>
                         <div className="col-span-5">
                           <Input
                             placeholder="Description (optional)"
                             value={param.description || ""}
-                            onChange={(e) => updateParameter(index, "description", e.target.value)}
+                            onChange={(e) =>
+                              updateParameter(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
                           />
                         </div>
                         <div className="col-span-1">
@@ -480,13 +607,15 @@ export default function AlgoCreator() {
                       <Input
                         type="number"
                         value={strategyForm.risk_management.max_position_size}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          risk_management: {
-                            ...prev.risk_management,
-                            max_position_size: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            risk_management: {
+                              ...prev.risk_management,
+                              max_position_size: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -494,13 +623,15 @@ export default function AlgoCreator() {
                       <Input
                         type="number"
                         value={strategyForm.risk_management.daily_loss_limit}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          risk_management: {
-                            ...prev.risk_management,
-                            daily_loss_limit: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            risk_management: {
+                              ...prev.risk_management,
+                              daily_loss_limit: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -509,13 +640,15 @@ export default function AlgoCreator() {
                         type="number"
                         step="0.1"
                         value={strategyForm.risk_management.stop_loss_percent}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          risk_management: {
-                            ...prev.risk_management,
-                            stop_loss_percent: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            risk_management: {
+                              ...prev.risk_management,
+                              stop_loss_percent: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -524,30 +657,36 @@ export default function AlgoCreator() {
                         type="number"
                         step="0.1"
                         value={strategyForm.risk_management.take_profit_percent}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          risk_management: {
-                            ...prev.risk_management,
-                            take_profit_percent: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            risk_management: {
+                              ...prev.risk_management,
+                              take_profit_percent: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="trailing-stop"
                       checked={strategyForm.risk_management.trailing_stop}
-                      onCheckedChange={(checked) => setStrategyForm(prev => ({
-                        ...prev,
-                        risk_management: {
-                          ...prev.risk_management,
-                          trailing_stop: checked
-                        }
-                      }))}
+                      onCheckedChange={(checked) =>
+                        setStrategyForm((prev) => ({
+                          ...prev,
+                          risk_management: {
+                            ...prev.risk_management,
+                            trailing_stop: checked,
+                          },
+                        }))
+                      }
                     />
-                    <Label htmlFor="trailing-stop">Enable Trailing Stop Loss</Label>
+                    <Label htmlFor="trailing-stop">
+                      Enable Trailing Stop Loss
+                    </Label>
                   </div>
                 </CardContent>
               </Card>
@@ -566,19 +705,21 @@ export default function AlgoCreator() {
                       <Label>Sizing Method</Label>
                       <Select
                         value={strategyForm.position_sizing.method}
-                        onValueChange={(value) => setStrategyForm(prev => ({
-                          ...prev,
-                          position_sizing: {
-                            ...prev.position_sizing,
-                            method: value
-                          }
-                        }))}
+                        onValueChange={(value) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            position_sizing: {
+                              ...prev.position_sizing,
+                              method: value,
+                            },
+                          }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {POSITION_SIZING_METHODS.map(method => (
+                          {POSITION_SIZING_METHODS.map((method) => (
                             <SelectItem key={method.value} value={method.value}>
                               {method.label}
                             </SelectItem>
@@ -591,13 +732,15 @@ export default function AlgoCreator() {
                       <Input
                         type="number"
                         value={strategyForm.position_sizing.base_amount}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          position_sizing: {
-                            ...prev.position_sizing,
-                            base_amount: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            position_sizing: {
+                              ...prev.position_sizing,
+                              base_amount: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -606,13 +749,15 @@ export default function AlgoCreator() {
                         type="number"
                         step="0.1"
                         value={strategyForm.position_sizing.risk_per_trade}
-                        onChange={(e) => setStrategyForm(prev => ({
-                          ...prev,
-                          position_sizing: {
-                            ...prev.position_sizing,
-                            risk_per_trade: parseFloat(e.target.value)
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setStrategyForm((prev) => ({
+                            ...prev,
+                            position_sizing: {
+                              ...prev.position_sizing,
+                              risk_per_trade: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
                       />
                     </div>
                   </div>
@@ -621,12 +766,20 @@ export default function AlgoCreator() {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateDialog(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                onClick={createStrategy} 
-                disabled={loading || !strategyForm.name || !strategyForm.symbol || !strategyForm.strategy_type}
+              <Button
+                onClick={createStrategy}
+                disabled={
+                  loading ||
+                  !strategyForm.name ||
+                  !strategyForm.symbol ||
+                  !strategyForm.strategy_type
+                }
               >
                 {loading ? "Creating..." : "Create Strategy"}
               </Button>
@@ -649,10 +802,12 @@ export default function AlgoCreator() {
                 <span>Trading Strategies ({strategies.length})</span>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {strategies.filter(s => s.status === "active").length} Active
+                    {strategies.filter((s) => s.status === "active").length}{" "}
+                    Active
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    {strategies.filter(s => s.status === "inactive").length} Inactive
+                    {strategies.filter((s) => s.status === "inactive").length}{" "}
+                    Inactive
                   </Badge>
                 </div>
               </CardTitle>
@@ -685,29 +840,42 @@ export default function AlgoCreator() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {getStrategyTypeIcon(strategy.strategy_type)}
-                            <span className="capitalize">{strategy.strategy_type.replace('_', ' ')}</span>
+                            <span className="capitalize">
+                              {strategy.strategy_type.replace("_", " ")}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">{strategy.symbol}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {strategy.symbol}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusBadgeVariant(strategy.status)}>
+                          <Badge
+                            variant={getStatusBadgeVariant(strategy.status)}
+                          >
                             {strategy.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           {strategy.performance ? (
                             <div className="text-sm">
-                              <div className={`font-medium ${
-                                strategy.performance.total_pnl >= 0 ? 'text-trading-bull' : 'text-trading-bear'
-                              }`}>
+                              <div
+                                className={`font-medium ${
+                                  strategy.performance.total_pnl >= 0
+                                    ? "text-trading-bull"
+                                    : "text-trading-bear"
+                                }`}
+                              >
                                 {formatCurrency(strategy.performance.total_pnl)}
                               </div>
                               <div className="text-muted-foreground">
-                                {strategy.performance.win_rate.toFixed(1)}% Win Rate
+                                {strategy.performance.win_rate.toFixed(1)}% Win
+                                Rate
                               </div>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">No data</span>
+                            <span className="text-muted-foreground">
+                              No data
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -747,7 +915,9 @@ export default function AlgoCreator() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No strategies created yet</p>
-                  <p className="text-sm">Create your first automated trading strategy to get started</p>
+                  <p className="text-sm">
+                    Create your first automated trading strategy to get started
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -758,13 +928,16 @@ export default function AlgoCreator() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Strategies</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Strategies
+                </CardTitle>
                 <Bot className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{strategies.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {strategies.filter(s => s.status === "active").length} active
+                  {strategies.filter((s) => s.status === "active").length}{" "}
+                  active
                 </p>
               </CardContent>
             </Card>
@@ -777,7 +950,10 @@ export default function AlgoCreator() {
               <CardContent>
                 <div className="text-2xl font-bold text-trading-bull">
                   {formatCurrency(
-                    strategies.reduce((sum, s) => sum + (s.performance?.total_pnl || 0), 0)
+                    strategies.reduce(
+                      (sum, s) => sum + (s.performance?.total_pnl || 0),
+                      0,
+                    ),
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -788,15 +964,22 @@ export default function AlgoCreator() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Win Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Avg Win Rate
+                </CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {strategies.length > 0
-                    ? (strategies.reduce((sum, s) => sum + (s.performance?.win_rate || 0), 0) / strategies.length).toFixed(1)
-                    : 0
-                  }%
+                    ? (
+                        strategies.reduce(
+                          (sum, s) => sum + (s.performance?.win_rate || 0),
+                          0,
+                        ) / strategies.length
+                      ).toFixed(1)
+                    : 0}
+                  %
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Across all strategies
@@ -806,12 +989,17 @@ export default function AlgoCreator() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Trades
+                </CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {strategies.reduce((sum, s) => sum + (s.performance?.total_trades || 0), 0)}
+                  {strategies.reduce(
+                    (sum, s) => sum + (s.performance?.total_trades || 0),
+                    0,
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Executed by all strategies
@@ -826,24 +1014,37 @@ export default function AlgoCreator() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {strategies.filter(s => s.performance).map((strategy) => (
-                  <div key={strategy.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <div className="font-medium">{strategy.name}</div>
-                      <div className="text-sm text-muted-foreground">{strategy.symbol}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`font-semibold ${
-                        (strategy.performance?.total_pnl || 0) >= 0 ? 'text-trading-bull' : 'text-trading-bear'
-                      }`}>
-                        {formatCurrency(strategy.performance?.total_pnl || 0)}
+                {strategies
+                  .filter((s) => s.performance)
+                  .map((strategy) => (
+                    <div
+                      key={strategy.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div>
+                        <div className="font-medium">{strategy.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {strategy.symbol}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {strategy.performance?.total_trades || 0} trades • {strategy.performance?.win_rate?.toFixed(1) || 0}% win rate
+                      <div className="text-right">
+                        <div
+                          className={`font-semibold ${
+                            (strategy.performance?.total_pnl || 0) >= 0
+                              ? "text-trading-bull"
+                              : "text-trading-bear"
+                          }`}
+                        >
+                          {formatCurrency(strategy.performance?.total_pnl || 0)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {strategy.performance?.total_trades || 0} trades •{" "}
+                          {strategy.performance?.win_rate?.toFixed(1) || 0}% win
+                          rate
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
@@ -861,7 +1062,9 @@ export default function AlgoCreator() {
               <div className="text-center py-8 text-muted-foreground">
                 <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Backtesting functionality is coming soon</p>
-                <p className="text-sm">Test your strategies against historical data before going live</p>
+                <p className="text-sm">
+                  Test your strategies against historical data before going live
+                </p>
               </div>
             </CardContent>
           </Card>
