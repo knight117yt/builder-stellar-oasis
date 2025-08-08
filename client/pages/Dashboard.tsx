@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { TradingChart } from "@/components/TradingChart";
 import { marketDataService } from "@/services/marketData";
-import { useMarketData, useConnectionStatus, useSubscription } from "@/services/realTimeDataService";
+import { useMarketData, useConnectionStatus, useSubscription, useRealTimeDataStore } from "@/services/realTimeDataService";
 import { cn } from "@/lib/utils";
 
 interface Position {
