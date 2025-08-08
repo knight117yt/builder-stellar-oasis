@@ -266,7 +266,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {positions.map((position, index) => (
+                {(positions || []).map((position, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-4 border rounded-lg"
