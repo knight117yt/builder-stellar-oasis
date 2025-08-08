@@ -12,7 +12,8 @@ import {
   Brain,
   PieChart,
   LineChart,
-  User
+  User,
+  AlertTriangle
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
