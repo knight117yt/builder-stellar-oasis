@@ -87,8 +87,27 @@ const candlestickPatterns = [
 
 export default function Dashboard() {
   const [marketData, setMarketData] = useState<MarketData>(mockMarketData);
-  const [positions, setPositions] = useState<Position[]>(mockPositions);
   const authMode = localStorage.getItem('auth_mode') || 'mock';
+
+  // Use live data hooks
+  const { data: livePositions, loading: positionsLoading } = useLiveData(
+    () => marketDataService.getPositions(),
+    [],
+    5000 // Update every 5 seconds
+  );
+
+  const { data: livePatterns } = useLiveData(
+    () => marketDataService.getCandlestickPatterns('NIFTY50'),
+    [],
+    10000 // Update every 10 seconds
+  );
+
+  const positions = livePositions || mockPositions;
+  const candlestickPatterns = livePatterns || [
+    { name: 'Hammer', signal: 'Bullish', confidence: 85, detected: '2 min ago' },
+    { name: 'Dark Cloud Cover', signal: 'Bearish', confidence: 72, detected: '5 min ago' },
+    { name: 'Doji', signal: 'Neutral', confidence: 68, detected: '8 min ago' }
+  ];
 
   return (
     <div className="space-y-6">
