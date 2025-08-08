@@ -1,14 +1,8 @@
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   TrendingUp,
   TrendingDown,
@@ -17,14 +11,15 @@ import {
   Eye,
   AlertTriangle,
   Target,
-  BarChart3,
-} from "lucide-react";
-import { TradingChart } from "@/components/TradingChart";
-import { cn } from "@/lib/utils";
+  BarChart3
+} from 'lucide-react';
+import { TradingChart } from '@/components/TradingChart';
+import { marketDataService, useLiveData } from '@/services/marketData';
+import { cn } from '@/lib/utils';
 
 interface Position {
   symbol: string;
-  type: "CALL" | "PUT";
+  type: 'CALL' | 'PUT';
   strike: number;
   expiry: string;
   quantity: number;
@@ -43,67 +38,62 @@ interface MarketData {
 
 const mockPositions: Position[] = [
   {
-    symbol: "NIFTY",
-    type: "CALL",
+    symbol: 'NIFTY',
+    type: 'CALL',
     strike: 19800,
-    expiry: "2024-01-25",
+    expiry: '2024-01-25',
     quantity: 50,
-    avgPrice: 125.5,
+    avgPrice: 125.50,
     ltp: 142.25,
-    pnl: 837.5,
-    pnlPercent: 13.35,
+    pnl: 837.50,
+    pnlPercent: 13.35
   },
   {
-    symbol: "BANKNIFTY",
-    type: "PUT",
+    symbol: 'BANKNIFTY',
+    type: 'PUT',
     strike: 44000,
-    expiry: "2024-01-25",
+    expiry: '2024-01-25',
     quantity: 25,
     avgPrice: 98.75,
-    ltp: 87.5,
+    ltp: 87.50,
     pnl: -281.25,
-    pnlPercent: -11.39,
+    pnlPercent: -11.39
   },
   {
-    symbol: "NIFTY",
-    type: "PUT",
+    symbol: 'NIFTY',
+    type: 'PUT',
     strike: 19700,
-    expiry: "2024-01-25",
+    expiry: '2024-01-25',
     quantity: 50,
     avgPrice: 78.25,
-    ltp: 92.5,
-    pnl: 712.5,
-    pnlPercent: 18.15,
-  },
+    ltp: 92.50,
+    pnl: 712.50,
+    pnlPercent: 18.15
+  }
 ];
 
 const mockMarketData: MarketData = {
-  nifty: { price: 19850.5, change: 125.75, changePercent: 0.64 },
-  bankNifty: { price: 44250.75, change: -89.25, changePercent: -0.2 },
+  nifty: { price: 19850.50, change: 125.75, changePercent: 0.64 },
+  bankNifty: { price: 44250.75, change: -89.25, changePercent: -0.20 },
   totalPnl: 1268.75,
-  totalInvested: 15137.5,
+  totalInvested: 15137.50
 };
 
 const candlestickPatterns = [
-  { name: "Hammer", signal: "Bullish", confidence: 85, detected: "2 min ago" },
-  {
-    name: "Dark Cloud Cover",
-    signal: "Bearish",
-    confidence: 72,
-    detected: "5 min ago",
-  },
-  { name: "Doji", signal: "Neutral", confidence: 68, detected: "8 min ago" },
+  { name: 'Hammer', signal: 'Bullish', confidence: 85, detected: '2 min ago' },
+  { name: 'Dark Cloud Cover', signal: 'Bearish', confidence: 72, detected: '5 min ago' },
+  { name: 'Doji', signal: 'Neutral', confidence: 68, detected: '8 min ago' }
 ];
 
 export default function Dashboard() {
   const [marketData, setMarketData] = useState<MarketData>(mockMarketData);
   const [positions, setPositions] = useState<Position[]>(mockPositions);
-  const authMode = localStorage.getItem("auth_mode") || "mock";
+  const authMode = localStorage.getItem('auth_mode') || 'mock';
 
   return (
     <div className="space-y-6">
       {/* Mode Indicator */}
-      {authMode === "mock" && (
+      {authMode === 'mock' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
@@ -122,24 +112,13 @@ export default function Dashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {marketData.nifty.price.toLocaleString()}
-            </div>
-            <p
-              className={cn(
-                "text-xs flex items-center gap-1",
-                marketData.nifty.change >= 0
-                  ? "text-trading-bull"
-                  : "text-trading-bear",
-              )}
-            >
-              {marketData.nifty.change >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              {marketData.nifty.change > 0 ? "+" : ""}
-              {marketData.nifty.change} ({marketData.nifty.changePercent}%)
+            <div className="text-2xl font-bold">{marketData.nifty.price.toLocaleString()}</div>
+            <p className={cn(
+              "text-xs flex items-center gap-1",
+              marketData.nifty.change >= 0 ? "text-trading-bull" : "text-trading-bear"
+            )}>
+              {marketData.nifty.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {marketData.nifty.change > 0 ? '+' : ''}{marketData.nifty.change} ({marketData.nifty.changePercent}%)
             </p>
           </CardContent>
         </Card>
@@ -150,25 +129,13 @@ export default function Dashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {marketData.bankNifty.price.toLocaleString()}
-            </div>
-            <p
-              className={cn(
-                "text-xs flex items-center gap-1",
-                marketData.bankNifty.change >= 0
-                  ? "text-trading-bull"
-                  : "text-trading-bear",
-              )}
-            >
-              {marketData.bankNifty.change >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              {marketData.bankNifty.change > 0 ? "+" : ""}
-              {marketData.bankNifty.change} (
-              {marketData.bankNifty.changePercent}%)
+            <div className="text-2xl font-bold">{marketData.bankNifty.price.toLocaleString()}</div>
+            <p className={cn(
+              "text-xs flex items-center gap-1",
+              marketData.bankNifty.change >= 0 ? "text-trading-bull" : "text-trading-bear"
+            )}>
+              {marketData.bankNifty.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {marketData.bankNifty.change > 0 ? '+' : ''}{marketData.bankNifty.change} ({marketData.bankNifty.changePercent}%)
             </p>
           </CardContent>
         </Card>
@@ -179,21 +146,14 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div
-              className={cn(
-                "text-2xl font-bold",
-                marketData.totalPnl >= 0
-                  ? "text-trading-bull"
-                  : "text-trading-bear",
-              )}
-            >
+            <div className={cn(
+              "text-2xl font-bold",
+              marketData.totalPnl >= 0 ? "text-trading-bull" : "text-trading-bear"
+            )}>
               ₹{marketData.totalPnl.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {((marketData.totalPnl / marketData.totalInvested) * 100).toFixed(
-                2,
-              )}
-              % return
+              {((marketData.totalPnl / marketData.totalInvested) * 100).toFixed(2)}% return
             </p>
           </CardContent>
         </Card>
@@ -204,9 +164,7 @@ export default function Dashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ₹{marketData.totalInvested.toLocaleString()}
-            </div>
+            <div className="text-2xl font-bold">₹{marketData.totalInvested.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               {positions.length} active positions
             </p>
@@ -230,25 +188,16 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Open Positions</CardTitle>
-              <CardDescription>
-                Your current option positions and P&L
-              </CardDescription>
+              <CardDescription>Your current option positions and P&L</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {positions.map((position, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{position.symbol}</span>
-                        <Badge
-                          variant={
-                            position.type === "CALL" ? "default" : "secondary"
-                          }
-                        >
+                        <Badge variant={position.type === 'CALL' ? 'default' : 'secondary'}>
                           {position.type}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
@@ -256,31 +205,21 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Qty: {position.quantity} • Avg: ₹{position.avgPrice} •
-                        LTP: ₹{position.ltp}
+                        Qty: {position.quantity} • Avg: ₹{position.avgPrice} • LTP: ₹{position.ltp}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div
-                        className={cn(
-                          "font-medium",
-                          position.pnl >= 0
-                            ? "text-trading-bull"
-                            : "text-trading-bear",
-                        )}
-                      >
-                        {position.pnl >= 0 ? "+" : ""}₹{position.pnl.toFixed(2)}
+                      <div className={cn(
+                        "font-medium",
+                        position.pnl >= 0 ? "text-trading-bull" : "text-trading-bear"
+                      )}>
+                        {position.pnl >= 0 ? '+' : ''}₹{position.pnl.toFixed(2)}
                       </div>
-                      <div
-                        className={cn(
-                          "text-sm",
-                          position.pnl >= 0
-                            ? "text-trading-bull"
-                            : "text-trading-bear",
-                        )}
-                      >
-                        {position.pnlPercent >= 0 ? "+" : ""}
-                        {position.pnlPercent.toFixed(2)}%
+                      <div className={cn(
+                        "text-sm",
+                        position.pnl >= 0 ? "text-trading-bull" : "text-trading-bear"
+                      )}>
+                        {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
                       </div>
                     </div>
                   </div>
@@ -294,28 +233,19 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Candlestick Pattern Detection</CardTitle>
-              <CardDescription>
-                Recently detected patterns in the market
-              </CardDescription>
+              <CardDescription>Recently detected patterns in the market</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {candlestickPatterns.map((pattern, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      <AlertTriangle
-                        className={cn(
-                          "h-5 w-5",
-                          pattern.signal === "Bullish"
-                            ? "text-trading-bull"
-                            : pattern.signal === "Bearish"
-                              ? "text-trading-bear"
-                              : "text-trading-neutral",
-                        )}
-                      />
+                      <AlertTriangle className={cn(
+                        "h-5 w-5",
+                        pattern.signal === 'Bullish' ? "text-trading-bull" :
+                        pattern.signal === 'Bearish' ? "text-trading-bear" :
+                        "text-trading-neutral"
+                      )} />
                       <div>
                         <div className="font-medium">{pattern.name}</div>
                         <div className="text-sm text-muted-foreground">
@@ -324,15 +254,11 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge
-                        variant={
-                          pattern.signal === "Bullish"
-                            ? "default"
-                            : pattern.signal === "Bearish"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                      >
+                      <Badge variant={
+                        pattern.signal === 'Bullish' ? 'default' :
+                        pattern.signal === 'Bearish' ? 'destructive' :
+                        'secondary'
+                      }>
                         {pattern.signal}
                       </Badge>
                       <div className="text-sm text-muted-foreground mt-1">
