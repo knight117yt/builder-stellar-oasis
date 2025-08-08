@@ -1,397 +1,499 @@
-// Market Data Service for handling live data fetching and real-time updates
+import { MarketData, HistoricalCandle, OptionData } from './realTimeDataService';
 
-export interface MarketDataResponse {
-  success: boolean;
-  data?: any;
+const API_BASE_URL = import.meta.env.DEV 
+  ? 'http://localhost:8000' 
+  : `http://${window.location.hostname}:8000`;
+
+// Authentication token management
+function getAuthToken(): string | null {
+  return localStorage.getItem('fyers_token') || localStorage.getItem('mock_token');
+}
+
+function getAuthHeaders() {
+  const token = getAuthToken();
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+// API response interfaces
+interface APIResponse<T = any> {
+  data?: T;
   message?: string;
+  error?: string;
+  timestamp?: string;
 }
 
-export interface CandleData {
-  time: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
+interface HistoricalDataResponse {
+  s: string;
+  candles: number[][];
+  symbol?: string;
+  timeframe?: string;
 }
 
-export interface OptionData {
-  strike: number;
-  call: {
-    ltp: number;
-    bid: number;
-    ask: number;
-    volume: number;
-    oi: number;
-    iv: number;
-    delta: number;
-    gamma: number;
-    theta: number;
-    vega: number;
-  };
-  put: {
-    ltp: number;
-    bid: number;
-    ask: number;
-    volume: number;
-    oi: number;
-    iv: number;
-    delta: number;
-    gamma: number;
-    theta: number;
-    vega: number;
-  };
+interface OptionChainResponse {
+  s: string;
+  data: OptionData[];
+  symbol?: string;
+  expiry?: string;
+  spot_price?: number;
 }
 
-export interface Position {
+interface StockSearchResponse {
+  stocks: Array<{
+    symbol: string;
+    name: string;
+    exchange: string;
+    sector?: string;
+    industry?: string;
+  }>;
+}
+
+interface StockDetailsResponse {
   symbol: string;
-  type: "CALL" | "PUT";
-  strike: number;
-  expiry: string;
-  quantity: number;
-  avgPrice: number;
-  ltp: number;
-  pnl: number;
-  pnlPercent: number;
+  name: string;
+  exchange: string;
+  market_data: MarketData;
+  has_options: boolean;
+  fundamentals?: Record<string, any>;
+  technicals?: Record<string, any>;
+}
+
+interface ScreenerResponse {
+  stocks: Array<{
+    symbol: string;
+    name: string;
+    price: number;
+    change: number;
+    change_percent: number;
+    volume: number;
+    market_cap?: number;
+    pe_ratio?: number;
+    sector?: string;
+    exchange: string;
+  }>;
+  total: number;
+}
+
+interface AIAnalysisResponse {
+  symbol: string;
+  analysis: {
+    trend: string;
+    strength: number;
+    support_levels: number[];
+    resistance_levels: number[];
+    recommendation: string;
+    confidence: number;
+    price_target?: number;
+    stop_loss?: number;
+    technical_indicators?: Record<string, any>;
+    sentiment_score?: number;
+  };
+  timestamp: string;
+}
+
+interface AlgoStrategyResponse {
+  strategy_id: string;
+  status: string;
+  strategy: {
+    id: string;
+    name: string;
+    symbol: string;
+    strategy_type: string;
+    parameters: Array<{
+      name: string;
+      value: any;
+      description?: string;
+    }>;
+    created_at: string;
+    status: string;
+  };
 }
 
 class MarketDataService {
-  private baseUrl = "/api";
-  private token: string | null = null;
-  private updateIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
-  constructor() {
-    this.token = localStorage.getItem("fyers_token");
+  // Cache management
+  private setCacheItem(key: string, data: any, ttlSeconds = 60) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: ttlSeconds * 1000,
+    });
   }
 
-  private async makeRequest(
+  private getCacheItem(key: string): any | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    if (Date.now() - item.timestamp > item.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data;
+  }
+
+  // HTTP request helper
+  private async makeRequest<T>(
     endpoint: string,
-    options: RequestInit = {},
-  ): Promise<MarketDataResponse> {
+    options: RequestInit = {}
+  ): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
           ...options.headers,
         },
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       return await response.json();
     } catch (error) {
-      console.error(`API Error for ${endpoint}:`, error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
+      console.error(`API request failed for ${endpoint}:`, error);
+      throw error;
     }
   }
 
-  // Get market data for charts
-  async getMarketData(
-    symbol: string,
-    interval: string = "1D",
-  ): Promise<CandleData[]> {
-    const response = await this.makeRequest(
-      `/market/data?symbol=${symbol}&interval=${interval}`,
-    );
-
-    if (response.success && response.data?.candles) {
-      return response.data.candles;
-    }
-
-    // Return mock data if API fails
-    return this.generateMockCandles(symbol, interval);
-  }
-
-  // Get option chain data
-  async getOptionChain(symbol: string, expiry?: string): Promise<OptionData[]> {
-    const expiryParam = expiry ? `&expiry=${expiry}` : "";
-    const response = await this.makeRequest(
-      `/market/option-chain?symbol=${symbol}${expiryParam}`,
-    );
-
-    if (response.success && response.data?.strikes) {
-      return response.data.strikes;
-    }
-
-    // Return mock data if API fails
-    return this.generateMockOptionChain(symbol === "NIFTY" ? 19850 : 44250);
-  }
-
-  // Get current positions
-  async getPositions(): Promise<Position[]> {
-    const response = await this.makeRequest("/positions");
-
-    if (response.success && response.data?.positions) {
-      return response.data.positions;
-    }
-
-    // Return mock data if API fails
-    return this.generateMockPositions();
-  }
-
-  // Get candlestick patterns
-  async getCandlestickPatterns(symbol: string): Promise<any[]> {
-    const response = await this.makeRequest(
-      `/market/patterns?symbol=${symbol}`,
-    );
-
-    if (response.success && response.data?.detected_patterns) {
-      return response.data.detected_patterns;
-    }
-
-    // Return mock patterns if API fails
-    return this.generateMockPatterns();
-  }
-
-  // Start live updates for a component
-  startLiveUpdates(
-    key: string,
-    callback: () => void,
-    intervalMs: number = 5000,
-  ) {
-    this.stopLiveUpdates(key); // Clear existing interval
-
-    const interval = setInterval(callback, intervalMs);
-    this.updateIntervals.set(key, interval);
-  }
-
-  // Stop live updates
-  stopLiveUpdates(key: string) {
-    const interval = this.updateIntervals.get(key);
-    if (interval) {
-      clearInterval(interval);
-      this.updateIntervals.delete(key);
-    }
-  }
-
-  // Stop all live updates (cleanup)
-  stopAllUpdates() {
-    this.updateIntervals.forEach((interval) => clearInterval(interval));
-    this.updateIntervals.clear();
-  }
-
-  // Mock data generators (fallback when API is unavailable)
-  private generateMockCandles(
-    symbol: string,
-    interval: string,
-    count: number = 50,
-  ): CandleData[] {
-    const data: CandleData[] = [];
-    const basePrice = symbol.includes("BANK")
-      ? 44250
-      : symbol.includes("SENSEX")
-        ? 65875
-        : 19850;
-    let currentPrice = basePrice;
-
-    for (let i = count; i >= 0; i--) {
-      const date = new Date();
-      if (interval === "1m") {
-        date.setMinutes(date.getMinutes() - i);
-      } else if (interval === "5m") {
-        date.setMinutes(date.getMinutes() - i * 5);
-      } else if (interval === "1h") {
-        date.setHours(date.getHours() - i);
-      } else {
-        date.setDate(date.getDate() - i);
-      }
-
-      const open = currentPrice + (Math.random() - 0.5) * 50;
-      const volatility = 20 + Math.random() * 30;
-      const high = open + Math.random() * volatility;
-      const low = open - Math.random() * volatility;
-      const close = low + Math.random() * (high - low);
-      const volume = 500000 + Math.random() * 2000000;
-
-      data.push({
-        time:
-          interval === "1D"
-            ? date.toLocaleDateString("en-IN", {
-                month: "short",
-                day: "2-digit",
-              })
-            : date.toLocaleTimeString("en-IN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-        open: Math.round(open * 100) / 100,
-        high: Math.round(high * 100) / 100,
-        low: Math.round(low * 100) / 100,
-        close: Math.round(close * 100) / 100,
-        volume: Math.round(volume),
-      });
-
-      currentPrice = close;
-    }
-
-    return data;
-  }
-
-  private generateMockOptionChain(spotPrice: number): OptionData[] {
-    const strikes: OptionData[] = [];
-    const atmStrike = Math.round(spotPrice / 50) * 50;
-
-    for (let i = -10; i <= 10; i++) {
-      const strike = atmStrike + i * 50;
-      const moneyness = strike / spotPrice;
-
-      const timeToExpiry = 7 / 365;
-      const baseIV = 0.18 + Math.abs(moneyness - 1) * 0.12;
-
-      const callIntrinsic = Math.max(spotPrice - strike, 0);
-      const putIntrinsic = Math.max(strike - spotPrice, 0);
-
-      const callTimeValue = Math.random() * 25 + 5;
-      const putTimeValue = Math.random() * 25 + 5;
-
-      const callPrice = callIntrinsic + callTimeValue;
-      const putPrice = putIntrinsic + putTimeValue;
-
-      const callDelta =
-        moneyness < 1 ? 0.1 + Math.random() * 0.4 : 0.5 + Math.random() * 0.4;
-      const putDelta = -Math.abs(callDelta - 1);
-
-      const gamma = 0.001 + Math.random() * 0.008;
-      const callTheta = -(Math.random() * 2.5 + 0.5);
-      const putTheta = -(Math.random() * 2.5 + 0.5);
-      const vega = 8 + Math.random() * 12;
-
-      strikes.push({
-        strike,
-        call: {
-          ltp: Math.round(callPrice * 100) / 100,
-          bid: Math.round((callPrice - 0.5) * 100) / 100,
-          ask: Math.round((callPrice + 0.5) * 100) / 100,
-          volume: Math.round(Math.random() * 8000),
-          oi: Math.round(Math.random() * 40000),
-          iv: Math.round(baseIV * 100 * 100) / 100,
-          delta: Math.round(callDelta * 10000) / 10000,
-          gamma: Math.round(gamma * 10000) / 10000,
-          theta: Math.round(callTheta * 100) / 100,
-          vega: Math.round(vega * 100) / 100,
-        },
-        put: {
-          ltp: Math.round(putPrice * 100) / 100,
-          bid: Math.round((putPrice - 0.5) * 100) / 100,
-          ask: Math.round((putPrice + 0.5) * 100) / 100,
-          volume: Math.round(Math.random() * 8000),
-          oi: Math.round(Math.random() * 40000),
-          iv: Math.round(baseIV * 100 * 100) / 100,
-          delta: Math.round(putDelta * 10000) / 10000,
-          gamma: Math.round(gamma * 10000) / 10000,
-          theta: Math.round(putTheta * 100) / 100,
-          vega: Math.round(vega * 100) / 100,
-        },
-      });
-    }
-
-    return strikes;
-  }
-
-  private generateMockPositions(): Position[] {
-    return [
-      {
-        symbol: "NIFTY",
-        type: "CALL",
-        strike: 19800,
-        expiry: "2024-01-25",
-        quantity: 50,
-        avgPrice: 125.5,
-        ltp: 142.25 + (Math.random() * 20 - 10),
-        pnl: 0,
-        pnlPercent: 0,
-      },
-      {
-        symbol: "BANKNIFTY",
-        type: "PUT",
-        strike: 44000,
-        expiry: "2024-01-25",
-        quantity: 25,
-        avgPrice: 98.75,
-        ltp: 87.5 + (Math.random() * 15 - 7.5),
-        pnl: 0,
-        pnlPercent: 0,
-      },
-    ].map((position) => {
-      const pnl = (position.ltp - position.avgPrice) * position.quantity;
-      const pnlPercent = (pnl / (position.avgPrice * position.quantity)) * 100;
-      return { ...position, pnl, pnlPercent };
+  // Authentication
+  async login(authMode: 'fyers' | 'mock', accessToken: string): Promise<APIResponse> {
+    return this.makeRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        auth_mode: authMode,
+        access_token: accessToken,
+      }),
     });
   }
 
-  private generateMockPatterns(): any[] {
-    const patterns = [
-      { name: "Hammer", signal: "Bullish", confidence: 85 },
-      { name: "Doji", signal: "Neutral", confidence: 72 },
-      { name: "Engulfing", signal: "Bearish", confidence: 68 },
-    ];
+  // Market data endpoints
+  async getLiveMarketData(symbols: string[]): Promise<Record<string, MarketData>> {
+    const symbolsParam = symbols.join(',');
+    const cacheKey = `live_data_${symbolsParam}`;
+    
+    // Check cache first (1 second TTL for live data)
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
 
-    return patterns.map((pattern) => ({
-      ...pattern,
-      timestamp: new Date().toISOString(),
-      description: `${pattern.name} pattern detected with ${pattern.confidence}% confidence`,
-    }));
+    try {
+      const response = await this.makeRequest<APIResponse<Record<string, MarketData>>>(
+        `/market/live-data?symbols=${encodeURIComponent(symbolsParam)}`
+      );
+      
+      const data = response.data || {};
+      this.setCacheItem(cacheKey, data, 1);
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch live market data:', error);
+      return this.getMockMarketData(symbols);
+    }
+  }
+
+  async getHistoricalData(
+    symbol: string,
+    timeframe = 'D',
+    fromDate?: string,
+    toDate?: string
+  ): Promise<HistoricalCandle[]> {
+    const cacheKey = `historical_${symbol}_${timeframe}_${fromDate}_${toDate}`;
+    
+    // Check cache first (5 minute TTL for historical data)
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        timeframe,
+        ...(fromDate && { from_date: fromDate }),
+        ...(toDate && { to_date: toDate }),
+      });
+
+      const response = await this.makeRequest<HistoricalDataResponse>(
+        `/market/historical?${params}`
+      );
+
+      if (response.s === 'ok' && response.candles) {
+        const candles = response.candles.map(candle => ({
+          timestamp: candle[0],
+          open: candle[1],
+          high: candle[2],
+          low: candle[3],
+          close: candle[4],
+          volume: candle[5],
+        }));
+        
+        this.setCacheItem(cacheKey, candles, 300);
+        return candles;
+      }
+
+      throw new Error('Invalid historical data response');
+    } catch (error) {
+      console.error('Failed to fetch historical data:', error);
+      return this.getMockHistoricalData(symbol);
+    }
+  }
+
+  async getOptionChain(symbol: string, expiry?: string): Promise<OptionData[]> {
+    const cacheKey = `option_chain_${symbol}_${expiry || 'default'}`;
+    
+    // Check cache first (10 second TTL for option chain)
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        ...(expiry && { expiry }),
+      });
+
+      const response = await this.makeRequest<OptionChainResponse>(
+        `/market/option-chain?${params}`
+      );
+
+      if (response.s === 'ok' && response.data) {
+        this.setCacheItem(cacheKey, response.data, 10);
+        return response.data;
+      }
+
+      throw new Error('Invalid option chain response');
+    } catch (error) {
+      console.error('Failed to fetch option chain:', error);
+      return this.getMockOptionChain(symbol);
+    }
+  }
+
+  // Stock search and details
+  async searchStocks(query: string): Promise<StockSearchResponse> {
+    const cacheKey = `search_${query}`;
+    
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const response = await this.makeRequest<StockSearchResponse>(
+        `/stocks/search?query=${encodeURIComponent(query)}`
+      );
+      
+      this.setCacheItem(cacheKey, response, 300);
+      return response;
+    } catch (error) {
+      console.error('Failed to search stocks:', error);
+      return { stocks: [] };
+    }
+  }
+
+  async getStockDetails(symbol: string): Promise<StockDetailsResponse | null> {
+    const cacheKey = `stock_details_${symbol}`;
+    
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const response = await this.makeRequest<StockDetailsResponse>(
+        `/stocks/${encodeURIComponent(symbol)}/details`
+      );
+      
+      this.setCacheItem(cacheKey, response, 60);
+      return response;
+    } catch (error) {
+      console.error('Failed to get stock details:', error);
+      return null;
+    }
+  }
+
+  // Screener
+  async screenStocks(filters: {
+    min_price?: number;
+    max_price?: number;
+    min_volume?: number;
+    max_volume?: number;
+    min_market_cap?: number;
+    max_market_cap?: number;
+    min_pe_ratio?: number;
+    max_pe_ratio?: number;
+    sectors?: string[];
+    exchanges?: string[];
+    price_change_min?: number;
+    price_change_max?: number;
+  }): Promise<ScreenerResponse> {
+    try {
+      const response = await this.makeRequest<ScreenerResponse>(
+        '/screener/filter',
+        {
+          method: 'POST',
+          body: JSON.stringify(filters),
+        }
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Failed to screen stocks:', error);
+      return { stocks: [], total: 0 };
+    }
+  }
+
+  // AI Analysis
+  async getAIAnalysis(symbol: string, timeframe = 'D'): Promise<AIAnalysisResponse | null> {
+    const cacheKey = `ai_analysis_${symbol}_${timeframe}`;
+    
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const response = await this.makeRequest<AIAnalysisResponse>(
+        `/analysis/ai-analyze?symbol=${encodeURIComponent(symbol)}&timeframe=${timeframe}`,
+        { method: 'POST' }
+      );
+      
+      this.setCacheItem(cacheKey, response, 300);
+      return response;
+    } catch (error) {
+      console.error('Failed to get AI analysis:', error);
+      return null;
+    }
+  }
+
+  // Algorithm Trading
+  async createStrategy(strategy: {
+    name: string;
+    symbol: string;
+    strategy_type: string;
+    parameters: Array<{
+      name: string;
+      value: any;
+      description?: string;
+    }>;
+  }): Promise<AlgoStrategyResponse | null> {
+    try {
+      const response = await this.makeRequest<AlgoStrategyResponse>(
+        '/algo/create-strategy',
+        {
+          method: 'POST',
+          body: JSON.stringify(strategy),
+        }
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Failed to create strategy:', error);
+      return null;
+    }
+  }
+
+  async getStrategies(): Promise<{ strategies: any[] }> {
+    try {
+      const response = await this.makeRequest<{ strategies: any[] }>('/algo/strategies');
+      return response;
+    } catch (error) {
+      console.error('Failed to get strategies:', error);
+      return { strategies: [] };
+    }
+  }
+
+  async toggleStrategy(strategyId: string): Promise<{ strategy_id: string; status: string } | null> {
+    try {
+      const response = await this.makeRequest<{ strategy_id: string; status: string }>(
+        `/algo/strategies/${strategyId}/toggle`,
+        { method: 'POST' }
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Failed to toggle strategy:', error);
+      return null;
+    }
+  }
+
+  // Health check
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await this.makeRequest('/health');
+      return response.status === 'healthy';
+    } catch (error) {
+      console.error('Health check failed:', error);
+      return false;
+    }
+  }
+
+  // Mock data fallbacks
+  private getMockMarketData(symbols: string[]): Record<string, MarketData> {
+    const data: Record<string, MarketData> = {};
+    
+    symbols.forEach(symbol => {
+      const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
+      const change = (Math.random() - 0.5) * 200;
+      
+      data[symbol] = {
+        symbol,
+        ltp: basePrice + change,
+        change,
+        change_percent: (change / basePrice) * 100,
+        volume: Math.floor(Math.random() * 1000000) + 100000,
+        open_interest: Math.floor(Math.random() * 5000000) + 1000000,
+        high: basePrice + Math.abs(change) + Math.random() * 50,
+        low: basePrice - Math.abs(change) - Math.random() * 50,
+        open: basePrice + (Math.random() - 0.5) * 100,
+        close: basePrice,
+        timestamp: new Date().toISOString(),
+      };
+    });
+    
+    return data;
+  }
+
+  private getMockHistoricalData(symbol: string): HistoricalCandle[] {
+    const candles: HistoricalCandle[] = [];
+    const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
+    const now = Date.now();
+    
+    for (let i = 30; i >= 0; i--) {
+      const timestamp = now - (i * 24 * 60 * 60 * 1000);
+      const open = basePrice + (Math.random() - 0.5) * 100;
+      const close = open + (Math.random() - 0.5) * 50;
+      const high = Math.max(open, close) + Math.random() * 20;
+      const low = Math.min(open, close) - Math.random() * 20;
+      
+      candles.push({
+        timestamp: Math.floor(timestamp / 1000),
+        open,
+        high,
+        low,
+        close,
+        volume: Math.floor(Math.random() * 100000) + 10000,
+      });
+    }
+    
+    return candles;
+  }
+
+  private getMockOptionChain(symbol: string): OptionData[] {
+    const options: OptionData[] = [];
+    const basePrice = symbol.includes('NIFTY') ? 19850 : 44250;
+    
+    for (let i = -10; i <= 10; i++) {
+      const strike = basePrice + (i * 50);
+      
+      options.push({
+        strike,
+        call_ltp: Math.max(0.1, basePrice - strike + (Math.random() - 0.5) * 40),
+        put_ltp: Math.max(0.1, strike - basePrice + (Math.random() - 0.5) * 40),
+        call_oi: Math.floor(Math.random() * 10000) + 100,
+        put_oi: Math.floor(Math.random() * 10000) + 100,
+        call_volume: Math.floor(Math.random() * 1000) + 10,
+        put_volume: Math.floor(Math.random() * 1000) + 10,
+        call_iv: Math.random() * 20 + 15,
+        put_iv: Math.random() * 20 + 15,
+      });
+    }
+    
+    return options;
   }
 }
 
 // Export singleton instance
 export const marketDataService = new MarketDataService();
-
-// Hook for easy use in React components
-export function useMarketData() {
-  return marketDataService;
-}
-
-// Real-time data hook
-export function useLiveData<T>(
-  fetchFn: () => Promise<T>,
-  dependencies: any[] = [],
-  intervalMs: number = 5000,
-) {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    let mounted = true;
-
-    const fetchData = async () => {
-      try {
-        setError(null);
-        const result = await fetchFn();
-        if (mounted) {
-          setData(result);
-          setLoading(false);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : "Unknown error");
-          setLoading(false);
-        }
-      }
-    };
-
-    // Initial fetch
-    fetchData();
-
-    // Set up interval for live updates
-    const interval = setInterval(fetchData, intervalMs);
-
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, dependencies);
-
-  return { data, loading, error };
-}
-
-// React import for the hook
-import React from "react";
+export default marketDataService;
