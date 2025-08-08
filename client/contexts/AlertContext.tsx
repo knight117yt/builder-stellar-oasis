@@ -65,19 +65,11 @@ export function AlertProvider({ children }: AlertProviderProps) {
 
   // Persist alerts to localStorage with error handling
   useEffect(() => {
-    try {
-      localStorage.setItem("priceAlerts", JSON.stringify(priceAlerts));
-    } catch (error) {
-      console.warn("Failed to save price alerts to localStorage:", error);
-    }
+    safeStorage.setItem("priceAlerts", priceAlerts);
   }, [priceAlerts]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("logicAlerts", JSON.stringify(logicAlerts));
-    } catch (error) {
-      console.warn("Failed to save logic alerts to localStorage:", error);
-    }
+    safeStorage.setItem("logicAlerts", logicAlerts);
   }, [logicAlerts]);
 
   const addPriceAlert = (
