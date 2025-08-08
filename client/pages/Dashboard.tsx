@@ -294,23 +294,23 @@ export default function Dashboard() {
                       <div
                         className={cn(
                           "font-medium",
-                          position.pnl >= 0
+                          (position.pnl || 0) >= 0
                             ? "text-trading-bull"
                             : "text-trading-bear",
                         )}
                       >
-                        {position.pnl >= 0 ? "+" : ""}₹{position.pnl.toFixed(2)}
+                        {(position.pnl || 0) >= 0 ? "+" : ""}₹{(position.pnl || 0).toFixed(2)}
                       </div>
                       <div
                         className={cn(
                           "text-sm",
-                          position.pnl >= 0
+                          (position.pnl || 0) >= 0
                             ? "text-trading-bull"
                             : "text-trading-bear",
                         )}
                       >
-                        {position.pnlPercent >= 0 ? "+" : ""}
-                        {position.pnlPercent.toFixed(2)}%
+                        {(position.pnlPercent || 0) >= 0 ? "+" : ""}
+                        {(position.pnlPercent || 0).toFixed(2)}%
                       </div>
                     </div>
                   </div>
