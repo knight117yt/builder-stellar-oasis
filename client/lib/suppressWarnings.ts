@@ -16,6 +16,7 @@ const SUPPRESSED_WARNING_PATTERNS = [
   /Support for defaultProps will be removed from function components.*Tooltip/,
   /Support for defaultProps will be removed from function components.*Bar/,
   /Support for defaultProps will be removed from function components.*Line/,
+  /Support for defaultProps will be removed from function components.*ReferenceLine/,
   // Add other third-party warnings here as needed
 ];
 
