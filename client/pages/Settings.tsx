@@ -21,18 +21,36 @@ import { useTheme, ColorTheme } from '@/contexts/ThemeContext';
 export default function Settings() {
   const { colorTheme, setColorTheme } = useTheme();
 
-  const [notifications, setNotifications] = useState({
-    priceAlerts: true,
-    patternDetection: true,
-    pnlUpdates: false,
-    marketNews: true
+  const [notifications, setNotifications] = useState(() => {
+    const stored = localStorage.getItem('notifications');
+    return stored ? JSON.parse(stored) : {
+      priceAlerts: true,
+      patternDetection: true,
+      pnlUpdates: false,
+      marketNews: true
+    };
   });
 
-  const [apiSettings, setApiSettings] = useState({
-    fyersAppId: 'POEXISKB7W-100',
-    autoRefresh: true,
-    refreshInterval: 5
+  const [apiSettings, setApiSettings] = useState(() => {
+    const stored = localStorage.getItem('apiSettings');
+    return stored ? JSON.parse(stored) : {
+      fyersAppId: 'POEXISKB7W-100',
+      autoRefresh: true,
+      refreshInterval: 5
+    };
   });
+
+  const [profile, setProfile] = useState(() => {
+    const stored = localStorage.getItem('profile');
+    return stored ? JSON.parse(stored) : {
+      name: '',
+      email: '',
+      phone: ''
+    };
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const colorThemes: { value: ColorTheme; label: string; color: string }[] = [
     { value: 'default', label: 'Default', color: 'bg-gray-600' },
@@ -41,6 +59,48 @@ export default function Settings() {
     { value: 'purple', label: 'Purple', color: 'bg-purple-600' },
     { value: 'orange', label: 'Orange', color: 'bg-orange-600' },
   ];
+
+  // Auto-save to localStorage when settings change
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('apiSettings', JSON.stringify(apiSettings));
+  }, [apiSettings]);
+
+  useEffect(() => {
+    localStorage.setItem('profile', JSON.stringify(profile));
+  }, [profile]);
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setSaveMessage('');
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setSaveMessage('Settings saved successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      setSaveMessage('Error saving settings. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNotificationChange = (key: string, value: boolean) => {
+    setNotifications(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleApiSettingChange = (key: string, value: any) => {
+    setApiSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleProfileChange = (key: string, value: string) => {
+    setProfile(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleDownloadPNL = async () => {
     try {
