@@ -696,6 +696,27 @@ export default function AlgoCreator() {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Account-based Risk Suggestions */}
+                  {accountInfo && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm font-medium text-blue-800 mb-2">Suggested Risk Limits</div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <div className="text-blue-600">Conservative (2%)</div>
+                          <div className="font-mono">₹{(accountInfo.balance * 0.02).toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-blue-600">Moderate (5%)</div>
+                          <div className="font-mono">₹{(accountInfo.balance * 0.05).toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-blue-600">Aggressive (10%)</div>
+                          <div className="font-mono">₹{(accountInfo.balance * 0.10).toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Max Position Size (₹)</Label>
@@ -711,7 +732,11 @@ export default function AlgoCreator() {
                             },
                           }))
                         }
+                        max={accountInfo?.available_margin}
                       />
+                      {accountInfo && strategyForm.risk_management.max_position_size > accountInfo.available_margin && (
+                        <p className="text-sm text-red-600">Exceeds available margin</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Daily Loss Limit (₹)</Label>
