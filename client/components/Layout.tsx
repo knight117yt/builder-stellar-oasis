@@ -89,6 +89,7 @@ export function Layout({ children }: LayoutProps) {
                     BANKNIFTY: <span className="text-trading-bear font-medium">44,250.75</span>
                   </div>
                 </div>
+                <ThemeToggle />
                 <Button variant="ghost" size="sm">
                   <User className="h-4 w-4 mr-2" />
                   Profile
