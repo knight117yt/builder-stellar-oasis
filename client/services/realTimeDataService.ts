@@ -350,11 +350,14 @@ function scheduleReconnect(set: any, get: () => RealTimeDataStore) {
     30000,
   );
 
+  console.log(`Scheduling WebSocket reconnection in ${delay}ms (attempt ${connectionStatus.reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+
   setTimeout(() => {
-    console.log(
-      `Attempting to reconnect (attempt ${connectionStatus.reconnectAttempts + 1})`,
-    );
-    get().connect();
+    const currentState = get();
+    if (currentState.connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      console.log(`Attempting WebSocket reconnection (attempt ${currentState.connectionStatus.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+      get().connect();
+    }
   }, delay);
 }
 
