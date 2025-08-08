@@ -232,11 +232,36 @@ export default function AlgoCreator() {
   const createStrategy = async () => {
     setLoading(true);
     try {
+      // If it's a custom strategy, create it via the custom strategy endpoint
+      if (strategyForm.strategy_type === "custom" && customCode) {
+        const response = await fetch('/api/strategies/custom/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('fyers_token') || localStorage.getItem('mock_token')}`,
+          },
+          body: JSON.stringify({
+            name: strategyForm.name,
+            description: `Custom strategy for ${strategyForm.symbol}`,
+            code: customCode,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Custom strategy created:', result);
+        }
+      }
+
+      // Create the strategy record
       const response = await marketDataService.createStrategy({
         name: strategyForm.name,
         symbol: strategyForm.symbol,
         strategy_type: strategyForm.strategy_type,
         parameters: strategyForm.parameters,
+        custom_code: strategyForm.strategy_type === "custom" ? customCode : undefined,
+        risk_management: strategyForm.risk_management,
+        position_sizing: strategyForm.position_sizing,
       });
 
       if (response) {
