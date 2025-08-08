@@ -107,13 +107,17 @@ const rootElement = document.getElementById("root")!;
 let root: any;
 if (import.meta.hot) {
   // In development, store root in globalThis to persist across hot reloads
-  if (!globalThis.__react_root) {
-    globalThis.__react_root = createRoot(rootElement);
+  if (!(globalThis as any).__react_root) {
+    (globalThis as any).__react_root = createRoot(rootElement);
   }
-  root = globalThis.__react_root;
+  root = (globalThis as any).__react_root;
 } else {
   // In production, create root normally
   root = createRoot(rootElement);
 }
 
-root.render(<App />);
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
