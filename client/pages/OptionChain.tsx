@@ -6,93 +6,99 @@ import { OptionChainTable } from '@/components/OptionChainTable';
 import { useState } from 'react';
 
 export default function OptionChain() {
+  const [selectedSymbol, setSelectedSymbol] = useState('NIFTY');
+  const [spotPrice, setSpotPrice] = useState(19850.50);
+
+  const symbols = [
+    { value: 'NIFTY', label: 'NIFTY 50', price: 19850.50 },
+    { value: 'BANKNIFTY', label: 'BANK NIFTY', price: 44250.75 },
+    { value: 'FINNIFTY', label: 'FINNIFTY', price: 21120.25 }
+  ];
+
+  const handleSymbolChange = (symbol: string) => {
+    const selectedSymbolData = symbols.find(s => s.value === symbol);
+    if (selectedSymbolData) {
+      setSelectedSymbol(symbol);
+      setSpotPrice(selectedSymbolData.price);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Option Chain</h1>
           <p className="text-muted-foreground">
-            View option chain, Greeks, and straddle analysis
+            Real-time option chain with Greeks, straddle analysis, and trading insights
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {symbols.map((symbol) => (
+            <Button
+              key={symbol.value}
+              variant={selectedSymbol === symbol.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleSymbolChange(symbol.value)}
+            >
+              {symbol.label}
+            </Button>
+          ))}
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Greeks Analysis
-            </CardTitle>
-            <CardDescription>
-              Option Greeks calculation and analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">
-                Option Greeks data will be displayed here with real-time calculations from Fyers API.
-              </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-primary" />
+              <div>
+                <div className="text-sm text-muted-foreground">Spot Price</div>
+                <div className="text-lg font-bold">₹{spotPrice.toLocaleString()}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Straddle Analysis
-            </CardTitle>
-            <CardDescription>
-              ATM straddle prices and charts
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">
-                Straddle pricing and analysis charts will be integrated here.
-              </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-trading-bull" />
+              <div>
+                <div className="text-sm text-muted-foreground">PCR</div>
+                <div className="text-lg font-bold">0.87</div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingDown className="h-5 w-5" />
-              Option Chain Table
-            </CardTitle>
-            <CardDescription>
-              Complete option chain with live data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">
-                Real-time option chain table will be displayed here.
-              </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-trading-neutral" />
+              <div>
+                <div className="text-sm text-muted-foreground">Avg IV</div>
+                <div className="text-lg font-bold">18.5%</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-yellow-600" />
+              <div>
+                <div className="text-sm text-muted-foreground">Days to Expiry</div>
+                <div className="text-lg font-bold">5</div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Live Option Chain</CardTitle>
-          <CardDescription>Real-time option chain data with Greeks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-96 bg-trading-chart-bg rounded-lg border-2 border-dashed border-trading-grid flex items-center justify-center">
-            <div className="text-center space-y-2">
-              <PieChart className="h-12 w-12 mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Option chain table will be integrated here
-              </p>
-              <Badge variant="outline">Coming Soon</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Option Chain */}
+      <OptionChainTable symbol={selectedSymbol} spotPrice={spotPrice} />
     </div>
   );
 }
