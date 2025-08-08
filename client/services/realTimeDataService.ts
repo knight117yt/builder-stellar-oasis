@@ -382,10 +382,6 @@ export function useSubscription(symbol: string, autoSubscribe = true) {
   };
 }
 
-// Initialize connection on module load
-if (typeof window !== 'undefined') {
-  // Auto-connect when the module is imported
-  useRealTimeDataStore.getState().connect();
-}
+// Note: Auto-connection should be handled in components using useEffect
 
 export default useRealTimeDataStore;
