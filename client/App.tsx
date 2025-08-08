@@ -62,6 +62,11 @@ const App = () => (
               <AIAnalysis />
             </ProtectedRoute>
           } />
+          <Route path="/alerts" element={
+            <ProtectedRoute>
+              <Alerts />
+            </ProtectedRoute>
+          } />
           <Route path="/settings" element={
             <ProtectedRoute>
               <Settings />
