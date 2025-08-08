@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
 import Analysis from "./pages/Analysis";
 import AIAnalysis from "./pages/AIAnalysis";
+import StraddleChart from "./pages/StraddleChart";
 import Screener from "./pages/Screener";
 import AlgoCreator from "./pages/AlgoCreator";
 import Alerts from "./pages/Alerts";
