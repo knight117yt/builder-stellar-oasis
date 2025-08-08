@@ -13,14 +13,14 @@ export const handlePNLDownload: RequestHandler = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token required"
+        message: "Authentication token required",
       });
     }
 
     // Check if pre-made PNL report exists in directory
-    const reportsDir = path.join(process.cwd(), 'reports');
-    const pnlReportPath = path.join(reportsDir, 'pnl-report.pdf');
-    
+    const reportsDir = path.join(process.cwd(), "reports");
+    const pnlReportPath = path.join(reportsDir, "pnl-report.pdf");
+
     // Create reports directory if it doesn't exist
     if (!fs.existsSync(reportsDir)) {
       fs.mkdirSync(reportsDir, { recursive: true });
@@ -29,9 +29,12 @@ export const handlePNLDownload: RequestHandler = async (req, res) => {
     // Check if pre-made report exists
     if (fs.existsSync(pnlReportPath)) {
       // Serve the existing report
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="pnl-report-${new Date().toISOString().split('T')[0]}.pdf"`);
-      
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="pnl-report-${new Date().toISOString().split("T")[0]}.pdf"`,
+      );
+
       const fileStream = fs.createReadStream(pnlReportPath);
       fileStream.pipe(res);
       return;
@@ -151,33 +154,35 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${token}"`,
     );
 
     if (stderr) {
       console.error("PNL report script error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "Report generation service error"
+        message: "Report generation service error",
       });
     }
 
     const result = JSON.parse(stdout.trim());
-    
+
     if (result.success) {
       // Return HTML content as downloadable file
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="pnl-report-${new Date().toISOString().split('T')[0]}.html"`);
+      res.setHeader("Content-Type", "text/html");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="pnl-report-${new Date().toISOString().split("T")[0]}.html"`,
+      );
       res.send(result.html_content);
     } else {
       res.status(500).json(result);
     }
-
   } catch (error) {
     console.error("PNL report generation error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -189,7 +194,7 @@ export const handlePositions: RequestHandler = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token required"
+        message: "Authentication token required",
       });
     }
 
@@ -260,25 +265,24 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${token}"`,
     );
 
     if (stderr) {
       console.error("Positions script error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "Positions service error"
+        message: "Positions service error",
       });
     }
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Positions error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };

@@ -3,7 +3,11 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleFyersLogin, handleFyersCallback } from "./routes/fyers-auth";
-import { handleMarketData, handleOptionChain, handleCandlestickPatterns } from "./routes/market-data";
+import {
+  handleMarketData,
+  handleOptionChain,
+  handleCandlestickPatterns,
+} from "./routes/market-data";
 import { handlePNLDownload, handlePositions } from "./routes/reports";
 
 export function createServer() {
@@ -25,8 +29,9 @@ export function createServer() {
     res.json({
       status: "running",
       mode: "mock_fallback_ready",
-      message: "Indian Market Predictors API is running with mock data fallback",
-      timestamp: new Date().toISOString()
+      message:
+        "Indian Market Predictors API is running with mock data fallback",
+      timestamp: new Date().toISOString(),
     });
   });
 

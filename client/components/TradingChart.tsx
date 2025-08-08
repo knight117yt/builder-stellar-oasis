@@ -1,9 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Line } from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from "react";
+import {
+  ComposedChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Bar,
+  Line,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface CandleData {
   time: string;
@@ -26,11 +41,13 @@ const CandlestickBar = (props: any) => {
 
   const { open, high, low, close } = payload;
   const isGreen = close >= open;
-  const color = isGreen ? '#16a34a' : '#dc2626';
-  
+  const color = isGreen ? "#16a34a" : "#dc2626";
+
   const bodyHeight = Math.abs(close - open);
-  const bodyY = isGreen ? y + height - (close - low) * (height / (high - low)) : y + height - (open - low) * (height / (high - low));
-  
+  const bodyY = isGreen
+    ? y + height - (close - low) * (height / (high - low))
+    : y + height - (open - low) * (height / (high - low));
+
   const wickX = x + width / 2;
   const highY = y + height - (high - low) * (height / (high - low));
   const lowY = y + height;
@@ -52,7 +69,7 @@ const CandlestickBar = (props: any) => {
         y={bodyY}
         width={width * 0.5}
         height={Math.max(bodyHeight * (height / (high - low)), 1)}
-        fill={isGreen ? color : 'transparent'}
+        fill={isGreen ? color : "transparent"}
         stroke={color}
         strokeWidth={1}
       />
@@ -62,76 +79,105 @@ const CandlestickBar = (props: any) => {
 
 const generateMockData = (symbol: string, days: number = 30): CandleData[] => {
   const data: CandleData[] = [];
-  const basePrice = symbol.includes('BANK') ? 44250 : 19850;
+  const basePrice = symbol.includes("BANK") ? 44250 : 19850;
   let currentPrice = basePrice;
-  
+
   for (let i = days; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    
+
     const open = currentPrice + (Math.random() - 0.5) * 50;
     const volatility = 30 + Math.random() * 20;
     const high = open + Math.random() * volatility;
     const low = open - Math.random() * volatility;
     const close = low + Math.random() * (high - low);
     const volume = 1000000 + Math.random() * 5000000;
-    
+
     data.push({
-      time: date.toLocaleDateString('en-IN', { month: 'short', day: '2-digit' }),
+      time: date.toLocaleDateString("en-IN", {
+        month: "short",
+        day: "2-digit",
+      }),
       open: Math.round(open * 100) / 100,
       high: Math.round(high * 100) / 100,
       low: Math.round(low * 100) / 100,
       close: Math.round(close * 100) / 100,
-      volume: Math.round(volume)
+      volume: Math.round(volume),
     });
-    
+
     currentPrice = close;
   }
-  
+
   return data;
 };
 
-const detectPatterns = (data: CandleData[]): Array<{name: string; signal: string; index: number}> => {
+const detectPatterns = (
+  data: CandleData[],
+): Array<{ name: string; signal: string; index: number }> => {
   const patterns = [];
-  
+
   for (let i = 2; i < data.length; i++) {
     const current = data[i];
     const prev = data[i - 1];
     const prev2 = data[i - 2];
-    
+
     // Hammer pattern
     const bodySize = Math.abs(current.close - current.open);
-    const lowerShadow = current.open < current.close ? current.open - current.low : current.close - current.low;
+    const lowerShadow =
+      current.open < current.close
+        ? current.open - current.low
+        : current.close - current.low;
     const upperShadow = current.high - Math.max(current.open, current.close);
-    
+
     if (lowerShadow > bodySize * 2 && upperShadow < bodySize * 0.5) {
-      patterns.push({ name: 'Hammer', signal: 'Bullish', index: i });
+      patterns.push({ name: "Hammer", signal: "Bullish", index: i });
     }
-    
+
     // Doji pattern
     if (bodySize < (current.high - current.low) * 0.1) {
-      patterns.push({ name: 'Doji', signal: 'Neutral', index: i });
+      patterns.push({ name: "Doji", signal: "Neutral", index: i });
     }
-    
+
     // Engulfing pattern
     const prevBodySize = Math.abs(prev.close - prev.open);
     const currentBodySize = Math.abs(current.close - current.open);
-    
+
     if (currentBodySize > prevBodySize * 1.5) {
-      if (prev.close < prev.open && current.close > current.open && current.close > prev.open) {
-        patterns.push({ name: 'Bullish Engulfing', signal: 'Bullish', index: i });
-      } else if (prev.close > prev.open && current.close < current.open && current.close < prev.open) {
-        patterns.push({ name: 'Bearish Engulfing', signal: 'Bearish', index: i });
+      if (
+        prev.close < prev.open &&
+        current.close > current.open &&
+        current.close > prev.open
+      ) {
+        patterns.push({
+          name: "Bullish Engulfing",
+          signal: "Bullish",
+          index: i,
+        });
+      } else if (
+        prev.close > prev.open &&
+        current.close < current.open &&
+        current.close < prev.open
+      ) {
+        patterns.push({
+          name: "Bearish Engulfing",
+          signal: "Bearish",
+          index: i,
+        });
       }
     }
   }
-  
+
   return patterns.slice(-5); // Return last 5 patterns
 };
 
-export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingChartProps) {
+export function TradingChart({
+  symbol = "NIFTY50",
+  interval = "1D",
+}: TradingChartProps) {
   const [data, setData] = useState<CandleData[]>([]);
-  const [patterns, setPatterns] = useState<Array<{name: string; signal: string; index: number}>>([]);
+  const [patterns, setPatterns] = useState<
+    Array<{ name: string; signal: string; index: number }>
+  >([]);
   const [selectedInterval, setSelectedInterval] = useState(interval);
   const [loading, setLoading] = useState(false);
 
@@ -143,28 +189,32 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
     setLoading(true);
     try {
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockData = generateMockData(symbol, selectedInterval === '1D' ? 30 : 100);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const mockData = generateMockData(
+        symbol,
+        selectedInterval === "1D" ? 30 : 100,
+      );
       setData(mockData);
       setPatterns(detectPatterns(mockData));
     } catch (error) {
-      console.error('Error loading chart data:', error);
+      console.error("Error loading chart data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const intervals = [
-    { value: '1m', label: '1M' },
-    { value: '5m', label: '5M' },
-    { value: '15m', label: '15M' },
-    { value: '1h', label: '1H' },
-    { value: '1D', label: '1D' }
+    { value: "1m", label: "1M" },
+    { value: "5m", label: "5M" },
+    { value: "15m", label: "15M" },
+    { value: "1h", label: "1H" },
+    { value: "1D", label: "1D" },
   ];
 
   const currentPrice = data.length > 0 ? data[data.length - 1].close : 0;
-  const prevPrice = data.length > 1 ? data[data.length - 2].close : currentPrice;
+  const prevPrice =
+    data.length > 1 ? data[data.length - 2].close : currentPrice;
   const change = currentPrice - prevPrice;
   const changePercent = prevPrice !== 0 ? (change / prevPrice) * 100 : 0;
 
@@ -177,7 +227,9 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
               {symbol} Live Chart
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-normal text-muted-foreground">Live</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  Live
+                </span>
               </div>
             </CardTitle>
             <CardDescription>
@@ -197,26 +249,38 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
             ))}
           </div>
         </div>
-        
+
         {/* Price Display */}
         <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold">₹{currentPrice.toLocaleString()}</div>
-          <div className={cn(
-            "flex items-center gap-1 text-sm font-medium",
-            change >= 0 ? "text-trading-bull" : "text-trading-bear"
-          )}>
-            <span>{change >= 0 ? '+' : ''}{change.toFixed(2)}</span>
-            <span>({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)</span>
+          <div className="text-2xl font-bold">
+            ₹{currentPrice.toLocaleString()}
+          </div>
+          <div
+            className={cn(
+              "flex items-center gap-1 text-sm font-medium",
+              change >= 0 ? "text-trading-bull" : "text-trading-bear",
+            )}
+          >
+            <span>
+              {change >= 0 ? "+" : ""}
+              {change.toFixed(2)}
+            </span>
+            <span>
+              ({changePercent >= 0 ? "+" : ""}
+              {changePercent.toFixed(2)}%)
+            </span>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {loading ? (
           <div className="h-96 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Loading chart data...</p>
+              <p className="text-sm text-muted-foreground">
+                Loading chart data...
+              </p>
             </div>
           </div>
         ) : (
@@ -224,16 +288,22 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
             {/* Chart */}
             <div className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--trading-grid))" />
-                  <XAxis 
-                    dataKey="time" 
+                <ComposedChart
+                  data={data}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--trading-grid))"
+                  />
+                  <XAxis
+                    dataKey="time"
                     axisLine={false}
                     tickLine={false}
                     fontSize={12}
                   />
-                  <YAxis 
-                    domain={['dataMin - 10', 'dataMax + 10']}
+                  <YAxis
+                    domain={["dataMin - 10", "dataMax + 10"]}
                     axisLine={false}
                     tickLine={false}
                     fontSize={12}
@@ -252,11 +322,15 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>High:</span>
-                                <span className="font-mono text-trading-bull">₹{data.high}</span>
+                                <span className="font-mono text-trading-bull">
+                                  ₹{data.high}
+                                </span>
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>Low:</span>
-                                <span className="font-mono text-trading-bear">₹{data.low}</span>
+                                <span className="font-mono text-trading-bear">
+                                  ₹{data.low}
+                                </span>
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>Close:</span>
@@ -264,7 +338,9 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
                               </div>
                               <div className="flex justify-between gap-4">
                                 <span>Volume:</span>
-                                <span className="font-mono">{data.volume.toLocaleString()}</span>
+                                <span className="font-mono">
+                                  {data.volume.toLocaleString()}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -290,9 +366,11 @@ export function TradingChart({ symbol = 'NIFTY50', interval = '1D' }: TradingCha
                     <Badge
                       key={index}
                       variant={
-                        pattern.signal === 'Bullish' ? 'default' :
-                        pattern.signal === 'Bearish' ? 'destructive' :
-                        'secondary'
+                        pattern.signal === "Bullish"
+                          ? "default"
+                          : pattern.signal === "Bearish"
+                            ? "destructive"
+                            : "secondary"
                       }
                       className="text-xs"
                     >

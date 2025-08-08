@@ -64,7 +64,7 @@ export default {
           "bull-light": "hsl(var(--trading-bull-light))",
           "bear-light": "hsl(var(--trading-bear-light))",
           "chart-bg": "hsl(var(--trading-chart-bg))",
-          "grid": "hsl(var(--trading-grid))",
+          grid: "hsl(var(--trading-grid))",
         },
       },
       borderRadius: {

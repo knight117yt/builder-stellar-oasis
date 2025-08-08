@@ -12,7 +12,7 @@ export const handleMarketData: RequestHandler = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token required"
+        message: "Authentication token required",
       });
     }
 
@@ -83,25 +83,24 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${interval}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${interval}" "${token}"`,
     );
 
     if (stderr) {
       console.error("Market data script error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "Market data service error"
+        message: "Market data service error",
       });
     }
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Market data error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -114,7 +113,7 @@ export const handleOptionChain: RequestHandler = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token required"
+        message: "Authentication token required",
       });
     }
 
@@ -198,25 +197,24 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${expiry || ''}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${expiry || ""}" "${token}"`,
     );
 
     if (stderr) {
       console.error("Option chain script error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "Option chain service error"
+        message: "Option chain service error",
       });
     }
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Option chain error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -229,7 +227,7 @@ export const handleCandlestickPatterns: RequestHandler = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token required"
+        message: "Authentication token required",
       });
     }
 
@@ -296,25 +294,24 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${token}"`,
     );
 
     if (stderr) {
       console.error("Pattern detection script error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "Pattern detection service error"
+        message: "Pattern detection service error",
       });
     }
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Pattern detection error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };

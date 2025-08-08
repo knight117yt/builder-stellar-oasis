@@ -5,6 +5,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 ## Features
 
 ### 🎯 **Core Functionality**
+
 - **Fyers API Integration** - Real-time market data and authentication
 - **Option Chain Analysis** - Complete option chain with Greeks calculation
 - **Candlestick Pattern Detection** - 60+ pattern recognition algorithms
@@ -13,6 +14,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 - **Real-time P&L Tracking** - Live position monitoring and reporting
 
 ### 📊 **Trading Features**
+
 - **Option Buying/Selling Zones** - Based on IV, pricing, and Greeks
 - **Support & Resistance Analysis** - Technical zones with OI analysis
 - **CPR and Pivot Zones** - Central Pivot Range calculations
@@ -20,6 +22,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 - **Pattern Alerts** - Real-time candlestick pattern notifications
 
 ### 🧠 **AI & Analytics**
+
 - **Implied Volatility Analysis** - Historical and current IV trends
 - **Open Interest Analysis** - OI buildup and unwinding detection
 - **Probability-based Trading** - Expiry dependency analysis
@@ -28,6 +31,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 ## Tech Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Tailwind CSS** for styling
 - **Shadcn/ui** component library
@@ -35,12 +39,14 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 - **TanStack Query** for data fetching
 
 ### Backend
+
 - **Express.js** server (Node.js)
 - **Python** integration for trading algorithms
 - **Fyers API v3** for market data
 - **Real-time WebSocket** connections
 
 ### Python Libraries
+
 - **Fyers API** - Market data and trading
 - **TA-Lib** - Technical analysis
 - **Pandas/NumPy** - Data manipulation
@@ -50,6 +56,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - Python 3.8+
 - Fyers trading account
@@ -57,6 +64,7 @@ A comprehensive trading platform for Indian markets with advanced pattern recogn
 ### Installation
 
 1. **Clone and install dependencies:**
+
 ```bash
 git clone <repository-url>
 cd indian-market-predictors
@@ -64,11 +72,13 @@ npm install
 ```
 
 2. **Install Python dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Configure Fyers API:**
+
 ```bash
 # Copy environment variables
 cp .env.example .env
@@ -80,6 +90,7 @@ FYERS_REDIRECT_URL=http://127.0.0.1:5000/fyers/callback
 ```
 
 4. **Start development server:**
+
 ```bash
 npm run dev
 ```
@@ -117,11 +128,13 @@ npm run dev
 ## Available Pages
 
 ### 🔐 **Login Page**
+
 - Fyers API authentication
 - OAuth flow integration
 - Secure token management
 
 ### 📈 **Dashboard**
+
 - Live market overview (NIFTY, BANKNIFTY)
 - Real-time P&L tracking
 - Open positions display
@@ -129,12 +142,14 @@ npm run dev
 - Interactive charts
 
 ### ⚙️ **Option Chain**
+
 - Complete option chain display
 - Greeks calculation (Delta, Gamma, Theta, Vega)
 - Straddle analysis and charts
 - IV analysis across strikes
 
 ### 📊 **Analysis Page**
+
 - Support & Resistance levels
 - CPR (Central Pivot Range) zones
 - Open Interest analysis
@@ -142,12 +157,14 @@ npm run dev
 - Price action analysis
 
 ### 🤖 **AI Analysis**
+
 - Machine learning predictions
 - Market sentiment analysis
 - Pattern probability scoring
 - Risk assessment algorithms
 
 ### ⚙️ **Settings**
+
 - Profile management
 - API configuration
 - Notification preferences
@@ -165,21 +182,25 @@ The system recognizes 60+ candlestick patterns including:
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/fyers-login` - Fyers login
 - `GET /fyers/callback` - OAuth callback
 
 ### Market Data
+
 - `GET /api/market/data` - OHLCV data
 - `GET /api/market/option-chain` - Option chain with Greeks
 - `GET /api/market/patterns` - Pattern detection
 
 ### Trading
+
 - `GET /api/positions` - Current positions
 - `GET /api/reports/pnl-download` - P&L report
 
 ## Development
 
 ### Commands
+
 ```bash
 npm run dev        # Start development server
 npm run build      # Production build
@@ -189,6 +210,7 @@ npm run typecheck # TypeScript validation
 ```
 
 ### Environment Variables
+
 ```bash
 FYERS_APP_ID=POEXISKB7W-100
 FYERS_SECRET_ID=your_secret_key
@@ -199,6 +221,7 @@ PORT=8080
 ## Deployment
 
 The application supports multiple deployment options:
+
 - **Netlify/Vercel** - For frontend deployment
 - **Heroku/Railway** - For full-stack deployment
 - **Docker** - Containerized deployment
@@ -223,6 +246,7 @@ This software is for educational and analysis purposes only. Trading in financia
 ## Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation
 - Join our community discussions

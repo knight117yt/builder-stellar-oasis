@@ -1,26 +1,26 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Settings, 
-  Menu, 
-  X, 
-  LogOut, 
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  BarChart3,
+  TrendingUp,
+  Settings,
+  Menu,
+  X,
+  LogOut,
   Brain,
   PieChart,
   LineChart,
-  User
-} from 'lucide-react';
+  User,
+} from "lucide-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-  { name: 'Option Chain', href: '/option-chain', icon: PieChart },
-  { name: 'Analysis', href: '/analysis', icon: LineChart },
-  { name: 'AI Analysis', href: '/ai-analysis', icon: Brain },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+  { name: "Option Chain", href: "/option-chain", icon: PieChart },
+  { name: "Analysis", href: "/analysis", icon: LineChart },
+  { name: "AI Analysis", href: "/ai-analysis", icon: Brain },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 interface LayoutProps {
@@ -30,16 +30,21 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const authMode = localStorage.getItem('auth_mode') || 'mock';
+  const authMode = localStorage.getItem("auth_mode") || "mock";
 
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile sidebar */}
-      <div className={cn(
-        "fixed inset-0 z-50 lg:hidden",
-        sidebarOpen ? "block" : "hidden"
-      )}>
-        <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+      <div
+        className={cn(
+          "fixed inset-0 z-50 lg:hidden",
+          sidebarOpen ? "block" : "hidden",
+        )}
+      >
+        <div
+          className="fixed inset-0 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
         <div className="fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border">
           <SidebarContent onNavigate={() => setSidebarOpen(false)} />
         </div>
@@ -73,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
                 <h1 className="text-lg font-semibold text-foreground">
                   Indian Market Predictors
                 </h1>
-                {authMode === 'mock' && (
+                {authMode === "mock" && (
                   <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full border border-yellow-200">
                     DEMO
                   </span>
@@ -82,10 +87,16 @@ export function Layout({ children }: LayoutProps) {
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <div className="flex items-center gap-x-2">
                   <div className="text-sm text-muted-foreground">
-                    NIFTY: <span className="text-trading-bull font-medium">19,850.50</span>
+                    NIFTY:{" "}
+                    <span className="text-trading-bull font-medium">
+                      19,850.50
+                    </span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    BANKNIFTY: <span className="text-trading-bear font-medium">44,250.75</span>
+                    BANKNIFTY:{" "}
+                    <span className="text-trading-bear font-medium">
+                      44,250.75
+                    </span>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm">
@@ -119,12 +130,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <TrendingUp className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-sidebar-foreground">Market Predictors</div>
-            <div className="text-xs text-sidebar-foreground/60">Trading Platform</div>
+            <div className="text-sm font-semibold text-sidebar-foreground">
+              Market Predictors
+            </div>
+            <div className="text-xs text-sidebar-foreground/60">
+              Trading Platform
+            </div>
           </div>
         </div>
       </div>
-      
+
       <nav className="flex flex-1 flex-col p-6">
         <ul className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => {
@@ -138,7 +153,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium transition-colors",
                     isActive
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -148,7 +163,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             );
           })}
         </ul>
-        
+
         <div className="mt-auto">
           <Button
             variant="ghost"

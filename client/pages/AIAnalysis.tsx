@@ -1,6 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Brain, Bot, Zap, TrendingUp } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Bot, Zap, TrendingUp } from "lucide-react";
 
 export default function AIAnalysis() {
   return (
@@ -21,16 +27,16 @@ export default function AIAnalysis() {
               <Brain className="h-5 w-5" />
               Market Sentiment
             </CardTitle>
-            <CardDescription>
-              AI-driven sentiment analysis
-            </CardDescription>
+            <CardDescription>AI-driven sentiment analysis</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <p className="text-sm text-muted-foreground">
                 AI sentiment analysis will be displayed here.
               </p>
-              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+              <Badge variant="outline" className="mt-2">
+                Coming Soon
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -41,16 +47,16 @@ export default function AIAnalysis() {
               <Bot className="h-5 w-5" />
               Prediction Models
             </CardTitle>
-            <CardDescription>
-              ML-based price predictions
-            </CardDescription>
+            <CardDescription>ML-based price predictions</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <p className="text-sm text-muted-foreground">
                 ML prediction models will be integrated here.
               </p>
-              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+              <Badge variant="outline" className="mt-2">
+                Coming Soon
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -61,16 +67,16 @@ export default function AIAnalysis() {
               <Zap className="h-5 w-5" />
               Smart Alerts
             </CardTitle>
-            <CardDescription>
-              AI-powered trading alerts
-            </CardDescription>
+            <CardDescription>AI-powered trading alerts</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <p className="text-sm text-muted-foreground">
                 Smart alert system will be available here.
               </p>
-              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+              <Badge variant="outline" className="mt-2">
+                Coming Soon
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -80,7 +86,8 @@ export default function AIAnalysis() {
         <CardHeader>
           <CardTitle>AI Trading Assistant</CardTitle>
           <CardDescription>
-            Comprehensive AI analysis combining multiple factors for trading decisions
+            Comprehensive AI analysis combining multiple factors for trading
+            decisions
           </CardDescription>
         </CardHeader>
         <CardContent>

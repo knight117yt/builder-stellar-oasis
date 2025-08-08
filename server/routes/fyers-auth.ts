@@ -23,7 +23,7 @@ export const handleFyersLogin: RequestHandler = async (req, res) => {
     if (!appId || !secretId || !pin) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: appId, secretId, or pin"
+        message: "Missing required fields: appId, secretId, or pin",
       });
     }
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
       // Execute Python authentication script
       const { stdout, stderr } = await execAsync(
-        `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${appId}" "${secretId}" "${pin}"`
+        `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${appId}" "${secretId}" "${pin}"`,
       );
 
       if (stderr) {
@@ -100,20 +100,21 @@ if __name__ == "__main__":
       } else {
         throw new Error(result.message);
       }
-
     } catch (pythonError) {
       // Fallback to pure mock mode if Python execution fails
-      console.warn("Python/Fyers unavailable, using pure mock mode:", pythonError);
+      console.warn(
+        "Python/Fyers unavailable, using pure mock mode:",
+        pythonError,
+      );
 
       const mockResult: FyersAuthResponse = {
         success: true,
         token: `mock_token_${appId}_${pin}_${Date.now()}`,
-        message: "Mock authentication successful (Fyers API unavailable)"
+        message: "Mock authentication successful (Fyers API unavailable)",
       };
 
       res.json(mockResult);
     }
-
   } catch (error) {
     console.error("Fyers authentication error:", error);
 
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     const fallbackResult: FyersAuthResponse = {
       success: true,
       token: `fallback_token_${Date.now()}`,
-      message: "Fallback mock authentication"
+      message: "Fallback mock authentication",
     };
 
     res.json(fallbackResult);
@@ -135,7 +136,7 @@ export const handleFyersCallback: RequestHandler = async (req, res) => {
     if (!code) {
       return res.status(400).json({
         success: false,
-        message: "Authorization code not received"
+        message: "Authorization code not received",
       });
     }
 
@@ -172,28 +173,31 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${code}" "${state || ''}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${code}" "${state || ""}"`,
     );
 
     if (stderr) {
       console.error("OAuth callback error:", stderr);
       return res.status(500).json({
         success: false,
-        message: "OAuth processing error"
+        message: "OAuth processing error",
       });
     }
 
     const result: FyersAuthResponse = JSON.parse(stdout.trim());
-    
+
     // Redirect back to frontend with token
     if (result.success) {
       res.redirect(`/?token=${result.token}&status=success`);
     } else {
-      res.redirect(`/?status=error&message=${encodeURIComponent(result.message)}`);
+      res.redirect(
+        `/?status=error&message=${encodeURIComponent(result.message)}`,
+      );
     }
-
   } catch (error) {
     console.error("OAuth callback error:", error);
-    res.redirect(`/?status=error&message=${encodeURIComponent("Authentication failed")}`);
+    res.redirect(
+      `/?status=error&message=${encodeURIComponent("Authentication failed")}`,
+    );
   }
 };
