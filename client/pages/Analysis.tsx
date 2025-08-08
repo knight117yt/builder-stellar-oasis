@@ -1,24 +1,18 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { LineChart, Target, TrendingUp, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { LineChart, Target, TrendingUp, BarChart3 } from 'lucide-react';
+import { TechnicalAnalysis } from '@/components/TechnicalAnalysis';
+import { useState } from 'react';
 
 export default function Analysis() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Technical Analysis
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Technical Analysis</h1>
           <p className="text-muted-foreground">
-            Comprehensive market analysis with support/resistance levels and CPR
-            zones
+            Comprehensive market analysis with support/resistance levels and CPR zones
           </p>
         </div>
       </div>
@@ -36,9 +30,7 @@ export default function Analysis() {
               <p className="text-sm text-muted-foreground">
                 Major S&R levels analysis
               </p>
-              <Badge variant="outline" className="mt-2">
-                Coming Soon
-              </Badge>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
             </div>
           </CardContent>
         </Card>
@@ -55,9 +47,7 @@ export default function Analysis() {
               <p className="text-sm text-muted-foreground">
                 Central Pivot Range zones
               </p>
-              <Badge variant="outline" className="mt-2">
-                Coming Soon
-              </Badge>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
             </div>
           </CardContent>
         </Card>
@@ -74,9 +64,7 @@ export default function Analysis() {
               <p className="text-sm text-muted-foreground">
                 Open Interest trends
               </p>
-              <Badge variant="outline" className="mt-2">
-                Coming Soon
-              </Badge>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
             </div>
           </CardContent>
         </Card>
@@ -93,9 +81,7 @@ export default function Analysis() {
               <p className="text-sm text-muted-foreground">
                 Implied Volatility trends
               </p>
-              <Badge variant="outline" className="mt-2">
-                Coming Soon
-              </Badge>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
             </div>
           </CardContent>
         </Card>
@@ -105,8 +91,7 @@ export default function Analysis() {
         <CardHeader>
           <CardTitle>Comprehensive Market Analysis</CardTitle>
           <CardDescription>
-            Detailed analysis combining price action, OI, IV, and technical
-            indicators
+            Detailed analysis combining price action, OI, IV, and technical indicators
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -117,8 +102,7 @@ export default function Analysis() {
                 Advanced analysis dashboard will be integrated here
               </p>
               <p className="text-xs text-muted-foreground">
-                Includes price action, OI analysis, IV trends, and technical
-                indicators
+                Includes price action, OI analysis, IV trends, and technical indicators
               </p>
             </div>
           </div>
