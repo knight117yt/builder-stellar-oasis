@@ -77,7 +77,7 @@ export function AlertProvider({ children }: AlertProviderProps) {
   ) => {
     const newAlert: PriceAlert = {
       ...alertData,
-      id: generateId(),
+      id: generateSafeId(),
       createdAt: new Date(),
       isTriggered: false,
     };
