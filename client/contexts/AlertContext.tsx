@@ -211,12 +211,16 @@ export function AlertProvider({ children }: AlertProviderProps) {
       setTriggeredAlerts((prev) => [...prev, ...triggered]);
 
       // Show browser notification if permission granted
-      if (Notification.permission === "granted") {
+      if (typeof Notification !== 'undefined' && Notification.permission === "granted") {
         triggered.forEach((alert) => {
-          new Notification("Trading Alert", {
-            body: `Alert triggered: ${alert.name || "Price Alert"}`,
-            icon: "/favicon.ico",
-          });
+          try {
+            new Notification("Trading Alert", {
+              body: `Alert triggered: ${'name' in alert ? alert.name : "Price Alert"}`,
+              icon: "/favicon.ico",
+            });
+          } catch (error) {
+            console.warn("Failed to show notification:", error);
+          }
         });
       }
     }
