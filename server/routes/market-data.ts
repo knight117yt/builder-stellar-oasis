@@ -24,7 +24,15 @@ from datetime import datetime, timedelta
 
 def get_market_data(symbol, interval, token):
     try:
-        # Simulate market data - in real implementation, use Fyers API
+        # Check if this is mock mode or live mode based on token
+        is_mock_mode = "mock" in token or "fallback" in token
+
+        if is_mock_mode:
+            print("Using mock market data", file=sys.stderr)
+        else:
+            print("Attempting live market data", file=sys.stderr)
+
+        # Generate market data (mock for now, replace with real Fyers API calls)
         current_time = datetime.now()
         data_points = []
         
