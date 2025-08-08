@@ -30,6 +30,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const authMode = localStorage.getItem('auth_mode') || 'mock';
 
   return (
     <div className="min-h-screen bg-background">
