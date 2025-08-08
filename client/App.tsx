@@ -99,13 +99,20 @@ const App = () => (
   </QueryClientProvider>
 );
 
-// Only create root if it doesn't exist
+// Create root only once and handle hot reloads properly
 const rootElement = document.getElementById("root")!;
-if (!rootElement._reactRootContainer) {
-  const root = createRoot(rootElement);
-  rootElement._reactRootContainer = root;
-  root.render(<App />);
+
+// Check if we're in development mode and handle hot reloads
+let root: any;
+if (import.meta.hot) {
+  // In development, store root in globalThis to persist across hot reloads
+  if (!globalThis.__react_root) {
+    globalThis.__react_root = createRoot(rootElement);
+  }
+  root = globalThis.__react_root;
 } else {
-  // If root already exists, just re-render
-  rootElement._reactRootContainer.render(<App />);
+  // In production, create root normally
+  root = createRoot(rootElement);
 }
+
+root.render(<App />);
