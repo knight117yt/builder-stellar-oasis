@@ -83,103 +83,66 @@ const WEBSOCKET_URL = import.meta.env.DEV
 const RECONNECT_INTERVAL = 3000; // 3 seconds
 const MAX_RECONNECT_ATTEMPTS = 10;
 
-export const useRealTimeDataStore = create<RealTimeDataStore>()(
-  subscribeWithSelector((set, get) => ({
-    // Initial state
-    connectionStatus: {
-      connected: false,
-      reconnecting: false,
-      reconnectAttempts: 0,
-    },
-    websocket: null,
-    marketData: {},
-    historicalData: {},
-    optionChains: {},
-    subscriptions: new Set(),
+export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
+  // Initial state
+  connectionStatus: {
+    connected: false,
+    reconnecting: false,
+    reconnectAttempts: 0,
+  },
+  websocket: null,
+  marketData: {},
+  historicalData: {},
+  optionChains: {},
+  subscriptions: new Set(),
 
-    // Connection management
-    connect: () => {
-      const state = get();
+  // Connection management
+  connect: () => {
+    const state = get();
+    
+    if (state.websocket?.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected');
+      return;
+    }
+
+    console.log('Connecting to WebSocket:', WEBSOCKET_URL);
+    
+    try {
+      const ws = new WebSocket(WEBSOCKET_URL);
       
-      if (state.websocket?.readyState === WebSocket.OPEN) {
-        console.log('WebSocket already connected');
-        return;
-      }
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        set({
+          websocket: ws,
+          connectionStatus: {
+            connected: true,
+            reconnecting: false,
+            lastConnected: new Date(),
+            reconnectAttempts: 0,
+          },
+        });
 
-      console.log('Connecting to WebSocket:', WEBSOCKET_URL);
-      
-      try {
-        const ws = new WebSocket(WEBSOCKET_URL);
-        
-        ws.onopen = () => {
-          console.log('WebSocket connected');
-          set({
-            websocket: ws,
-            connectionStatus: {
-              connected: true,
-              reconnecting: false,
-              lastConnected: new Date(),
-              reconnectAttempts: 0,
-            },
-          });
+        // Resubscribe to existing subscriptions
+        const currentState = get();
+        currentState.subscriptions.forEach(symbol => {
+          ws.send(JSON.stringify({
+            type: 'subscribe',
+            symbol: symbol,
+          }));
+        });
+      };
 
-          // Resubscribe to existing subscriptions
-          const currentState = get();
-          currentState.subscriptions.forEach(symbol => {
-            ws.send(JSON.stringify({
-              type: 'subscribe',
-              symbol: symbol,
-            }));
-          });
-        };
+      ws.onmessage = (event) => {
+        try {
+          const message: WebSocketMessage = JSON.parse(event.data);
+          handleWebSocketMessage(message, set, get);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
 
-        ws.onmessage = (event) => {
-          try {
-            const message: WebSocketMessage = JSON.parse(event.data);
-            handleWebSocketMessage(message, set, get);
-          } catch (error) {
-            console.error('Failed to parse WebSocket message:', error);
-          }
-        };
-
-        ws.onclose = (event) => {
-          console.log('WebSocket disconnected:', event.code, event.reason);
-          set({
-            websocket: null,
-            connectionStatus: {
-              connected: false,
-              reconnecting: false,
-              reconnectAttempts: 0,
-            },
-          });
-
-          // Auto-reconnect if not intentionally closed
-          if (event.code !== 1000) {
-            scheduleReconnect(set, get);
-          }
-        };
-
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          set({
-            connectionStatus: {
-              ...get().connectionStatus,
-              connected: false,
-            },
-          });
-        };
-
-        set({ websocket: ws });
-      } catch (error) {
-        console.error('Failed to create WebSocket connection:', error);
-        scheduleReconnect(set, get);
-      }
-    },
-
-    disconnect: () => {
-      const { websocket } = get();
-      if (websocket) {
-        websocket.close(1000, 'User disconnected');
+      ws.onclose = (event) => {
+        console.log('WebSocket disconnected:', event.code, event.reason);
         set({
           websocket: null,
           connectionStatus: {
@@ -188,90 +151,125 @@ export const useRealTimeDataStore = create<RealTimeDataStore>()(
             reconnectAttempts: 0,
           },
         });
-      }
-    },
 
-    subscribe: (symbol: string) => {
-      const { websocket, subscriptions } = get();
-      
-      if (!subscriptions.has(symbol)) {
-        const newSubscriptions = new Set(subscriptions);
-        newSubscriptions.add(symbol);
-        set({ subscriptions: newSubscriptions });
-
-        if (websocket?.readyState === WebSocket.OPEN) {
-          websocket.send(JSON.stringify({
-            type: 'subscribe',
-            symbol: symbol,
-          }));
+        // Auto-reconnect if not intentionally closed
+        if (event.code !== 1000) {
+          scheduleReconnect(set, get);
         }
-      }
-    },
+      };
 
-    unsubscribe: (symbol: string) => {
-      const { websocket, subscriptions } = get();
-      
-      if (subscriptions.has(symbol)) {
-        const newSubscriptions = new Set(subscriptions);
-        newSubscriptions.delete(symbol);
-        set({ subscriptions: newSubscriptions });
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        set({
+          connectionStatus: {
+            ...get().connectionStatus,
+            connected: false,
+          },
+        });
+      };
 
-        if (websocket?.readyState === WebSocket.OPEN) {
-          websocket.send(JSON.stringify({
-            type: 'unsubscribe',
-            symbol: symbol,
-          }));
-        }
-      }
-    },
+      set({ websocket: ws });
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      scheduleReconnect(set, get);
+    }
+  },
 
-    sendMessage: (message: WebSocketMessage) => {
-      const { websocket } = get();
-      if (websocket?.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify(message));
-      } else {
-        console.warn('WebSocket not connected, cannot send message');
-      }
-    },
-
-    // Internal state updates
-    setConnectionStatus: (status: Partial<ConnectionStatus>) => {
+  disconnect: () => {
+    const { websocket } = get();
+    if (websocket) {
+      websocket.close(1000, 'User disconnected');
       set({
+        websocket: null,
         connectionStatus: {
-          ...get().connectionStatus,
-          ...status,
+          connected: false,
+          reconnecting: false,
+          reconnectAttempts: 0,
         },
       });
-    },
+    }
+  },
 
-    updateMarketData: (symbol: string, data: MarketData) => {
-      set({
-        marketData: {
-          ...get().marketData,
-          [symbol]: data,
-        },
-      });
-    },
+  subscribe: (symbol: string) => {
+    const { websocket, subscriptions } = get();
+    
+    if (!subscriptions.has(symbol)) {
+      const newSubscriptions = new Set(subscriptions);
+      newSubscriptions.add(symbol);
+      set({ subscriptions: newSubscriptions });
 
-    updateHistoricalData: (symbol: string, data: HistoricalCandle[]) => {
-      set({
-        historicalData: {
-          ...get().historicalData,
-          [symbol]: data,
-        },
-      });
-    },
+      if (websocket?.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify({
+          type: 'subscribe',
+          symbol: symbol,
+        }));
+      }
+    }
+  },
 
-    updateOptionChain: (symbol: string, data: OptionData[]) => {
-      set({
-        optionChains: {
-          ...get().optionChains,
-          [symbol]: data,
-        },
-      });
-    },
-  }))
-);
+  unsubscribe: (symbol: string) => {
+    const { websocket, subscriptions } = get();
+    
+    if (subscriptions.has(symbol)) {
+      const newSubscriptions = new Set(subscriptions);
+      newSubscriptions.delete(symbol);
+      set({ subscriptions: newSubscriptions });
+
+      if (websocket?.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify({
+          type: 'unsubscribe',
+          symbol: symbol,
+        }));
+      }
+    }
+  },
+
+  sendMessage: (message: WebSocketMessage) => {
+    const { websocket } = get();
+    if (websocket?.readyState === WebSocket.OPEN) {
+      websocket.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket not connected, cannot send message');
+    }
+  },
+
+  // Internal state updates
+  setConnectionStatus: (status: Partial<ConnectionStatus>) => {
+    set({
+      connectionStatus: {
+        ...get().connectionStatus,
+        ...status,
+      },
+    });
+  },
+
+  updateMarketData: (symbol: string, data: MarketData) => {
+    set({
+      marketData: {
+        ...get().marketData,
+        [symbol]: data,
+      },
+    });
+  },
+
+  updateHistoricalData: (symbol: string, data: HistoricalCandle[]) => {
+    set({
+      historicalData: {
+        ...get().historicalData,
+        [symbol]: data,
+      },
+    });
+  },
+
+  updateOptionChain: (symbol: string, data: OptionData[]) => {
+    set({
+      optionChains: {
+        ...get().optionChains,
+        [symbol]: data,
+      },
+    });
+  },
+}));
 
 // Handle incoming WebSocket messages
 function handleWebSocketMessage(
@@ -382,5 +380,4 @@ export function useSubscription(symbol: string, autoSubscribe = true) {
 }
 
 // Note: Auto-connection should be handled in components using useEffect
-
 export default useRealTimeDataStore;
