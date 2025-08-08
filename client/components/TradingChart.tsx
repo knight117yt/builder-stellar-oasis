@@ -301,12 +301,21 @@ export function TradingChart({
                     axisLine={false}
                     tickLine={false}
                     fontSize={12}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => value}
+                    type="category"
+                    allowDuplicatedCategory={false}
                   />
                   <YAxis
                     domain={["dataMin - 10", "dataMax + 10"]}
                     axisLine={false}
                     tickLine={false}
                     fontSize={12}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => `₹${value}`}
+                    type="number"
+                    allowDecimals={true}
+                    allowDataOverflow={false}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
