@@ -294,11 +294,11 @@ export default function AlgoCreator() {
       strategy_type: "",
       parameters: [],
       risk_management: {
-        max_position_size: 100000,
+        max_position_size: accountInfo ? accountInfo.balance * 0.05 : 100000, // Default to 5% of account
         stop_loss_percent: 2,
         take_profit_percent: 5,
         trailing_stop: false,
-        daily_loss_limit: 10000,
+        daily_loss_limit: accountInfo ? accountInfo.balance * 0.02 : 10000, // Default to 2% of account
       },
       position_sizing: {
         method: "fixed",
@@ -306,6 +306,7 @@ export default function AlgoCreator() {
         risk_per_trade: 1,
       },
     });
+    setCustomCode("");
   };
 
   const addParameter = () => {
