@@ -125,6 +125,12 @@ const STRATEGY_TYPES = [
     description:
       "Strategies that profit from price returning to average levels",
   },
+  {
+    value: "custom",
+    label: "Custom Strategy",
+    description:
+      "Write your own Python strategy code with full control over logic and execution",
+  },
 ];
 
 const TECHNICAL_INDICATORS = [
