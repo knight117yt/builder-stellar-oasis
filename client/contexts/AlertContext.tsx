@@ -89,7 +89,7 @@ export function AlertProvider({ children }: AlertProviderProps) {
   ) => {
     const newAlert: LogicAlert = {
       ...alertData,
-      id: generateId(),
+      id: generateSafeId(),
       createdAt: new Date(),
       isTriggered: false,
     };
