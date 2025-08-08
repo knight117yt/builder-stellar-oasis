@@ -36,7 +36,7 @@ export function Layout({ children }: LayoutProps) {
   const authMode = localStorage.getItem("auth_mode") || "mock";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background" style={{ minHeight: '2772px' }}>
       {/* Mobile sidebar */}
       <div
         className={cn(
