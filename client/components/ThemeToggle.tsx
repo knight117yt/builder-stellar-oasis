@@ -1,30 +1,36 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Moon, Sun, Monitor } from 'lucide-react';
-import { useTheme, Theme } from '@/contexts/ThemeContext';
+} from "@/components/ui/dropdown-menu";
+import { Moon, Sun, Monitor } from "lucide-react";
+import { useTheme, Theme } from "@/contexts/ThemeContext";
 
 interface ThemeToggleProps {
-  variant?: 'header' | 'settings';
+  variant?: "header" | "settings";
 }
 
-export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
+export function ThemeToggle({ variant = "header" }: ThemeToggleProps) {
   const { theme, setTheme, isDark } = useTheme();
 
-  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
-    { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" /> },
-    { value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" /> },
-    { value: 'system', label: 'System', icon: <Monitor className="h-4 w-4" /> },
-  ];
+  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] =
+    [
+      { value: "light", label: "Light", icon: <Sun className="h-4 w-4" /> },
+      { value: "dark", label: "Dark", icon: <Moon className="h-4 w-4" /> },
+      {
+        value: "system",
+        label: "System",
+        icon: <Monitor className="h-4 w-4" />,
+      },
+    ];
 
-  const currentOption = themeOptions.find(option => option.value === theme) || themeOptions[2];
+  const currentOption =
+    themeOptions.find((option) => option.value === theme) || themeOptions[2];
 
-  if (variant === 'settings') {
+  if (variant === "settings") {
     return (
       <div className="space-y-2">
         <label className="text-sm font-medium">Theme</label>
@@ -32,7 +38,7 @@ export function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
           {themeOptions.map((option) => (
             <Button
               key={option.value}
-              variant={theme === option.value ? 'default' : 'outline'}
+              variant={theme === option.value ? "default" : "outline"}
               size="sm"
               onClick={() => setTheme(option.value)}
               className="flex items-center gap-2"

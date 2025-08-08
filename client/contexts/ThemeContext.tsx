@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type Theme = 'light' | 'dark' | 'system';
-export type ColorTheme = 'default' | 'blue' | 'green' | 'purple' | 'orange';
+export type Theme = "light" | "dark" | "system";
+export type ColorTheme = "default" | "blue" | "green" | "purple" | "orange";
 
 interface ThemeContextType {
   theme: Theme;
@@ -19,13 +19,13 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme') as Theme;
-    return stored || 'system';
+    const stored = localStorage.getItem("theme") as Theme;
+    return stored || "system";
   });
 
   const [colorTheme, setColorTheme] = useState<ColorTheme>(() => {
-    const stored = localStorage.getItem('colorTheme') as ColorTheme;
-    return stored || 'default';
+    const stored = localStorage.getItem("colorTheme") as ColorTheme;
+    return stored || "default";
   });
 
   const [isDark, setIsDark] = useState(false);
@@ -33,43 +33,52 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const updateTheme = () => {
       const root = window.document.documentElement;
-      root.classList.remove('light', 'dark');
+      root.classList.remove("light", "dark");
 
       let effectiveTheme = theme;
-      if (theme === 'system') {
-        effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      if (theme === "system") {
+        effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
+          ? "dark"
+          : "light";
       }
 
-      setIsDark(effectiveTheme === 'dark');
+      setIsDark(effectiveTheme === "dark");
       root.classList.add(effectiveTheme);
-      
+
       // Apply color theme
-      root.classList.remove('theme-default', 'theme-blue', 'theme-green', 'theme-purple', 'theme-orange');
+      root.classList.remove(
+        "theme-default",
+        "theme-blue",
+        "theme-green",
+        "theme-purple",
+        "theme-orange",
+      );
       root.classList.add(`theme-${colorTheme}`);
     };
 
     updateTheme();
 
     // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
-      if (theme === 'system') {
+      if (theme === "system") {
         updateTheme();
       }
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, colorTheme]);
 
   const handleSetTheme = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    localStorage.setItem("theme", newTheme);
   };
 
   const handleSetColorTheme = (newColorTheme: ColorTheme) => {
     setColorTheme(newColorTheme);
-    localStorage.setItem('colorTheme', newColorTheme);
+    localStorage.setItem("colorTheme", newColorTheme);
   };
 
   return (
@@ -90,7 +99,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
 }

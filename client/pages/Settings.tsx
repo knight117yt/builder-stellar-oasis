@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import {
   Settings as SettingsIcon,
   Download,
@@ -13,117 +19,123 @@ import {
   User,
   Database,
   FileText,
-  Palette
-} from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useTheme, ColorTheme } from '@/contexts/ThemeContext';
+  Palette,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme, ColorTheme } from "@/contexts/ThemeContext";
 
 export default function Settings() {
   const { colorTheme, setColorTheme } = useTheme();
 
   const [notifications, setNotifications] = useState(() => {
-    const stored = localStorage.getItem('notifications');
-    return stored ? JSON.parse(stored) : {
-      priceAlerts: true,
-      patternDetection: true,
-      pnlUpdates: false,
-      marketNews: true
-    };
+    const stored = localStorage.getItem("notifications");
+    return stored
+      ? JSON.parse(stored)
+      : {
+          priceAlerts: true,
+          patternDetection: true,
+          pnlUpdates: false,
+          marketNews: true,
+        };
   });
 
   const [apiSettings, setApiSettings] = useState(() => {
-    const stored = localStorage.getItem('apiSettings');
-    return stored ? JSON.parse(stored) : {
-      fyersAppId: 'POEXISKB7W-100',
-      autoRefresh: true,
-      refreshInterval: 5
-    };
+    const stored = localStorage.getItem("apiSettings");
+    return stored
+      ? JSON.parse(stored)
+      : {
+          fyersAppId: "POEXISKB7W-100",
+          autoRefresh: true,
+          refreshInterval: 5,
+        };
   });
 
   const [profile, setProfile] = useState(() => {
-    const stored = localStorage.getItem('profile');
-    return stored ? JSON.parse(stored) : {
-      name: '',
-      email: '',
-      phone: ''
-    };
+    const stored = localStorage.getItem("profile");
+    return stored
+      ? JSON.parse(stored)
+      : {
+          name: "",
+          email: "",
+          phone: "",
+        };
   });
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
+  const [saveMessage, setSaveMessage] = useState("");
 
   const colorThemes: { value: ColorTheme; label: string; color: string }[] = [
-    { value: 'default', label: 'Default', color: 'bg-gray-600' },
-    { value: 'blue', label: 'Blue', color: 'bg-blue-600' },
-    { value: 'green', label: 'Green', color: 'bg-green-600' },
-    { value: 'purple', label: 'Purple', color: 'bg-purple-600' },
-    { value: 'orange', label: 'Orange', color: 'bg-orange-600' },
+    { value: "default", label: "Default", color: "bg-gray-600" },
+    { value: "blue", label: "Blue", color: "bg-blue-600" },
+    { value: "green", label: "Green", color: "bg-green-600" },
+    { value: "purple", label: "Purple", color: "bg-purple-600" },
+    { value: "orange", label: "Orange", color: "bg-orange-600" },
   ];
 
   // Auto-save to localStorage when settings change
   useEffect(() => {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem("notifications", JSON.stringify(notifications));
   }, [notifications]);
 
   useEffect(() => {
-    localStorage.setItem('apiSettings', JSON.stringify(apiSettings));
+    localStorage.setItem("apiSettings", JSON.stringify(apiSettings));
   }, [apiSettings]);
 
   useEffect(() => {
-    localStorage.setItem('profile', JSON.stringify(profile));
+    localStorage.setItem("profile", JSON.stringify(profile));
   }, [profile]);
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
-    setSaveMessage('');
+    setSaveMessage("");
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setSaveMessage('Settings saved successfully!');
-      setTimeout(() => setSaveMessage(''), 3000);
+      setSaveMessage("Settings saved successfully!");
+      setTimeout(() => setSaveMessage(""), 3000);
     } catch (error) {
-      setSaveMessage('Error saving settings. Please try again.');
+      setSaveMessage("Error saving settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications(prev => ({ ...prev, [key]: value }));
+    setNotifications((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleApiSettingChange = (key: string, value: any) => {
-    setApiSettings(prev => ({ ...prev, [key]: value }));
+    setApiSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleProfileChange = (key: string, value: string) => {
-    setProfile(prev => ({ ...prev, [key]: value }));
+    setProfile((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleDownloadPNL = async () => {
     try {
-      const response = await fetch('/api/reports/pnl-download', {
-        method: 'GET',
+      const response = await fetch("/api/reports/pnl-download", {
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('fyers_token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("fyers_token")}`,
+        },
       });
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
-        a.download = `pnl-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        a.download = `pnl-report-${new Date().toISOString().split("T")[0]}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Error downloading PNL report:', error);
+      console.error("Error downloading PNL report:", error);
     }
   };
 
@@ -162,12 +174,16 @@ export default function Settings() {
                   {colorThemes.map((theme) => (
                     <Button
                       key={theme.value}
-                      variant={colorTheme === theme.value ? 'default' : 'outline'}
+                      variant={
+                        colorTheme === theme.value ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setColorTheme(theme.value)}
                       className="flex flex-col items-center gap-1 h-auto p-2"
                     >
-                      <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
+                      <div
+                        className={`w-4 h-4 rounded-full ${theme.color}`}
+                      ></div>
                       <span className="text-xs">{theme.label}</span>
                     </Button>
                   ))}
@@ -196,7 +212,7 @@ export default function Settings() {
                   id="name"
                   placeholder="Enter your full name"
                   value={profile.name}
-                  onChange={(e) => handleProfileChange('name', e.target.value)}
+                  onChange={(e) => handleProfileChange("name", e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -206,7 +222,7 @@ export default function Settings() {
                   type="email"
                   placeholder="Enter your email"
                   value={profile.email}
-                  onChange={(e) => handleProfileChange('email', e.target.value)}
+                  onChange={(e) => handleProfileChange("email", e.target.value)}
                 />
               </div>
             </div>
@@ -216,14 +232,16 @@ export default function Settings() {
                 id="phone"
                 placeholder="Enter your phone number"
                 value={profile.phone}
-                onChange={(e) => handleProfileChange('phone', e.target.value)}
+                onChange={(e) => handleProfileChange("phone", e.target.value)}
               />
             </div>
             <Button onClick={handleSaveSettings} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Profile'}
+              {isSaving ? "Saving..." : "Save Profile"}
             </Button>
             {saveMessage && (
-              <div className={`text-sm ${saveMessage.includes('Error') ? 'text-destructive' : 'text-green-600'}`}>
+              <div
+                className={`text-sm ${saveMessage.includes("Error") ? "text-destructive" : "text-green-600"}`}
+              >
                 {saveMessage}
               </div>
             )}
@@ -247,7 +265,9 @@ export default function Settings() {
               <Input
                 id="fyers-app-id"
                 value={apiSettings.fyersAppId}
-                onChange={(e) => handleApiSettingChange('fyersAppId', e.target.value)}
+                onChange={(e) =>
+                  handleApiSettingChange("fyersAppId", e.target.value)
+                }
                 placeholder="Enter your Fyers App ID"
               />
             </div>
@@ -260,16 +280,25 @@ export default function Settings() {
               </div>
               <Switch
                 checked={apiSettings.autoRefresh}
-                onCheckedChange={(checked) => handleApiSettingChange('autoRefresh', checked)}
+                onCheckedChange={(checked) =>
+                  handleApiSettingChange("autoRefresh", checked)
+                }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="refresh-interval">Refresh Interval (seconds)</Label>
+              <Label htmlFor="refresh-interval">
+                Refresh Interval (seconds)
+              </Label>
               <Input
                 id="refresh-interval"
                 type="number"
                 value={apiSettings.refreshInterval}
-                onChange={(e) => handleApiSettingChange('refreshInterval', parseInt(e.target.value) || 5)}
+                onChange={(e) =>
+                  handleApiSettingChange(
+                    "refreshInterval",
+                    parseInt(e.target.value) || 5,
+                  )
+                }
                 min={1}
                 max={60}
               />
@@ -301,7 +330,9 @@ export default function Settings() {
               </div>
               <Switch
                 checked={notifications.priceAlerts}
-                onCheckedChange={(checked) => handleNotificationChange('priceAlerts', checked)}
+                onCheckedChange={(checked) =>
+                  handleNotificationChange("priceAlerts", checked)
+                }
               />
             </div>
             <Separator />
@@ -314,7 +345,9 @@ export default function Settings() {
               </div>
               <Switch
                 checked={notifications.patternDetection}
-                onCheckedChange={(checked) => handleNotificationChange('patternDetection', checked)}
+                onCheckedChange={(checked) =>
+                  handleNotificationChange("patternDetection", checked)
+                }
               />
             </div>
             <Separator />
@@ -327,7 +360,9 @@ export default function Settings() {
               </div>
               <Switch
                 checked={notifications.pnlUpdates}
-                onCheckedChange={(checked) => handleNotificationChange('pnlUpdates', checked)}
+                onCheckedChange={(checked) =>
+                  handleNotificationChange("pnlUpdates", checked)
+                }
               />
             </div>
             <Separator />
@@ -340,7 +375,9 @@ export default function Settings() {
               </div>
               <Switch
                 checked={notifications.marketNews}
-                onCheckedChange={(checked) => handleNotificationChange('marketNews', checked)}
+                onCheckedChange={(checked) =>
+                  handleNotificationChange("marketNews", checked)
+                }
               />
             </div>
           </CardContent>
@@ -365,7 +402,10 @@ export default function Settings() {
                   Download your comprehensive profit & loss report
                 </p>
               </div>
-              <Button onClick={handleDownloadPNL} className="flex items-center gap-2">
+              <Button
+                onClick={handleDownloadPNL}
+                className="flex items-center gap-2"
+              >
                 <Download className="h-4 w-4" />
                 Download
               </Button>

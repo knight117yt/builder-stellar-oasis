@@ -220,10 +220,13 @@ export default function Dashboard() {
               ₹{marketData.totalPnl.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {marketData.totalInvested !== 0 ?
-                ((marketData.totalPnl / marketData.totalInvested) * 100).toFixed(2) :
-                '0.00'
-              }% return
+              {marketData.totalInvested !== 0
+                ? (
+                    (marketData.totalPnl / marketData.totalInvested) *
+                    100
+                  ).toFixed(2)
+                : "0.00"}
+              % return
             </p>
           </CardContent>
         </Card>
@@ -286,8 +289,9 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Qty: {position.quantity || 0} • Avg: ₹{(position.avgPrice || 0).toFixed(2)} •
-                        LTP: ₹{(position.ltp || 0).toFixed(2)}
+                        Qty: {position.quantity || 0} • Avg: ₹
+                        {(position.avgPrice || 0).toFixed(2)} • LTP: ₹
+                        {(position.ltp || 0).toFixed(2)}
                       </div>
                     </div>
                     <div className="text-right">
@@ -299,7 +303,8 @@ export default function Dashboard() {
                             : "text-trading-bear",
                         )}
                       >
-                        {(position.pnl || 0) >= 0 ? "+" : ""}₹{(position.pnl || 0).toFixed(2)}
+                        {(position.pnl || 0) >= 0 ? "+" : ""}₹
+                        {(position.pnl || 0).toFixed(2)}
                       </div>
                       <div
                         className={cn(
