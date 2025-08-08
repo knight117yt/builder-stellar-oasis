@@ -338,7 +338,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {candlestickPatterns.map((pattern, index) => (
+                {(candlestickPatterns || []).map((pattern, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-4 border rounded-lg"
