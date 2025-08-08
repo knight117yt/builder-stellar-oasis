@@ -144,19 +144,23 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket disconnected:", event.code, event.reason);
+        const reason = event.reason || "No reason provided";
+        console.log(`WebSocket disconnected - Code: ${event.code}, Reason: ${reason}`);
+
         set({
           websocket: null,
           connectionStatus: {
             connected: false,
             reconnecting: false,
-            reconnectAttempts: 0,
+            reconnectAttempts: get().connectionStatus.reconnectAttempts,
           },
         });
 
-        // Auto-reconnect if not intentionally closed
-        if (event.code !== 1000) {
+        // Auto-reconnect if not intentionally closed and haven't exceeded max attempts
+        if (event.code !== 1000 && get().connectionStatus.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           scheduleReconnect(set, get);
+        } else if (get().connectionStatus.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          console.warn("Max WebSocket reconnection attempts reached. Stopping auto-reconnect.");
         }
       };
 
