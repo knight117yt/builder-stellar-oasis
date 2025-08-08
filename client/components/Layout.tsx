@@ -14,6 +14,8 @@ import {
   LineChart,
   User,
   AlertTriangle,
+  Search,
+  Bot,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
