@@ -251,8 +251,16 @@ export default function Dashboard() {
         <TabsContent value="patterns" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Candlestick Pattern Detection</CardTitle>
-              <CardDescription>Recently detected patterns in the market</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Candlestick Pattern Detection</CardTitle>
+                  <CardDescription>Recently detected patterns in the market</CardDescription>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-muted-foreground">Live</span>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -268,7 +276,10 @@ export default function Dashboard() {
                       <div>
                         <div className="font-medium">{pattern.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          Detected {pattern.detected}
+                          {pattern.detected || pattern.timestamp ?
+                            `Detected ${pattern.detected || 'recently'}` :
+                            'Pattern active'
+                          }
                         </div>
                       </div>
                     </div>
@@ -286,6 +297,16 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Live indicator */}
+              <div className="mt-4 p-2 bg-muted/50 rounded text-center">
+                <div className="text-xs text-muted-foreground">
+                  {authMode === 'mock' ?
+                    'Demo mode - Patterns updated with simulated data' :
+                    'Live pattern detection active - Updates every 10 seconds'
+                  }
+                </div>
               </div>
             </CardContent>
           </Card>
