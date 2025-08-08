@@ -400,6 +400,9 @@ class MarketDataService {
       value: any;
       description?: string;
     }>;
+    custom_code?: string;
+    risk_management?: any;
+    position_sizing?: any;
   }): Promise<AlgoStrategyResponse | null> {
     try {
       const response = await this.makeRequest<AlgoStrategyResponse>(
