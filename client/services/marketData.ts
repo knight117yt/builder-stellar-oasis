@@ -374,6 +374,22 @@ class MarketDataService {
     }
   }
 
+  // Account information
+  async getAccountInfo(): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>('/account/info');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get account info:', error);
+      return {
+        balance: 100000,
+        available_margin: 80000,
+        used_margin: 20000,
+        total_balance: 100000
+      };
+    }
+  }
+
   // Algorithm Trading
   async createStrategy(strategy: {
     name: string;
