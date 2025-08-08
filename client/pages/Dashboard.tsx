@@ -376,7 +376,7 @@ export default function Dashboard() {
                         {pattern.signal}
                       </Badge>
                       <div className="text-sm text-muted-foreground mt-1">
-                        {pattern.confidence}% confidence
+                        {pattern.confidence || 0}% confidence
                       </div>
                     </div>
                   </div>
