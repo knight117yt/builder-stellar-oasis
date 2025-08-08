@@ -1,0 +1,55 @@
+/**
+ * Utility to suppress specific console warnings from third-party libraries
+ * This is only for development and doesn't affect production builds
+ */
+
+// Store original console methods
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
+
+// Patterns of warnings to suppress
+const SUPPRESSED_WARNING_PATTERNS = [
+  // Recharts defaultProps warnings
+  /Support for defaultProps will be removed from function components.*XAxis/,
+  /Support for defaultProps will be removed from function components.*YAxis/,
+  /Support for defaultProps will be removed from function components.*CartesianGrid/,
+  /Support for defaultProps will be removed from function components.*Tooltip/,
+  /Support for defaultProps will be removed from function components.*Bar/,
+  /Support for defaultProps will be removed from function components.*Line/,
+  // Add other third-party warnings here as needed
+];
+
+function shouldSuppressWarning(message: string): boolean {
+  return SUPPRESSED_WARNING_PATTERNS.some(pattern => pattern.test(message));
+}
+
+function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
+  return (...args: any[]) => {
+    const message = args.join(' ');
+    
+    // Only suppress in development
+    if (process.env.NODE_ENV === 'development' && shouldSuppressWarning(message)) {
+      return; // Suppress the warning
+    }
+    
+    // Call original method for all other warnings/errors
+    originalMethod.apply(console, args);
+  };
+}
+
+export function suppressThirdPartyWarnings() {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn = createFilteredConsoleMethod(originalConsoleWarn);
+    console.error = createFilteredConsoleMethod(originalConsoleError);
+  }
+}
+
+export function restoreConsole() {
+  console.warn = originalConsoleWarn;
+  console.error = originalConsoleError;
+}
+
+// Auto-apply suppression in development
+if (process.env.NODE_ENV === 'development') {
+  suppressThirdPartyWarnings();
+}
