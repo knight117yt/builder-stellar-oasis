@@ -1,0 +1,60 @@
+# Fyers API for market data and trading
+fyers-api
+
+# Technical analysis libraries
+TA-Lib
+pandas
+numpy
+
+# Data manipulation and analysis
+pandas-datareader
+yfinance
+
+# Machine learning for pattern recognition
+scikit-learn
+tensorflow
+
+# Mathematical computations
+scipy
+statistics
+
+# Date and time handling
+python-dateutil
+
+# HTTP requests for API calls
+requests
+
+# JSON handling (built-in but listed for clarity)
+# json
+
+# Web scraping for additional data sources
+beautifulsoup4
+selenium
+
+# Plotting and visualization
+matplotlib
+plotly
+seaborn
+
+# Options pricing models
+quantlib-python
+
+# Statistical analysis
+statsmodels
+
+# Async processing
+asyncio
+aiohttp
+
+# Database connectivity (if needed)
+sqlalchemy
+pymongo
+
+# Configuration management
+python-dotenv
+
+# Logging
+logging
+
+# Error handling and monitoring
+sentry-sdk
