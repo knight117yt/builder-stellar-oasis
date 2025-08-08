@@ -3,16 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Activity, 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Activity,
   Eye,
   AlertTriangle,
   Target,
   BarChart3
 } from 'lucide-react';
+import { TradingChart } from '@/components/TradingChart';
 import { cn } from '@/lib/utils';
 
 interface Position {
