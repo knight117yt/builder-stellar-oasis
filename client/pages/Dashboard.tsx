@@ -238,7 +238,7 @@ export default function Dashboard() {
               ₹{marketData.totalInvested.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {positions.length} active positions
+              {(positions || []).length} active positions
             </p>
           </CardContent>
         </Card>
