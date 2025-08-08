@@ -69,10 +69,15 @@ export function Layout({ children }: LayoutProps) {
             <div className="h-6 w-px bg-border lg:hidden" />
 
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <div className="flex flex-1 items-center">
+              <div className="flex flex-1 items-center gap-3">
                 <h1 className="text-lg font-semibold text-foreground">
                   Indian Market Predictors
                 </h1>
+                {authMode === 'mock' && (
+                  <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full border border-yellow-200">
+                    DEMO
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <div className="flex items-center gap-x-2">
