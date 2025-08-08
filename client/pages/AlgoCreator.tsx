@@ -51,7 +51,6 @@ import {
   Edit,
 } from "lucide-react";
 import { marketDataService } from "@/services/marketData";
-import { Textarea } from "@/components/ui/textarea";
 
 interface StrategyParameter {
   name: string;
