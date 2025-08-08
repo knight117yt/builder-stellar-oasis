@@ -448,6 +448,37 @@ class MarketDataService {
     }
   }
 
+  async createCustomStrategy(strategy: {
+    name: string;
+    description: string;
+    code: string;
+  }): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>(
+        '/strategies/custom/create',
+        {
+          method: 'POST',
+          body: JSON.stringify(strategy),
+        }
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Failed to create custom strategy:', error);
+      return null;
+    }
+  }
+
+  async getCustomStrategies(): Promise<{ strategies: any[] }> {
+    try {
+      const response = await this.makeRequest<{ strategies: any[] }>('/strategies/custom');
+      return response;
+    } catch (error) {
+      console.error('Failed to get custom strategies:', error);
+      return { strategies: [] };
+    }
+  }
+
   // Health check
   async checkHealth(): Promise<boolean> {
     try {
