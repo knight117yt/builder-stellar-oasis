@@ -80,6 +80,14 @@ const App = () => (
                 }
               />
               <Route
+                path="/straddle-chart"
+                element={
+                  <ProtectedRoute>
+                    <StraddleChart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/screener"
                 element={
                   <ProtectedRoute>
