@@ -220,10 +220,10 @@ export default function Dashboard() {
               ₹{marketData.totalPnl.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {((marketData.totalPnl / marketData.totalInvested) * 100).toFixed(
-                2,
-              )}
-              % return
+              {marketData.totalInvested !== 0 ?
+                ((marketData.totalPnl / marketData.totalInvested) * 100).toFixed(2) :
+                '0.00'
+              }% return
             </p>
           </CardContent>
         </Card>
