@@ -159,6 +159,8 @@ export default function AlgoCreator() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<string | null>(null);
+  const [accountInfo, setAccountInfo] = useState<any>(null);
+  const [customCode, setCustomCode] = useState("");
 
   const [strategyForm, setStrategyForm] = useState<StrategyForm>({
     name: "",
