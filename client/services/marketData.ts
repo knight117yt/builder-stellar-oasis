@@ -186,8 +186,8 @@ class MarketDataService {
     const data: CandleData[] = [];
     const basePrice = symbol.includes("BANK")
       ? 44250
-      : symbol.includes("FINN")
-        ? 21120
+      : symbol.includes("SENSEX")
+        ? 65875
         : 19850;
     let currentPrice = basePrice;
 
