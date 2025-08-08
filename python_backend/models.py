@@ -385,3 +385,93 @@ class PositionSizeResponse(BaseModel):
     risk_amount: float
     account_balance: float
     stop_loss_amount: float
+
+# Backtesting Models
+class BacktestRequest(BaseModel):
+    strategy_id: str = Field(..., description="Strategy ID to backtest")
+    symbol: str = Field(..., description="Symbol to backtest")
+    start_date: str = Field(..., description="Start date in YYYY-MM-DD format")
+    end_date: str = Field(..., description="End date in YYYY-MM-DD format")
+    initial_capital: float = Field(100000, description="Initial capital for backtesting")
+    commission: float = Field(0.003, description="Commission percentage per trade")
+    slippage: float = Field(0.001, description="Slippage percentage per trade")
+
+class BacktestTrade(BaseModel):
+    timestamp: datetime
+    symbol: str
+    side: str
+    quantity: int
+    price: float
+    commission: float
+    pnl: float = 0.0
+    cumulative_pnl: float = 0.0
+
+class BacktestResult(BaseModel):
+    strategy_id: str
+    symbol: str
+    start_date: str
+    end_date: str
+    initial_capital: float
+    final_capital: float
+    total_return: float
+    annual_return: float
+    sharpe_ratio: float
+    max_drawdown: float
+    max_drawdown_percent: float
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    win_rate: float
+    profit_factor: float
+    avg_win: float
+    avg_loss: float
+    largest_win: float
+    largest_loss: float
+    trades: List[BacktestTrade]
+    equity_curve: List[Dict[str, Any]]
+    performance_metrics: Dict[str, Any]
+
+# Enhanced Straddle Models
+class StraddleHistoryRequest(BaseModel):
+    symbol: str = Field(..., description="Index symbol")
+    expiry: str = Field(..., description="Expiry date")
+    from_date: str = Field(..., description="From date in YYYY-MM-DD format")
+    to_date: Optional[str] = Field(None, description="To date in YYYY-MM-DD format (defaults to today)")
+
+class StraddleHistoricalPoint(BaseModel):
+    date: str
+    spot_price: float
+    atm_strike: float
+    straddle_premium: float
+    call_price: float
+    put_price: float
+    implied_volatility: Optional[float] = None
+    time_to_expiry: float
+
+class StraddleHistoryData(BaseModel):
+    symbol: str
+    expiry: str
+    from_date: str
+    to_date: str
+    historical_data: List[StraddleHistoricalPoint]
+    initial_premium: float
+    current_premium: float
+    premium_change: float
+    premium_change_percent: float
+    max_premium: float
+    min_premium: float
+    max_premium_date: str
+    min_premium_date: str
+    volatility_analysis: Dict[str, Any]
+
+class StraddlePerformanceMetrics(BaseModel):
+    symbol: str
+    expiry: str
+    days_tracked: int
+    premium_performance: float
+    premium_performance_percent: float
+    volatility_change: float
+    time_decay_impact: float
+    directional_movement_impact: float
+    best_entry_date: str
+    worst_entry_date: str
