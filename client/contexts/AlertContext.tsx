@@ -49,15 +49,33 @@ interface AlertProviderProps {
   children: React.ReactNode;
 }
 
+// Safe UUID generation fallback
+const generateId = () => {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+};
+
+// Safe JSON parsing
+const safeParse = (item: string | null): any[] => {
+  if (!item) return [];
+  try {
+    const parsed = JSON.parse(item);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 export function AlertProvider({ children }: AlertProviderProps) {
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>(() => {
-    const stored = localStorage.getItem("priceAlerts");
-    return stored ? JSON.parse(stored) : [];
+    return safeParse(localStorage.getItem("priceAlerts"));
   });
 
   const [logicAlerts, setLogicAlerts] = useState<LogicAlert[]>(() => {
-    const stored = localStorage.getItem("logicAlerts");
-    return stored ? JSON.parse(stored) : [];
+    return safeParse(localStorage.getItem("logicAlerts"));
   });
 
   const [triggeredAlerts, setTriggeredAlerts] = useState<
