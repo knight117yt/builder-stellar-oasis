@@ -244,12 +244,11 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fyers-app-id">Fyers App ID</Label>
-              <Input 
-                id="fyers-app-id" 
+              <Input
+                id="fyers-app-id"
                 value={apiSettings.fyersAppId}
-                onChange={(e) => setApiSettings(prev => ({...prev, fyersAppId: e.target.value}))}
-                disabled
-                className="bg-muted"
+                onChange={(e) => handleApiSettingChange('fyersAppId', e.target.value)}
+                placeholder="Enter your Fyers App ID"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -259,21 +258,24 @@ export default function Settings() {
                   Automatically refresh market data
                 </p>
               </div>
-              <Switch 
+              <Switch
                 checked={apiSettings.autoRefresh}
-                onCheckedChange={(checked) => setApiSettings(prev => ({...prev, autoRefresh: checked}))}
+                onCheckedChange={(checked) => handleApiSettingChange('autoRefresh', checked)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="refresh-interval">Refresh Interval (seconds)</Label>
-              <Input 
-                id="refresh-interval" 
+              <Input
+                id="refresh-interval"
                 type="number"
                 value={apiSettings.refreshInterval}
-                onChange={(e) => setApiSettings(prev => ({...prev, refreshInterval: parseInt(e.target.value)}))}
+                onChange={(e) => handleApiSettingChange('refreshInterval', parseInt(e.target.value) || 5)}
                 min={1}
                 max={60}
               />
+              <p className="text-xs text-muted-foreground">
+                Current interval: {apiSettings.refreshInterval} seconds
+              </p>
             </div>
           </CardContent>
         </Card>
