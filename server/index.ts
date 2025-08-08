@@ -20,6 +20,16 @@ export function createServer() {
     res.json({ message: ping });
   });
 
+  // Status endpoint to check mock/live mode
+  app.get("/api/status", (_req, res) => {
+    res.json({
+      status: "running",
+      mode: "mock_fallback_ready",
+      message: "Indian Market Predictors API is running with mock data fallback",
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Demo route (keep for reference)
   app.get("/api/demo", handleDemo);
 
