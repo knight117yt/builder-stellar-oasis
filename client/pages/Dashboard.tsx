@@ -241,14 +241,18 @@ export default function Dashboard() {
     }
   }, [niftyData, bankNiftyData, sensexData, marketData]);
 
-  // Load data on component mount
+  // Initialize WebSocket connection and load data on component mount
   useEffect(() => {
+    // Initialize WebSocket connection
+    connect();
+
+    // Load initial data
     loadDashboardData();
-    
+
     // Refresh data every 30 seconds
     const interval = setInterval(loadDashboardData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [connect]);
 
   const refreshData = () => {
     loadDashboardData();
