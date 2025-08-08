@@ -161,7 +161,8 @@ export const useRealTimeDataStore = create<RealTimeDataStore>((set, get) => ({
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.warn("WebSocket connection failed - Python backend may not be running. Using mock data mode.");
+        console.debug("WebSocket error details:", error);
         set({
           connectionStatus: {
             ...get().connectionStatus,
