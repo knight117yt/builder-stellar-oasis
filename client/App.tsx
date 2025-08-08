@@ -79,6 +79,22 @@ const App = () => (
                 }
               />
               <Route
+                path="/screener"
+                element={
+                  <ProtectedRoute>
+                    <Screener />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/algo-creator"
+                element={
+                  <ProtectedRoute>
+                    <AlgoCreator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/alerts"
                 element={
                   <ProtectedRoute>
