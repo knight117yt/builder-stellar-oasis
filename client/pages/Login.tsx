@@ -25,7 +25,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // TODO: Implement actual Fyers authentication
+      // Try Fyers API authentication first
       const response = await fetch('/api/auth/fyers-login', {
         method: 'POST',
         headers: {
@@ -37,16 +37,39 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('fyers_token', data.token);
+        localStorage.setItem('auth_mode', 'live');
         navigate('/dashboard');
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Authentication failed');
+        throw new Error('Fyers API connection failed');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      // Fallback to mock data mode
+      console.warn('Fyers API unavailable, using mock data mode');
+      const mockToken = `mock_token_${Date.now()}`;
+      localStorage.setItem('fyers_token', mockToken);
+      localStorage.setItem('auth_mode', 'mock');
+      setError('Using demo mode with mock data (Fyers API unavailable)');
+
+      // Navigate after showing the warning briefly
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMockLogin = () => {
+    setLoading(true);
+    // Direct mock mode login
+    const mockToken = `mock_token_${Date.now()}`;
+    localStorage.setItem('fyers_token', mockToken);
+    localStorage.setItem('auth_mode', 'mock');
+
+    setTimeout(() => {
+      setLoading(false);
+      navigate('/dashboard');
+    }, 1000);
   };
 
   const handleFyersOAuth = () => {
