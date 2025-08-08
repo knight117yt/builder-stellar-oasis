@@ -25,7 +25,17 @@ function shouldSuppressWarning(message: string): boolean {
 
 function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
   return (...args: any[]) => {
-    const message = args.join(" ");
+    // Handle React's console.warn with format specifiers
+    let message = "";
+    if (typeof args[0] === "string" && args[0].includes("%s")) {
+      // Format string with substitutions
+      message = args[0];
+      for (let i = 1; i < args.length; i++) {
+        message = message.replace("%s", String(args[i]));
+      }
+    } else {
+      message = args.join(" ");
+    }
 
     // Only suppress in development
     if (
