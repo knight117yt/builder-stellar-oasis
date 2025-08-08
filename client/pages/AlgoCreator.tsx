@@ -181,9 +181,43 @@ export default function AlgoCreator() {
     },
   });
 
-  // Load strategies on component mount
+  // Load account information
+  const loadAccountInfo = async () => {
+    try {
+      const response = await fetch('/api/account/info', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('fyers_token') || localStorage.getItem('mock_token')}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAccountInfo(data.data);
+      } else {
+        // Fallback to mock account info
+        setAccountInfo({
+          balance: 100000,
+          available_margin: 80000,
+          used_margin: 20000,
+          total_balance: 100000
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load account info:", error);
+      // Fallback to mock account info
+      setAccountInfo({
+        balance: 100000,
+        available_margin: 80000,
+        used_margin: 20000,
+        total_balance: 100000
+      });
+    }
+  };
+
+  // Load strategies and account info on component mount
   useEffect(() => {
     loadStrategies();
+    loadAccountInfo();
   }, []);
 
   const loadStrategies = async () => {
