@@ -329,7 +329,7 @@ function scheduleReconnect(set: any, get: () => RealTimeDataStore) {
   const { connectionStatus } = get();
 
   if (connectionStatus.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-    console.error("Max reconnection attempts reached");
+    console.warn("Max WebSocket reconnection attempts reached. Backend may be unavailable.");
     return;
   }
 
