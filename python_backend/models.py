@@ -13,6 +13,7 @@ class StrategyType(str, Enum):
     OPTION_STRATEGY = "option_strategy"
     MOMENTUM = "momentum"
     MEAN_REVERSION = "mean_reversion"
+    CUSTOM = "custom"
 
 class OrderType(str, Enum):
     MARKET = "market"
@@ -36,6 +37,14 @@ class AuthResponse(BaseModel):
     expires_in: int
     success: bool
     message: Optional[str] = None
+
+# Account Models
+class AccountInfo(BaseModel):
+    balance: float = Field(..., description="Account balance")
+    available_margin: float = Field(..., description="Available margin")
+    used_margin: float = Field(..., description="Used margin")
+    total_balance: float = Field(..., description="Total balance")
+    last_updated: Optional[datetime] = None
 
 # Market Data Models
 class MarketDataRequest(BaseModel):
@@ -105,6 +114,25 @@ class OptionChainResponse(BaseModel):
     spot_price: float
     options: List[OptionData]
     timestamp: datetime
+
+# Straddle Models
+class StraddleData(BaseModel):
+    strike: float
+    call_price: float
+    put_price: float
+    straddle_premium: float
+    distance_from_spot: float
+
+class StraddleDataRequest(BaseModel):
+    symbol: str = Field(..., description="Index symbol (e.g., NSE:NIFTY50-INDEX)")
+    expiry: Optional[str] = Field(None, description="Expiry date")
+
+class StraddleDataResponse(BaseModel):
+    symbol: str
+    spot_price: float
+    expiry: str
+    straddles: List[StraddleData]
+    timestamp: str
 
 # Stock Models
 class StockSearchRequest(BaseModel):
@@ -181,6 +209,20 @@ class AIAnalysisResponse(BaseModel):
     sentiment_score: Optional[float] = None
     timestamp: datetime
 
+# Risk Management Models
+class RiskManagementConfig(BaseModel):
+    max_position_size: float = Field(..., description="Maximum position size in currency")
+    max_risk_per_trade: float = Field(..., description="Maximum risk per trade as percentage")
+    daily_loss_limit: float = Field(..., description="Daily loss limit in currency")
+    stop_loss_percent: float = Field(..., description="Default stop loss percentage")
+    take_profit_percent: float = Field(..., description="Default take profit percentage")
+    trailing_stop: bool = Field(False, description="Enable trailing stop loss")
+
+class PositionSizing(BaseModel):
+    method: str = Field(..., description="Position sizing method")
+    base_amount: float = Field(..., description="Base amount for position sizing")
+    risk_per_trade: float = Field(..., description="Risk percentage per trade")
+
 # Algorithm Trading Models
 class StrategyParameter(BaseModel):
     name: str
@@ -192,8 +234,9 @@ class AlgoStrategyRequest(BaseModel):
     symbol: str = Field(..., description="Trading symbol")
     strategy_type: StrategyType = Field(..., description="Type of strategy")
     parameters: List[StrategyParameter] = Field(..., description="Strategy parameters")
-    risk_management: Optional[Dict[str, Any]] = Field(None, description="Risk management rules")
-    position_sizing: Optional[Dict[str, Any]] = Field(None, description="Position sizing rules")
+    risk_management: Optional[RiskManagementConfig] = Field(None, description="Risk management rules")
+    position_sizing: Optional[PositionSizing] = Field(None, description="Position sizing rules")
+    custom_code: Optional[str] = Field(None, description="Custom strategy code")
     active: bool = Field(False, description="Whether strategy is active")
 
 class AlgoStrategy(BaseModel):
@@ -202,15 +245,33 @@ class AlgoStrategy(BaseModel):
     symbol: str
     strategy_type: StrategyType
     parameters: List[StrategyParameter]
-    risk_management: Optional[Dict[str, Any]] = None
-    position_sizing: Optional[Dict[str, Any]] = None
+    risk_management: Optional[RiskManagementConfig] = None
+    position_sizing: Optional[PositionSizing] = None
+    custom_code: Optional[str] = None
     status: str = Field(..., description="active/inactive/error")
     created_at: datetime
     updated_at: Optional[datetime] = None
     performance: Optional[Dict[str, Any]] = None
 
+# Custom Strategy Models
+class CustomStrategyRequest(BaseModel):
+    name: str = Field(..., description="Strategy name")
+    description: str = Field("", description="Strategy description")
+    code: str = Field(..., description="Python strategy code")
+    parameters: Optional[Dict[str, Any]] = Field(None, description="Strategy parameters")
+
+class CustomStrategy(BaseModel):
+    id: str
+    name: str
+    description: str
+    code: str
+    parameters: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    is_active: bool = False
+
+# Order Models
 class OrderRequest(BaseModel):
-    strategy_id: str
+    strategy_id: Optional[str] = None
     symbol: str
     side: OrderSide
     order_type: OrderType
@@ -220,8 +281,8 @@ class OrderRequest(BaseModel):
     time_in_force: Optional[str] = Field("DAY", description="Order validity")
 
 class OrderResponse(BaseModel):
-    order_id: str
-    strategy_id: str
+    order_id: Optional[str]
+    strategy_id: Optional[str] = None
     symbol: str
     side: OrderSide
     order_type: OrderType
@@ -231,6 +292,7 @@ class OrderResponse(BaseModel):
     filled_quantity: int = 0
     avg_price: Optional[float] = None
     timestamp: datetime
+    message: Optional[str] = None
 
 # WebSocket Models
 class WebSocketMessage(BaseModel):
@@ -299,6 +361,7 @@ class SystemHealth(BaseModel):
     uptime: float
     redis_connected: bool
     fyers_initialized: bool
+    database_connected: bool
     active_websockets: int
     memory_usage: Optional[Dict[str, Any]] = None
     cpu_usage: Optional[float] = None
@@ -310,3 +373,15 @@ class LogEntry(BaseModel):
     context: Optional[Dict[str, Any]] = None
     user_id: Optional[str] = None
     request_id: Optional[str] = None
+
+# Position Size Calculation Models
+class PositionSizeRequest(BaseModel):
+    risk_percent: float = Field(..., description="Risk percentage per trade")
+    stop_loss_percent: float = Field(..., description="Stop loss percentage")
+    entry_price: float = Field(..., description="Entry price")
+
+class PositionSizeResponse(BaseModel):
+    position_size: int
+    risk_amount: float
+    account_balance: float
+    stop_loss_amount: float
