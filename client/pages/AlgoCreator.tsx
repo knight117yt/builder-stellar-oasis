@@ -1278,14 +1278,14 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
         backtestConfig.endDate
       );
 
-      if (histData?.data?.candles) {
-        setHistoricalData(histData.data.candles);
+      if (histData && histData.length > 0) {
+        setHistoricalData(histData);
 
         // Run backtesting simulation
         const result = await simulateBacktest({
           strategyId: selectedStrategy,
           symbol: backtestConfig.symbol,
-          historicalData: histData.data.candles,
+          historicalData: histData,
           initialCapital: backtestConfig.initialCapital,
           commission: backtestConfig.commission,
           slippage: backtestConfig.slippage
