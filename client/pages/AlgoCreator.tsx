@@ -1109,7 +1109,7 @@ export default function AlgoCreator() {
                     strategies?.reduce(
                       (sum, s) => sum + (s.performance?.total_pnl || 0),
                       0,
-                    ),
+                    ) || 0,
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -1155,7 +1155,7 @@ export default function AlgoCreator() {
                   {strategies?.reduce(
                     (sum, s) => sum + (s.performance?.total_trades || 0),
                     0,
-                  )}
+                  ) || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Executed by all strategies
