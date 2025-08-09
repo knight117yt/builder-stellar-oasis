@@ -1106,7 +1106,7 @@ export default function AlgoCreator() {
               <CardContent>
                 <div className="text-2xl font-bold text-trading-bull">
                   {formatCurrency(
-                    strategies.reduce(
+                    strategies?.reduce(
                       (sum, s) => sum + (s.performance?.total_pnl || 0),
                       0,
                     ),
