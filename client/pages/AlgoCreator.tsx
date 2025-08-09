@@ -775,7 +775,7 @@ export default function AlgoCreator() {
                         )}
                     </div>
                     <div className="space-y-2">
-                      <Label>Daily Loss Limit (���)</Label>
+                      <Label>Daily Loss Limit (₹)</Label>
                       <Input
                         type="number"
                         value={strategyForm.risk_management.daily_loss_limit}
@@ -1229,6 +1229,500 @@ export default function AlgoCreator() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Backtesting Interface Component
+interface BacktestingInterfaceProps {
+  strategies: AlgoStrategy[];
+  onBacktestComplete: (result: any) => void;
+}
+
+function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInterfaceProps) {
+  const [selectedStrategy, setSelectedStrategy] = useState<string>("");
+  const [backtestConfig, setBacktestConfig] = useState({
+    symbol: "NSE:NIFTY50-INDEX",
+    startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days ago
+    endDate: new Date().toISOString().split('T')[0], // today
+    initialCapital: 100000,
+    commission: 0.003,
+    slippage: 0.001
+  });
+  const [backtestResult, setBacktestResult] = useState<any>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+
+  const runBacktest = async () => {
+    if (!selectedStrategy) {
+      alert("Please select a strategy to backtest");
+      return;
+    }
+
+    setIsRunning(true);
+    try {
+      // Fetch historical data for the selected period
+      const histData = await marketDataService.getHistoricalData(
+        backtestConfig.symbol,
+        "1D",
+        backtestConfig.startDate,
+        backtestConfig.endDate
+      );
+
+      if (histData?.data?.candles) {
+        setHistoricalData(histData.data.candles);
+
+        // Run backtesting simulation
+        const result = await simulateBacktest({
+          strategyId: selectedStrategy,
+          symbol: backtestConfig.symbol,
+          historicalData: histData.data.candles,
+          initialCapital: backtestConfig.initialCapital,
+          commission: backtestConfig.commission,
+          slippage: backtestConfig.slippage
+        });
+
+        setBacktestResult(result);
+        onBacktestComplete(result);
+      }
+    } catch (error) {
+      console.error("Backtest failed:", error);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const simulateBacktest = async (config: any) => {
+    const { historicalData, initialCapital, commission, slippage } = config;
+
+    let capital = initialCapital;
+    let position = 0;
+    let entryPrice = 0;
+    const trades: any[] = [];
+    const equityCurve: any[] = [];
+    let totalTrades = 0;
+    let winningTrades = 0;
+    let maxCapital = capital;
+    let maxDrawdown = 0;
+
+    // Simple RSI-based strategy simulation for demo
+    const rsiPeriod = 14;
+    const rsiValues: number[] = [];
+
+    for (let i = 0; i < historicalData.length; i++) {
+      const candle = historicalData[i];
+      const price = candle.close;
+      const date = new Date(candle.timestamp * 1000);
+
+      // Calculate RSI
+      if (i >= rsiPeriod) {
+        const gains: number[] = [];
+        const losses: number[] = [];
+
+        for (let j = i - rsiPeriod + 1; j <= i; j++) {
+          const change = historicalData[j].close - historicalData[j - 1].close;
+          if (change > 0) gains.push(change);
+          else if (change < 0) losses.push(Math.abs(change));
+        }
+
+        const avgGain = gains.length ? gains.reduce((a, b) => a + b, 0) / gains.length : 0;
+        const avgLoss = losses.length ? losses.reduce((a, b) => a + b, 0) / losses.length : 0;
+
+        const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+        const rsi = 100 - (100 / (1 + rs));
+
+        rsiValues.push(rsi);
+
+        // Strategy logic: Buy when RSI < 30, Sell when RSI > 70
+        if (position === 0 && rsi < 30) {
+          // Enter long position
+          const quantity = Math.floor(capital * 0.1 / price); // Use 10% of capital
+          if (quantity > 0) {
+            const tradeCost = quantity * price * commission;
+            position = quantity;
+            entryPrice = price;
+            capital -= tradeCost;
+            totalTrades++;
+
+            trades.push({
+              date: date.toISOString().split('T')[0],
+              type: 'BUY',
+              price,
+              quantity,
+              cost: tradeCost
+            });
+          }
+        } else if (position > 0 && rsi > 70) {
+          // Exit long position
+          const tradeCost = position * price * commission;
+          const pnl = position * (price - entryPrice) - tradeCost;
+          capital += position * price - tradeCost;
+
+          if (pnl > 0) winningTrades++;
+
+          trades.push({
+            date: date.toISOString().split('T')[0],
+            type: 'SELL',
+            price,
+            quantity: position,
+            pnl,
+            cost: tradeCost
+          });
+
+          position = 0;
+        }
+      }
+
+      // Calculate current portfolio value
+      const currentValue = capital + (position * price);
+      equityCurve.push({
+        date: date.toISOString().split('T')[0],
+        value: currentValue,
+        price
+      });
+
+      // Track max drawdown
+      if (currentValue > maxCapital) {
+        maxCapital = currentValue;
+      }
+      const drawdown = (maxCapital - currentValue) / maxCapital * 100;
+      if (drawdown > maxDrawdown) {
+        maxDrawdown = drawdown;
+      }
+    }
+
+    // Calculate final metrics
+    const finalValue = capital + (position * historicalData[historicalData.length - 1].close);
+    const totalReturn = ((finalValue - initialCapital) / initialCapital) * 100;
+    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+
+    const profitableTrades = trades.filter(t => t.pnl && t.pnl > 0);
+    const losingTrades = trades.filter(t => t.pnl && t.pnl < 0);
+
+    const avgWin = profitableTrades.length > 0 ?
+      profitableTrades.reduce((sum, t) => sum + t.pnl, 0) / profitableTrades.length : 0;
+    const avgLoss = losingTrades.length > 0 ?
+      Math.abs(losingTrades.reduce((sum, t) => sum + t.pnl, 0) / losingTrades.length) : 0;
+
+    return {
+      initialCapital,
+      finalCapital: finalValue,
+      totalReturn,
+      totalTrades,
+      winningTrades,
+      winRate,
+      maxDrawdown,
+      avgWin,
+      avgLoss,
+      profitFactor: avgLoss > 0 ? avgWin / avgLoss : 0,
+      trades,
+      equityCurve,
+      sharpeRatio: calculateSharpeRatio(equityCurve)
+    };
+  };
+
+  const calculateSharpeRatio = (equityCurve: any[]) => {
+    if (equityCurve.length < 2) return 0;
+
+    const returns = [];
+    for (let i = 1; i < equityCurve.length; i++) {
+      const dailyReturn = (equityCurve[i].value - equityCurve[i-1].value) / equityCurve[i-1].value;
+      returns.push(dailyReturn);
+    }
+
+    const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+    const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+    const stdDev = Math.sqrt(variance);
+
+    return stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0; // Annualized Sharpe
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Configuration Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Backtest Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Strategy</Label>
+              <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a strategy to backtest" />
+                </SelectTrigger>
+                <SelectContent>
+                  {strategies?.map((strategy) => (
+                    <SelectItem key={strategy.id} value={strategy.id}>
+                      {strategy.name} ({strategy.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  value={backtestConfig.startDate}
+                  onChange={(e) => setBacktestConfig(prev => ({
+                    ...prev,
+                    startDate: e.target.value
+                  }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Input
+                  type="date"
+                  value={backtestConfig.endDate}
+                  onChange={(e) => setBacktestConfig(prev => ({
+                    ...prev,
+                    endDate: e.target.value
+                  }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trading Symbol</Label>
+              <Select
+                value={backtestConfig.symbol}
+                onValueChange={(value) => setBacktestConfig(prev => ({
+                  ...prev,
+                  symbol: value
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NSE:NIFTY50-INDEX">NIFTY 50</SelectItem>
+                  <SelectItem value="NSE:NIFTYBANK-INDEX">BANK NIFTY</SelectItem>
+                  <SelectItem value="BSE:SENSEX-INDEX">SENSEX</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label>Initial Capital (₹)</Label>
+                <Input
+                  type="number"
+                  value={backtestConfig.initialCapital}
+                  onChange={(e) => setBacktestConfig(prev => ({
+                    ...prev,
+                    initialCapital: parseFloat(e.target.value)
+                  }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Commission (%)</Label>
+                <Input
+                  type="number"
+                  step="0.001"
+                  value={backtestConfig.commission}
+                  onChange={(e) => setBacktestConfig(prev => ({
+                    ...prev,
+                    commission: parseFloat(e.target.value)
+                  }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Slippage (%)</Label>
+                <Input
+                  type="number"
+                  step="0.001"
+                  value={backtestConfig.slippage}
+                  onChange={(e) => setBacktestConfig(prev => ({
+                    ...prev,
+                    slippage: parseFloat(e.target.value)
+                  }))}
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={runBacktest}
+              disabled={isRunning || !selectedStrategy}
+              className="w-full"
+            >
+              {isRunning ? (
+                <>
+                  <Activity className="h-4 w-4 mr-2 animate-spin" />
+                  Running Backtest...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run Backtest
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        {backtestResult && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Performance Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-accent/20 rounded-lg">
+                  <div className="text-2xl font-bold text-trading-bull">
+                    {backtestResult.totalReturn.toFixed(2)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Return</div>
+                </div>
+                <div className="text-center p-3 bg-accent/20 rounded-lg">
+                  <div className="text-2xl font-bold">
+                    {backtestResult.winRate.toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Win Rate</div>
+                </div>
+                <div className="text-center p-3 bg-accent/20 rounded-lg">
+                  <div className="text-2xl font-bold">
+                    {backtestResult.totalTrades}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Trades</div>
+                </div>
+                <div className="text-center p-3 bg-accent/20 rounded-lg">
+                  <div className="text-2xl font-bold text-trading-bear">
+                    {backtestResult.maxDrawdown.toFixed(2)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Max Drawdown</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Results */}
+      {backtestResult && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Equity Curve Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Equity Curve</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={backtestResult.equityCurve}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis tickFormatter={(value) => `₹${(value/1000).toFixed(0)}K`} />
+                    <Tooltip
+                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Portfolio Value']}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Detailed Metrics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detailed Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>Initial Capital:</span>
+                  <span className="font-mono">₹{backtestResult.initialCapital.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Final Capital:</span>
+                  <span className="font-mono">₹{backtestResult.finalCapital.toLocaleString()}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                  <span>Total Trades:</span>
+                  <span className="font-mono">{backtestResult.totalTrades}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Winning Trades:</span>
+                  <span className="font-mono">{backtestResult.winningTrades}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Average Win:</span>
+                  <span className="font-mono text-trading-bull">₹{backtestResult.avgWin.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Average Loss:</span>
+                  <span className="font-mono text-trading-bear">₹{backtestResult.avgLoss.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Profit Factor:</span>
+                  <span className="font-mono">{backtestResult.profitFactor.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sharpe Ratio:</span>
+                  <span className="font-mono">{backtestResult.sharpeRatio.toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Trade Log */}
+      {backtestResult?.trades && backtestResult.trades.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Trade History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>P&L</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {backtestResult.trades.slice(-20).map((trade: any, index: number) => (
+                    <TableRow key={index}>
+                      <TableCell>{trade.date}</TableCell>
+                      <TableCell>
+                        <Badge variant={trade.type === 'BUY' ? 'default' : 'secondary'}>
+                          {trade.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono">₹{trade.price.toFixed(2)}</TableCell>
+                      <TableCell>{trade.quantity}</TableCell>
+                      <TableCell className={`font-mono ${
+                        trade.pnl ? (trade.pnl >= 0 ? 'text-trading-bull' : 'text-trading-bear') : ''
+                      }`}>
+                        {trade.pnl ? `₹${trade.pnl.toFixed(2)}` : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
