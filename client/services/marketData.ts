@@ -470,6 +470,28 @@ class MarketDataService {
     };
   }
 
+  private getMockBacktestResult() {
+    return {
+      strategy_id: "mock_strategy",
+      total_return: 15.75,
+      annual_return: 22.3,
+      sharpe_ratio: 1.42,
+      max_drawdown: 8.5,
+      total_trades: 45,
+      winning_trades: 28,
+      win_rate: 62.2,
+      profit_factor: 1.85,
+      trades: [],
+      equity_curve: [],
+      performance_metrics: {
+        avg_win: 850.50,
+        avg_loss: 460.25,
+        largest_win: 2450.00,
+        largest_loss: 1250.00
+      }
+    };
+  }
+
   // Authentication
   async login(
     authMode: "fyers" | "mock",
