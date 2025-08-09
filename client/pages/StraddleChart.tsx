@@ -245,6 +245,8 @@ export default function StraddleChart() {
       call: s.call_price,
       put: s.put_price,
       isATM: Math.abs(s.strike - (straddleData?.spot_price || 0)) < 25,
+      isCurrentStraddle: s.strike === currentStraddle?.strike,
+      isValid: s.call_price > 0 && s.put_price > 0 && s.straddle_premium > 0,
     })) || [];
 
   return (
@@ -673,7 +675,7 @@ export default function StraddleChart() {
                         <div className="text-sm">
                           Upper:{" "}
                           <span className="font-mono">
-                            ��
+                            ₹
                             {(
                               atmStraddle.strike + atmStraddle.straddle_premium
                             ).toFixed(2)}
