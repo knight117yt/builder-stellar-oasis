@@ -164,6 +164,9 @@ export default function StraddleChart() {
   // Load data when index or expiry changes
   useEffect(() => {
     loadStraddleData();
+    // Reset history when changing symbol/expiry
+    setStraddleHistory([]);
+    setCurrentStraddleStrike(null);
   }, [selectedIndex.value, selectedExpiry]);
 
   // Auto-refresh every 30 seconds
@@ -171,6 +174,30 @@ export default function StraddleChart() {
     const interval = setInterval(loadStraddleData, 30000);
     return () => clearInterval(interval);
   }, [selectedIndex.value, selectedExpiry]);
+
+  // Track straddle history whenever data updates
+  useEffect(() => {
+    if (straddleData && currentStraddle) {
+      const timestamp = new Date();
+      const historyPoint = {
+        timestamp: timestamp.toISOString(),
+        time: timestamp.toLocaleTimeString(),
+        strike: currentStraddle.strike,
+        premium: currentStraddle.straddle_premium,
+        callPrice: currentStraddle.call_price,
+        putPrice: currentStraddle.put_price,
+        spotPrice: straddleData.spot_price
+      };
+
+      setStraddleHistory(prev => {
+        const updated = [...prev, historyPoint];
+        // Keep only last 100 points to avoid memory issues
+        return updated.slice(-100);
+      });
+
+      setCurrentStraddleStrike(currentStraddle.strike);
+    }
+  }, [straddleData, currentStraddle]);
 
   const refreshData = () => {
     loadStraddleData();
