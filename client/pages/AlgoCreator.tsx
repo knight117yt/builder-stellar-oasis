@@ -1152,7 +1152,7 @@ export default function AlgoCreator() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {strategies.reduce(
+                  {strategies?.reduce(
                     (sum, s) => sum + (s.performance?.total_trades || 0),
                     0,
                   )}
