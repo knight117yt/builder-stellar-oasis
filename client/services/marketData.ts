@@ -448,6 +448,31 @@ class MarketDataService {
     };
   }
 
+  private getMockCreateStrategy() {
+    const strategyId = `mock_strategy_${Date.now()}`;
+    return {
+      strategy_id: strategyId,
+      status: "created",
+      strategy: {
+        id: strategyId,
+        name: "Mock Strategy",
+        symbol: "NSE:NIFTY50-INDEX",
+        strategy_type: "technical",
+        parameters: [],
+        created_at: new Date().toISOString(),
+        status: "inactive"
+      }
+    };
+  }
+
+  private getMockCustomStrategyCreation() {
+    return {
+      strategy_id: `custom_${Date.now()}`,
+      status: "created",
+      message: "Custom strategy created successfully (mock)"
+    };
+  }
+
   // Authentication
   async login(
     authMode: "fyers" | "mock",
