@@ -625,6 +625,32 @@ class MarketDataService {
     }
   }
 
+  // Straddle Data
+  async getStraddleData(symbol: string, expiry?: string): Promise<any> {
+    const cacheKey = `straddle_data_${symbol}_${expiry || 'default'}`;
+
+    // Check cache first (30 second TTL for straddle data)
+    const cached = this.getCacheItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        ...(expiry && { expiry }),
+      });
+
+      const response = await this.makeRequest<any>(
+        `/market/straddle-data?${params}`,
+      );
+
+      this.setCacheItem(cacheKey, response, 30);
+      return response;
+    } catch (error) {
+      console.error("Failed to get straddle data:", error);
+      return this.getMockStraddleData();
+    }
+  }
+
   // AI Analysis
   async getAIAnalysis(
     symbol: string,
