@@ -1171,8 +1171,8 @@ export default function AlgoCreator() {
             <CardContent>
               <div className="space-y-4">
                 {strategies
-                  .filter((s) => s.performance)
-                  .map((strategy) => (
+                  ?.filter((s) => s.performance)
+                  ?.map((strategy) => (
                     <div
                       key={strategy.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
