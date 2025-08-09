@@ -832,10 +832,10 @@ export default function StraddleChart() {
                     </div>
                   </div>
 
-                  {atmStraddle && (
+                  {currentStraddle && (
                     <div className="p-3 border rounded-lg bg-accent/20">
                       <div className="font-medium text-sm mb-1">
-                        ATM Breakevens
+                        Current Straddle Breakevens
                       </div>
                       <div className="space-y-1">
                         <div className="text-sm">
@@ -843,7 +843,7 @@ export default function StraddleChart() {
                           <span className="font-mono">
                             ₹
                             {(
-                              atmStraddle.strike + atmStraddle.straddle_premium
+                              currentStraddle.strike + currentStraddle.straddle_premium
                             ).toFixed(2)}
                           </span>
                         </div>
@@ -852,9 +852,12 @@ export default function StraddleChart() {
                           <span className="font-mono">
                             ₹
                             {(
-                              atmStraddle.strike - atmStraddle.straddle_premium
+                              currentStraddle.strike - currentStraddle.straddle_premium
                             ).toFixed(2)}
                           </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          Strike {currentStraddle.strike} (Lowest Premium: ₹{currentStraddle.straddle_premium.toFixed(2)})
                         </div>
                       </div>
                     </div>
