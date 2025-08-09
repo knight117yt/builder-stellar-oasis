@@ -397,6 +397,7 @@ export default function StraddleChart() {
         <TabsList>
           <TabsTrigger value="chart">Premium Chart</TabsTrigger>
           <TabsTrigger value="table">Strike Table</TabsTrigger>
+          <TabsTrigger value="history">Straddle History</TabsTrigger>
           <TabsTrigger value="analysis">Analysis</TabsTrigger>
         </TabsList>
 
