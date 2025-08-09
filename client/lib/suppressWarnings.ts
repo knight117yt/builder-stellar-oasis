@@ -33,6 +33,12 @@ const SUPPRESSED_WARNING_PATTERNS = [
 ];
 
 function shouldSuppressWarning(message: string): boolean {
+  // More aggressive suppression for Recharts warnings
+  if (message.includes("Support for defaultProps will be removed") &&
+      (message.includes("XAxis") || message.includes("YAxis") || message.includes("ReferenceLine"))) {
+    return true;
+  }
+
   return SUPPRESSED_WARNING_PATTERNS.some((pattern) => pattern.test(message));
 }
 
