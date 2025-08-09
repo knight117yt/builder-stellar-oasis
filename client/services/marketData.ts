@@ -177,7 +177,10 @@ class MarketDataService {
       return this.getMockAIAnalysis();
     }
     if (endpoint.includes('/market/historical')) {
-      return this.getMockHistoricalData();
+      // Extract symbol from endpoint URL
+      const urlParams = new URLSearchParams(endpoint.split('?')[1] || '');
+      const symbol = urlParams.get('symbol') || 'NSE:NIFTY50-INDEX';
+      return this.getMockHistoricalData(symbol);
     }
     if (endpoint.includes('/account/info')) {
       return this.getMockAccountInfo();
