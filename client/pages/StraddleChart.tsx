@@ -580,6 +580,166 @@ export default function StraddleChart() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="history" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Straddle Price History</CardTitle>
+              <CardDescription>
+                Price fluctuation of the lowest premium straddle (Strike: {currentStraddle?.strike}) till expiry
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {straddleHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Current Straddle Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-accent/20 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-lg font-bold">{currentStraddle?.strike}</div>
+                      <div className="text-sm text-muted-foreground">Strike Price</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold">₹{currentStraddle?.call_price.toFixed(2)}</div>
+                      <div className="text-sm text-muted-foreground">Call Premium</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold">₹{currentStraddle?.put_price.toFixed(2)}</div>
+                      <div className="text-sm text-muted-foreground">Put Premium</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-primary">₹{currentStraddle?.straddle_premium.toFixed(2)}</div>
+                      <div className="text-sm text-muted-foreground">Total Straddle</div>
+                    </div>
+                  </div>
+
+                  {/* Price History Chart */}
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={straddleHistory}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--trading-grid))" />
+                        <XAxis
+                          dataKey="time"
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={12}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={12}
+                          tickFormatter={(value) => `₹${value.toFixed(0)}`}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                                  <p className="font-medium mb-2">Time: {label}</p>
+                                  <div className="space-y-1 text-sm">
+                                    <div className="flex justify-between gap-4">
+                                      <span>Straddle Premium:</span>
+                                      <span className="font-mono">₹{data.premium.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-4">
+                                      <span>Call Price:</span>
+                                      <span className="font-mono">₹{data.callPrice.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-4">
+                                      <span>Put Price:</span>
+                                      <span className="font-mono">₹{data.putPrice.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-4">
+                                      <span>Spot Price:</span>
+                                      <span className="font-mono">₹{data.spotPrice.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="premium"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                          name="Straddle Premium"
+                          dot={{ fill: "#3b82f6", strokeWidth: 0, r: 3 }}
+                          activeDot={{ r: 5, stroke: "#3b82f6", strokeWidth: 2 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="callPrice"
+                          stroke="#10b981"
+                          strokeWidth={1}
+                          strokeDasharray="5 5"
+                          name="Call Price"
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="putPrice"
+                          stroke="#f59e0b"
+                          strokeWidth={1}
+                          strokeDasharray="5 5"
+                          name="Put Price"
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Data Points Table */}
+                  <div className="max-h-64 overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Time</TableHead>
+                          <TableHead>Straddle Premium</TableHead>
+                          <TableHead>Call Price</TableHead>
+                          <TableHead>Put Price</TableHead>
+                          <TableHead>Spot Price</TableHead>
+                          <TableHead>Change</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {straddleHistory.slice(-20).reverse().map((point, index) => {
+                          const prevPoint = index < straddleHistory.length - 1 ? straddleHistory[straddleHistory.length - index - 2] : null;
+                          const change = prevPoint ? point.premium - prevPoint.premium : 0;
+
+                          return (
+                            <TableRow key={point.timestamp}>
+                              <TableCell className="text-sm">{point.time}</TableCell>
+                              <TableCell className="font-mono">₹{point.premium.toFixed(2)}</TableCell>
+                              <TableCell className="font-mono text-trading-bull">₹{point.callPrice.toFixed(2)}</TableCell>
+                              <TableCell className="font-mono text-trading-bear">₹{point.putPrice.toFixed(2)}</TableCell>
+                              <TableCell className="font-mono">₹{point.spotPrice.toFixed(2)}</TableCell>
+                              <TableCell className={`font-mono text-sm ${
+                                change > 0 ? 'text-trading-bull' : change < 0 ? 'text-trading-bear' : 'text-muted-foreground'
+                              }`}>
+                                {change !== 0 && (change > 0 ? '+' : '')}₹{change.toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No history data available yet</p>
+                  <p className="text-sm">
+                    Data will be collected as the straddle prices update
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="analysis" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
