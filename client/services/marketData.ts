@@ -328,6 +328,120 @@ class MarketDataService {
     };
   }
 
+  private getMockStrategies() {
+    return {
+      data: {
+        strategies: [
+          {
+            id: "strategy_1",
+            name: "RSI Momentum Strategy",
+            symbol: "NSE:NIFTY50-INDEX",
+            strategy_type: "technical",
+            parameters: [
+              { name: "rsi_period", value: 14, description: "RSI calculation period" },
+              { name: "oversold_level", value: 30, description: "RSI oversold threshold" },
+              { name: "overbought_level", value: 70, description: "RSI overbought threshold" }
+            ],
+            status: "active",
+            created_at: new Date().toISOString(),
+            performance: {
+              total_trades: 25,
+              profitable_trades: 18,
+              total_pnl: 12500,
+              win_rate: 72,
+              max_drawdown: 8.5
+            }
+          },
+          {
+            id: "strategy_2",
+            name: "Moving Average Crossover",
+            symbol: "NSE:NIFTYBANK-INDEX",
+            strategy_type: "technical",
+            parameters: [
+              { name: "fast_ma", value: 20, description: "Fast moving average period" },
+              { name: "slow_ma", value: 50, description: "Slow moving average period" }
+            ],
+            status: "inactive",
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            performance: {
+              total_trades: 15,
+              profitable_trades: 9,
+              total_pnl: 5800,
+              win_rate: 60,
+              max_drawdown: 12.3
+            }
+          }
+        ]
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  private getMockOptionChain() {
+    const spotPrice = 19850;
+    const strikes = [];
+
+    for (let i = -5; i <= 5; i++) {
+      const strike = Math.round((spotPrice + i * 50) / 50) * 50;
+      strikes.push({
+        strike,
+        call_ltp: Math.max(0.5, spotPrice - strike + Math.random() * 50),
+        put_ltp: Math.max(0.5, strike - spotPrice + Math.random() * 50),
+        call_oi: Math.floor(Math.random() * 100000),
+        put_oi: Math.floor(Math.random() * 100000),
+        call_volume: Math.floor(Math.random() * 10000),
+        put_volume: Math.floor(Math.random() * 10000),
+        call_iv: 15 + Math.random() * 20,
+        put_iv: 15 + Math.random() * 20
+      });
+    }
+
+    return {
+      data: {
+        symbol: "NSE:NIFTY50-INDEX",
+        expiry: "24JAN2024",
+        spot_price: spotPrice,
+        options: strikes
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  private getMockScreenerResults() {
+    return {
+      data: {
+        stocks: [
+          {
+            symbol: "NSE:RELIANCE-EQ",
+            name: "Reliance Industries",
+            price: 2450.75,
+            change: 25.30,
+            change_percent: 1.04,
+            volume: 1250000,
+            market_cap: 1650000000000,
+            pe_ratio: 24.5,
+            sector: "Energy",
+            exchange: "NSE"
+          },
+          {
+            symbol: "NSE:TCS-EQ",
+            name: "Tata Consultancy Services",
+            price: 3680.20,
+            change: -15.45,
+            change_percent: -0.42,
+            volume: 850000,
+            market_cap: 1340000000000,
+            pe_ratio: 28.7,
+            sector: "Information Technology",
+            exchange: "NSE"
+          }
+        ],
+        total: 2
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
   // Authentication
   async login(
     authMode: "fyers" | "mock",
