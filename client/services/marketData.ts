@@ -820,6 +820,32 @@ class MarketDataService {
     }
   }
 
+  // Backtesting
+  async runBacktest(config: {
+    strategy_id: string;
+    symbol: string;
+    start_date: string;
+    end_date: string;
+    initial_capital: number;
+    commission: number;
+    slippage: number;
+  }): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>(
+        "/strategies/backtest",
+        {
+          method: "POST",
+          body: JSON.stringify(config),
+        },
+      );
+
+      return response;
+    } catch (error) {
+      console.error("Failed to run backtest:", error);
+      return this.getMockBacktestResult();
+    }
+  }
+
   async getCustomStrategies(): Promise<{ strategies: any[] }> {
     try {
       const response = await this.makeRequest<{ strategies: any[] }>(
