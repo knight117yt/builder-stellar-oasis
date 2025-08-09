@@ -542,8 +542,13 @@ export default function StraddleChart() {
                         >
                           <TableCell className="font-medium">
                             {straddle.strike}
-                            {isATM && (
-                              <Badge variant="default" className="ml-2 text-xs">
+                            {isCurrentStraddle && (
+                              <Badge variant="default" className="ml-2 text-xs bg-primary">
+                                CURRENT
+                              </Badge>
+                            )}
+                            {isATM && !isCurrentStraddle && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
                                 ATM
                               </Badge>
                             )}
