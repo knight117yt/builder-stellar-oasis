@@ -739,11 +739,22 @@ class MarketDataService {
         `/market/straddle-data?${params}`,
       );
 
-      this.setCacheItem(cacheKey, response, 30);
-      return response;
+      // Validate response and cache if valid
+      if (response && (response.straddles || response.symbol)) {
+        this.setCacheItem(cacheKey, response, 30);
+        return response;
+      } else {
+        // If response is invalid, return mock data
+        console.warn("Invalid straddle data response, using mock data");
+        const mockData = this.getMockStraddleData();
+        this.setCacheItem(cacheKey, mockData, 30);
+        return mockData;
+      }
     } catch (error) {
-      console.error("Failed to get straddle data:", error);
-      return this.getMockStraddleData();
+      console.warn("Straddle data API unavailable, using mock data:", error);
+      const mockData = this.getMockStraddleData();
+      this.setCacheItem(cacheKey, mockData, 30);
+      return mockData;
     }
   }
 
