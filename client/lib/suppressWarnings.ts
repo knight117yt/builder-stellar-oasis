@@ -53,10 +53,24 @@ function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
     // Also check individual arguments for component names
     const allArgsString = args.join(" ");
 
+    // Check if any argument contains recharts component names
+    const hasRechartComponents = args.some((arg: any) =>
+      typeof arg === "string" && (
+        arg.includes("XAxis") ||
+        arg.includes("YAxis") ||
+        arg.includes("ReferenceLine") ||
+        arg.includes("CartesianGrid") ||
+        arg.includes("Tooltip") ||
+        arg.includes("Bar") ||
+        arg.includes("Line") ||
+        arg.includes("Surface")
+      )
+    );
+
     // Only suppress in development
     if (
       process.env.NODE_ENV === "development" &&
-      (shouldSuppressWarning(message) || shouldSuppressWarning(allArgsString))
+      (shouldSuppressWarning(message) || shouldSuppressWarning(allArgsString) || hasRechartComponents)
     ) {
       return; // Suppress the warning
     }
