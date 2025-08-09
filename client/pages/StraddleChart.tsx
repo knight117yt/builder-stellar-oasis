@@ -109,11 +109,18 @@ export default function StraddleChart() {
     try {
       // Use marketData service which has proper fallbacks
       const data = await marketDataService.getStraddleData(selectedIndex.value, selectedExpiry);
-      setStraddleData(data);
+
+      // Validate the response has the expected structure
+      if (data && data.straddles && Array.isArray(data.straddles) && data.straddles.length > 0) {
+        setStraddleData(data);
+      } else {
+        throw new Error("Invalid straddle data structure");
+      }
+
       setLastUpdate(new Date());
     } catch (error) {
       console.error("Failed to load straddle data:", error);
-      // Fallback to mock data
+      // Always fallback to mock data generation
       const mockData = generateMockStraddleData(selectedIndex.value);
       setStraddleData(mockData);
       setLastUpdate(new Date());
