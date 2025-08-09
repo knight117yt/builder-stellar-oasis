@@ -188,6 +188,12 @@ class MarketDataService {
     if (endpoint.includes('/algo/strategies') || endpoint.includes('/strategies')) {
       return this.getMockStrategies();
     }
+    if (endpoint.includes('/algo/create-strategy')) {
+      return this.getMockCreateStrategy();
+    }
+    if (endpoint.includes('/strategies/custom/create')) {
+      return this.getMockCustomStrategyCreation();
+    }
     if (endpoint.includes('/market/option-chain')) {
       return this.getMockOptionChain();
     }
