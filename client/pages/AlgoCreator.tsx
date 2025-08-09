@@ -212,9 +212,10 @@ export default function AlgoCreator() {
   const loadStrategies = async () => {
     try {
       const response = await marketDataService.getStrategies();
-      setStrategies(response.strategies);
+      setStrategies(response?.strategies || []);
     } catch (error) {
       console.error("Failed to load strategies:", error);
+      setStrategies([]);
     }
   };
 
