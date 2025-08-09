@@ -185,7 +185,17 @@ class MarketDataService {
     if (endpoint.includes('/market/straddle-data')) {
       return this.getMockStraddleData();
     }
-    throw new Error(`No mock data available for ${endpoint}`);
+    if (endpoint.includes('/algo/strategies') || endpoint.includes('/strategies')) {
+      return this.getMockStrategies();
+    }
+    if (endpoint.includes('/market/option-chain')) {
+      return this.getMockOptionChain();
+    }
+    if (endpoint.includes('/screener/scan')) {
+      return this.getMockScreenerResults();
+    }
+    // Return empty data structure for any other endpoint
+    return { data: {}, message: "Backend unavailable, using mock data" };
   }
 
   private getMockLiveData() {
