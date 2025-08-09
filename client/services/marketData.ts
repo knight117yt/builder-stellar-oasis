@@ -146,6 +146,17 @@ class MarketDataService {
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
+    // For known problematic endpoints, go straight to mock data
+    if (endpoint.includes('/market/straddle-data')) {
+      console.warn(`Using mock data for straddle endpoint due to API issues: ${endpoint}`);
+      try {
+        return this.getMockDataForEndpoint(endpoint) as T;
+      } catch (mockError) {
+        console.error(`Mock data fallback failed for ${endpoint}:`, mockError);
+        return { error: "Mock data unavailable", endpoint } as T;
+      }
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
