@@ -598,7 +598,21 @@ class MarketDataService {
       throw new Error("Invalid historical data response");
     } catch (error) {
       console.error("Failed to fetch historical data:", error);
-      return this.getMockHistoricalData(symbol);
+      // The makeRequest should have already provided mock data
+      // If we get here, return the mock data directly
+      const mockResponse = this.getMockHistoricalData(symbol);
+      if (mockResponse.s === "ok" && mockResponse.candles) {
+        const candles = mockResponse.candles.map((candle: any) => ({
+          timestamp: candle[0],
+          open: candle[1],
+          high: candle[2],
+          low: candle[3],
+          close: candle[4],
+          volume: candle[5],
+        }));
+        return candles;
+      }
+      return [];
     }
   }
 
