@@ -227,17 +227,15 @@ export default function StraddleChart() {
   // Use lowest premium straddle as current straddle
   const currentStraddle = lowestPremiumStraddle || atmStraddle;
 
-  // Calculate metrics
-  const totalPremium =
-    straddleData?.straddles.reduce((sum, s) => sum + s.straddle_premium, 0) ||
-    0;
-  const avgPremium = totalPremium / (straddleData?.straddles.length || 1);
-  const maxPremium = Math.max(
-    ...(straddleData?.straddles.map((s) => s.straddle_premium) || [0]),
-  );
-  const minPremium = Math.min(
-    ...(straddleData?.straddles.map((s) => s.straddle_premium) || [0]),
-  );
+  // Calculate metrics (only for valid straddles)
+  const totalPremium = validStraddles.reduce((sum, s) => sum + s.straddle_premium, 0);
+  const avgPremium = validStraddles.length > 0 ? totalPremium / validStraddles.length : 0;
+  const maxPremium = validStraddles.length > 0
+    ? Math.max(...validStraddles.map((s) => s.straddle_premium))
+    : 0;
+  const minPremium = validStraddles.length > 0
+    ? Math.min(...validStraddles.map((s) => s.straddle_premium))
+    : 0;
 
   // Prepare chart data
   const chartData =
@@ -675,7 +673,7 @@ export default function StraddleChart() {
                         <div className="text-sm">
                           Upper:{" "}
                           <span className="font-mono">
-                            ₹
+                            ��
                             {(
                               atmStraddle.strike + atmStraddle.straddle_premium
                             ).toFixed(2)}
