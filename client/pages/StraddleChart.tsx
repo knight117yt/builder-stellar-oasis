@@ -97,6 +97,8 @@ export default function StraddleChart() {
   const [straddleData, setStraddleData] = useState<StraddleInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [straddleHistory, setStraddleHistory] = useState<any[]>([]);
+  const [currentStraddleStrike, setCurrentStraddleStrike] = useState<number | null>(null);
 
   const { data: marketData } = useMarketData(selectedIndex.value);
   useSubscription(selectedIndex.value, true);
