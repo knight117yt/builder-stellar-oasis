@@ -176,13 +176,29 @@ export default function StraddleChart() {
     loadStraddleData();
   };
 
-  // Find ATM straddle
-  const atmStraddle = straddleData?.straddles.reduce((prev, current) =>
-    Math.abs(current.strike - (straddleData?.spot_price || 0)) <
-    Math.abs(prev.strike - (straddleData?.spot_price || 0))
-      ? current
-      : prev,
-  );
+  // Find lowest premium straddle (excluding 0.0 premiums)
+  const validStraddles = straddleData?.straddles.filter(s =>
+    s.call_price > 0 && s.put_price > 0 && s.straddle_premium > 0
+  ) || [];
+
+  const lowestPremiumStraddle = validStraddles.length > 0
+    ? validStraddles.reduce((prev, current) =>
+        current.straddle_premium < prev.straddle_premium ? current : prev
+      )
+    : null;
+
+  // Also find ATM straddle for reference
+  const atmStraddle = validStraddles.length > 0
+    ? validStraddles.reduce((prev, current) =>
+        Math.abs(current.strike - (straddleData?.spot_price || 0)) <
+        Math.abs(prev.strike - (straddleData?.spot_price || 0))
+          ? current
+          : prev,
+      )
+    : null;
+
+  // Use lowest premium straddle as current straddle
+  const currentStraddle = lowestPremiumStraddle || atmStraddle;
 
   // Calculate metrics
   const totalPremium =
