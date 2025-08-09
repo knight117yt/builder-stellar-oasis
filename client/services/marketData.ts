@@ -902,30 +902,6 @@ class MarketDataService {
     return data;
   }
 
-  private getMockHistoricalData(symbol: string): HistoricalCandle[] {
-    const candles: HistoricalCandle[] = [];
-    const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
-    const now = Date.now();
-
-    for (let i = 30; i >= 0; i--) {
-      const timestamp = now - i * 24 * 60 * 60 * 1000;
-      const open = basePrice + (Math.random() - 0.5) * 100;
-      const close = open + (Math.random() - 0.5) * 50;
-      const high = Math.max(open, close) + Math.random() * 20;
-      const low = Math.min(open, close) - Math.random() * 20;
-
-      candles.push({
-        timestamp: Math.floor(timestamp / 1000),
-        open,
-        high,
-        low,
-        close,
-        volume: Math.floor(Math.random() * 100000) + 10000,
-      });
-    }
-
-    return candles;
-  }
 
   private getMockOptionChain(symbol: string): OptionData[] {
     const options: OptionData[] = [];
