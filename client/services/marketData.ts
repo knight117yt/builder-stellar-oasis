@@ -203,7 +203,15 @@ class MarketDataService {
       return this.getMockAccountInfo();
     }
     if (endpoint.includes('/market/straddle-data')) {
-      return this.getMockStraddleData();
+      // Extract symbol and expiry from endpoint URL parameters
+      try {
+        const urlParams = new URLSearchParams(endpoint.split('?')[1] || '');
+        const symbol = urlParams.get('symbol') || 'NSE:NIFTY50-INDEX';
+        const expiry = urlParams.get('expiry') || '24JAN';
+        return this.getMockStraddleDataForSymbol(symbol, expiry);
+      } catch (e) {
+        return this.getMockStraddleData();
+      }
     }
     if (endpoint.includes('/algo/strategies') || endpoint.includes('/strategies')) {
       return this.getMockStrategies();
