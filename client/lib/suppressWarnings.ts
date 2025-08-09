@@ -47,10 +47,13 @@ function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
       message = args.join(" ");
     }
 
+    // Also check individual arguments for component names
+    const allArgsString = args.join(" ");
+
     // Only suppress in development
     if (
       process.env.NODE_ENV === "development" &&
-      shouldSuppressWarning(message)
+      (shouldSuppressWarning(message) || shouldSuppressWarning(allArgsString))
     ) {
       return; // Suppress the warning
     }
