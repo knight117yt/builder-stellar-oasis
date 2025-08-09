@@ -98,7 +98,9 @@ export default function StraddleChart() {
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [straddleHistory, setStraddleHistory] = useState<any[]>([]);
-  const [currentStraddleStrike, setCurrentStraddleStrike] = useState<number | null>(null);
+  const [currentStraddleStrike, setCurrentStraddleStrike] = useState<
+    number | null
+  >(null);
 
   const { data: marketData } = useMarketData(selectedIndex.value);
   useSubscription(selectedIndex.value, true);
@@ -108,10 +110,18 @@ export default function StraddleChart() {
     setLoading(true);
     try {
       // Use marketData service which has proper fallbacks
-      const data = await marketDataService.getStraddleData(selectedIndex.value, selectedExpiry);
+      const data = await marketDataService.getStraddleData(
+        selectedIndex.value,
+        selectedExpiry,
+      );
 
       // Validate the response has the expected structure
-      if (data && data.straddles && Array.isArray(data.straddles) && data.straddles.length > 0) {
+      if (
+        data &&
+        data.straddles &&
+        Array.isArray(data.straddles) &&
+        data.straddles.length > 0
+      ) {
         setStraddleData(data);
       } else {
         throw new Error("Invalid straddle data structure");
@@ -187,25 +197,28 @@ export default function StraddleChart() {
   };
 
   // Find lowest premium straddle (excluding 0.0 premiums)
-  const validStraddles = straddleData?.straddles.filter(s =>
-    s.call_price > 0 && s.put_price > 0 && s.straddle_premium > 0
-  ) || [];
+  const validStraddles =
+    straddleData?.straddles.filter(
+      (s) => s.call_price > 0 && s.put_price > 0 && s.straddle_premium > 0,
+    ) || [];
 
-  const lowestPremiumStraddle = validStraddles.length > 0
-    ? validStraddles.reduce((prev, current) =>
-        current.straddle_premium < prev.straddle_premium ? current : prev
-      )
-    : null;
+  const lowestPremiumStraddle =
+    validStraddles.length > 0
+      ? validStraddles.reduce((prev, current) =>
+          current.straddle_premium < prev.straddle_premium ? current : prev,
+        )
+      : null;
 
   // Also find ATM straddle for reference
-  const atmStraddle = validStraddles.length > 0
-    ? validStraddles.reduce((prev, current) =>
-        Math.abs(current.strike - (straddleData?.spot_price || 0)) <
-        Math.abs(prev.strike - (straddleData?.spot_price || 0))
-          ? current
-          : prev,
-      )
-    : null;
+  const atmStraddle =
+    validStraddles.length > 0
+      ? validStraddles.reduce((prev, current) =>
+          Math.abs(current.strike - (straddleData?.spot_price || 0)) <
+          Math.abs(prev.strike - (straddleData?.spot_price || 0))
+            ? current
+            : prev,
+        )
+      : null;
 
   // Use lowest premium straddle as current straddle
   const currentStraddle = lowestPremiumStraddle || atmStraddle;
@@ -221,10 +234,10 @@ export default function StraddleChart() {
         premium: currentStraddle.straddle_premium,
         callPrice: currentStraddle.call_price,
         putPrice: currentStraddle.put_price,
-        spotPrice: straddleData.spot_price
+        spotPrice: straddleData.spot_price,
       };
 
-      setStraddleHistory(prev => {
+      setStraddleHistory((prev) => {
         const updated = [...prev, historyPoint];
         // Keep only last 100 points to avoid memory issues
         return updated.slice(-100);
@@ -235,14 +248,20 @@ export default function StraddleChart() {
   }, [straddleData, currentStraddle]);
 
   // Calculate metrics (only for valid straddles)
-  const totalPremium = validStraddles.reduce((sum, s) => sum + s.straddle_premium, 0);
-  const avgPremium = validStraddles.length > 0 ? totalPremium / validStraddles.length : 0;
-  const maxPremium = validStraddles.length > 0
-    ? Math.max(...validStraddles.map((s) => s.straddle_premium))
-    : 0;
-  const minPremium = validStraddles.length > 0
-    ? Math.min(...validStraddles.map((s) => s.straddle_premium))
-    : 0;
+  const totalPremium = validStraddles.reduce(
+    (sum, s) => sum + s.straddle_premium,
+    0,
+  );
+  const avgPremium =
+    validStraddles.length > 0 ? totalPremium / validStraddles.length : 0;
+  const maxPremium =
+    validStraddles.length > 0
+      ? Math.max(...validStraddles.map((s) => s.straddle_premium))
+      : 0;
+  const minPremium =
+    validStraddles.length > 0
+      ? Math.min(...validStraddles.map((s) => s.straddle_premium))
+      : 0;
 
   // Prepare chart data
   const chartData =
@@ -354,7 +373,9 @@ export default function StraddleChart() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Straddle</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Current Straddle
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -366,7 +387,8 @@ export default function StraddleChart() {
             </p>
             {currentStraddle && (
               <p className="text-xs text-muted-foreground mt-1">
-                Call: ₹{currentStraddle.call_price.toFixed(2)} | Put: ₹{currentStraddle.put_price.toFixed(2)}
+                Call: ₹{currentStraddle.call_price.toFixed(2)} | Put: ₹
+                {currentStraddle.put_price.toFixed(2)}
               </p>
             )}
           </CardContent>
@@ -532,62 +554,75 @@ export default function StraddleChart() {
                   </TableHeader>
                   <TableBody>
                     {straddleData?.straddles
-                      .filter(s => s.call_price > 0 && s.put_price > 0) // Filter out invalid straddles
+                      .filter((s) => s.call_price > 0 && s.put_price > 0) // Filter out invalid straddles
                       .map((straddle) => {
-                      const isATM =
-                        Math.abs(
-                          straddle.strike - (straddleData?.spot_price || 0),
-                        ) < 25;
-                      const isITM =
-                        straddle.strike < (straddleData?.spot_price || 0);
-                      const isCurrentStraddle = straddle.strike === currentStraddle?.strike;
+                        const isATM =
+                          Math.abs(
+                            straddle.strike - (straddleData?.spot_price || 0),
+                          ) < 25;
+                        const isITM =
+                          straddle.strike < (straddleData?.spot_price || 0);
+                        const isCurrentStraddle =
+                          straddle.strike === currentStraddle?.strike;
 
-                      return (
-                        <TableRow
-                          key={straddle.strike}
-                          className={isCurrentStraddle ? "bg-primary/10 border-primary/20" : isATM ? "bg-accent/50" : ""}
-                        >
-                          <TableCell className="font-medium">
-                            {straddle.strike}
-                            {isCurrentStraddle && (
-                              <Badge variant="default" className="ml-2 text-xs bg-primary">
-                                CURRENT
+                        return (
+                          <TableRow
+                            key={straddle.strike}
+                            className={
+                              isCurrentStraddle
+                                ? "bg-primary/10 border-primary/20"
+                                : isATM
+                                  ? "bg-accent/50"
+                                  : ""
+                            }
+                          >
+                            <TableCell className="font-medium">
+                              {straddle.strike}
+                              {isCurrentStraddle && (
+                                <Badge
+                                  variant="default"
+                                  className="ml-2 text-xs bg-primary"
+                                >
+                                  CURRENT
+                                </Badge>
+                              )}
+                              {isATM && !isCurrentStraddle && (
+                                <Badge
+                                  variant="secondary"
+                                  className="ml-2 text-xs"
+                                >
+                                  ATM
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="font-mono">
+                              ₹{straddle.call_price.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="font-mono">
+                              ₹{straddle.put_price.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="font-mono font-medium">
+                              ₹{straddle.straddle_premium.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {straddle.distance_from_spot.toFixed(0)} pts
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  isATM
+                                    ? "default"
+                                    : isITM
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                              >
+                                {isATM ? "ATM" : isITM ? "ITM" : "OTM"}
                               </Badge>
-                            )}
-                            {isATM && !isCurrentStraddle && (
-                              <Badge variant="secondary" className="ml-2 text-xs">
-                                ATM
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="font-mono">
-                            ₹{straddle.call_price.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="font-mono">
-                            ₹{straddle.put_price.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="font-mono font-medium">
-                            ₹{straddle.straddle_premium.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {straddle.distance_from_spot.toFixed(0)} pts
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                isATM
-                                  ? "default"
-                                  : isITM
-                                    ? "secondary"
-                                    : "outline"
-                              }
-                            >
-                              {isATM ? "ATM" : isITM ? "ITM" : "OTM"}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </div>
@@ -600,7 +635,8 @@ export default function StraddleChart() {
             <CardHeader>
               <CardTitle>Current Straddle Price History</CardTitle>
               <CardDescription>
-                Price fluctuation of the lowest premium straddle (Strike: {currentStraddle?.strike}) till expiry
+                Price fluctuation of the lowest premium straddle (Strike:{" "}
+                {currentStraddle?.strike}) till expiry
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -609,20 +645,36 @@ export default function StraddleChart() {
                   {/* Current Straddle Info */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-accent/20 rounded-lg">
                     <div className="text-center">
-                      <div className="text-lg font-bold">{currentStraddle?.strike}</div>
-                      <div className="text-sm text-muted-foreground">Strike Price</div>
+                      <div className="text-lg font-bold">
+                        {currentStraddle?.strike}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Strike Price
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold">₹{currentStraddle?.call_price.toFixed(2)}</div>
-                      <div className="text-sm text-muted-foreground">Call Premium</div>
+                      <div className="text-lg font-bold">
+                        ₹{currentStraddle?.call_price.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Call Premium
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold">₹{currentStraddle?.put_price.toFixed(2)}</div>
-                      <div className="text-sm text-muted-foreground">Put Premium</div>
+                      <div className="text-lg font-bold">
+                        ₹{currentStraddle?.put_price.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Put Premium
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-primary">₹{currentStraddle?.straddle_premium.toFixed(2)}</div>
-                      <div className="text-sm text-muted-foreground">Total Straddle</div>
+                      <div className="text-lg font-bold text-primary">
+                        ₹{currentStraddle?.straddle_premium.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Total Straddle
+                      </div>
                     </div>
                   </div>
 
@@ -630,7 +682,10 @@ export default function StraddleChart() {
                   <div className="h-96">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={straddleHistory}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--trading-grid))" />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(var(--trading-grid))"
+                        />
                         <XAxis
                           dataKey="time"
                           axisLine={false}
@@ -649,23 +704,33 @@ export default function StraddleChart() {
                               const data = payload[0].payload;
                               return (
                                 <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-                                  <p className="font-medium mb-2">Time: {label}</p>
+                                  <p className="font-medium mb-2">
+                                    Time: {label}
+                                  </p>
                                   <div className="space-y-1 text-sm">
                                     <div className="flex justify-between gap-4">
                                       <span>Straddle Premium:</span>
-                                      <span className="font-mono">₹{data.premium.toFixed(2)}</span>
+                                      <span className="font-mono">
+                                        ₹{data.premium.toFixed(2)}
+                                      </span>
                                     </div>
                                     <div className="flex justify-between gap-4">
                                       <span>Call Price:</span>
-                                      <span className="font-mono">₹{data.callPrice.toFixed(2)}</span>
+                                      <span className="font-mono">
+                                        ₹{data.callPrice.toFixed(2)}
+                                      </span>
                                     </div>
                                     <div className="flex justify-between gap-4">
                                       <span>Put Price:</span>
-                                      <span className="font-mono">₹{data.putPrice.toFixed(2)}</span>
+                                      <span className="font-mono">
+                                        ₹{data.putPrice.toFixed(2)}
+                                      </span>
                                     </div>
                                     <div className="flex justify-between gap-4">
                                       <span>Spot Price:</span>
-                                      <span className="font-mono">₹{data.spotPrice.toFixed(2)}</span>
+                                      <span className="font-mono">
+                                        ₹{data.spotPrice.toFixed(2)}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -681,7 +746,11 @@ export default function StraddleChart() {
                           strokeWidth={2}
                           name="Straddle Premium"
                           dot={{ fill: "#3b82f6", strokeWidth: 0, r: 3 }}
-                          activeDot={{ r: 5, stroke: "#3b82f6", strokeWidth: 2 }}
+                          activeDot={{
+                            r: 5,
+                            stroke: "#3b82f6",
+                            strokeWidth: 2,
+                          }}
                         />
                         <Line
                           type="monotone"
@@ -719,25 +788,52 @@ export default function StraddleChart() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {straddleHistory.slice(-20).reverse().map((point, index) => {
-                          const prevPoint = index < straddleHistory.length - 1 ? straddleHistory[straddleHistory.length - index - 2] : null;
-                          const change = prevPoint ? point.premium - prevPoint.premium : 0;
+                        {straddleHistory
+                          .slice(-20)
+                          .reverse()
+                          .map((point, index) => {
+                            const prevPoint =
+                              index < straddleHistory.length - 1
+                                ? straddleHistory[
+                                    straddleHistory.length - index - 2
+                                  ]
+                                : null;
+                            const change = prevPoint
+                              ? point.premium - prevPoint.premium
+                              : 0;
 
-                          return (
-                            <TableRow key={point.timestamp}>
-                              <TableCell className="text-sm">{point.time}</TableCell>
-                              <TableCell className="font-mono">₹{point.premium.toFixed(2)}</TableCell>
-                              <TableCell className="font-mono text-trading-bull">₹{point.callPrice.toFixed(2)}</TableCell>
-                              <TableCell className="font-mono text-trading-bear">₹{point.putPrice.toFixed(2)}</TableCell>
-                              <TableCell className="font-mono">₹{point.spotPrice.toFixed(2)}</TableCell>
-                              <TableCell className={`font-mono text-sm ${
-                                change > 0 ? 'text-trading-bull' : change < 0 ? 'text-trading-bear' : 'text-muted-foreground'
-                              }`}>
-                                {change !== 0 && (change > 0 ? '+' : '')}₹{change.toFixed(2)}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                            return (
+                              <TableRow key={point.timestamp}>
+                                <TableCell className="text-sm">
+                                  {point.time}
+                                </TableCell>
+                                <TableCell className="font-mono">
+                                  ₹{point.premium.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="font-mono text-trading-bull">
+                                  ₹{point.callPrice.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="font-mono text-trading-bear">
+                                  ₹{point.putPrice.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="font-mono">
+                                  ₹{point.spotPrice.toFixed(2)}
+                                </TableCell>
+                                <TableCell
+                                  className={`font-mono text-sm ${
+                                    change > 0
+                                      ? "text-trading-bull"
+                                      : change < 0
+                                        ? "text-trading-bear"
+                                        : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {change !== 0 && (change > 0 ? "+" : "")}₹
+                                  {change.toFixed(2)}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                       </TableBody>
                     </Table>
                   </div>
@@ -858,7 +954,8 @@ export default function StraddleChart() {
                           <span className="font-mono">
                             ₹
                             {(
-                              currentStraddle.strike + currentStraddle.straddle_premium
+                              currentStraddle.strike +
+                              currentStraddle.straddle_premium
                             ).toFixed(2)}
                           </span>
                         </div>
@@ -867,12 +964,14 @@ export default function StraddleChart() {
                           <span className="font-mono">
                             ₹
                             {(
-                              currentStraddle.strike - currentStraddle.straddle_premium
+                              currentStraddle.strike -
+                              currentStraddle.straddle_premium
                             ).toFixed(2)}
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-2">
-                          Strike {currentStraddle.strike} (Lowest Premium: ₹{currentStraddle.straddle_premium.toFixed(2)})
+                          Strike {currentStraddle.strike} (Lowest Premium: ₹
+                          {currentStraddle.straddle_premium.toFixed(2)})
                         </div>
                       </div>
                     </div>

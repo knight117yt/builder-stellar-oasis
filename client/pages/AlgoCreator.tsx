@@ -967,11 +967,13 @@ export default function AlgoCreator() {
                 <span>Trading Strategies ({strategies?.length || 0})</span>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {strategies?.filter((s) => s.status === "active").length || 0}{" "}
+                    {strategies?.filter((s) => s.status === "active").length ||
+                      0}{" "}
                     Active
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    {strategies?.filter((s) => s.status === "inactive").length || 0}{" "}
+                    {strategies?.filter((s) => s.status === "inactive")
+                      .length || 0}{" "}
                     Inactive
                   </Badge>
                 </div>
@@ -1099,7 +1101,9 @@ export default function AlgoCreator() {
                 <Bot className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{strategies?.length || 0}</div>
+                <div className="text-2xl font-bold">
+                  {strategies?.length || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {strategies?.filter((s) => s.status === "active").length || 0}{" "}
                   active
@@ -1224,14 +1228,15 @@ export default function AlgoCreator() {
                 Strategy Backtesting
               </CardTitle>
               <CardDescription>
-                Test your strategies against historical data to evaluate performance
+                Test your strategies against historical data to evaluate
+                performance
               </CardDescription>
             </CardHeader>
             <CardContent>
               <BacktestingInterface
                 strategies={strategies || []}
                 onBacktestComplete={(result) => {
-                  console.log('Backtest completed:', result);
+                  console.log("Backtest completed:", result);
                 }}
               />
             </CardContent>
@@ -1248,15 +1253,20 @@ interface BacktestingInterfaceProps {
   onBacktestComplete: (result: any) => void;
 }
 
-function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInterfaceProps) {
+function BacktestingInterface({
+  strategies,
+  onBacktestComplete,
+}: BacktestingInterfaceProps) {
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [backtestConfig, setBacktestConfig] = useState({
     symbol: "NSE:NIFTY50-INDEX",
-    startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days ago
-    endDate: new Date().toISOString().split('T')[0], // today
+    startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0], // 90 days ago
+    endDate: new Date().toISOString().split("T")[0], // today
     initialCapital: 100000,
     commission: 0.003,
-    slippage: 0.001
+    slippage: 0.001,
   });
   const [backtestResult, setBacktestResult] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -1264,8 +1274,11 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
 
   const generateMockHistoricalData = (symbol: string) => {
     const data = [];
-    const basePrice = symbol.includes("NIFTYBANK") ? 44250 :
-                     symbol.includes("SENSEX") ? 72240 : 19850;
+    const basePrice = symbol.includes("NIFTYBANK")
+      ? 44250
+      : symbol.includes("SENSEX")
+        ? 72240
+        : 19850;
     const now = Date.now();
 
     for (let i = 90; i >= 0; i--) {
@@ -1279,7 +1292,7 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
         high: price + Math.random() * 50,
         low: price - Math.random() * 50,
         close: price,
-        volume: Math.floor(1000000 + Math.random() * 500000)
+        volume: Math.floor(1000000 + Math.random() * 500000),
       });
     }
 
@@ -1299,7 +1312,7 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
         backtestConfig.symbol,
         "1D",
         backtestConfig.startDate,
-        backtestConfig.endDate
+        backtestConfig.endDate,
       );
 
       if (histData && histData.length > 0) {
@@ -1312,7 +1325,7 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
           historicalData: histData,
           initialCapital: backtestConfig.initialCapital,
           commission: backtestConfig.commission,
-          slippage: backtestConfig.slippage
+          slippage: backtestConfig.slippage,
         });
 
         setBacktestResult(result);
@@ -1328,7 +1341,7 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
             historicalData: mockData,
             initialCapital: backtestConfig.initialCapital,
             commission: backtestConfig.commission,
-            slippage: backtestConfig.slippage
+            slippage: backtestConfig.slippage,
           });
 
           setBacktestResult(result);
@@ -1377,18 +1390,22 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
           else if (change < 0) losses.push(Math.abs(change));
         }
 
-        const avgGain = gains.length ? gains.reduce((a, b) => a + b, 0) / gains.length : 0;
-        const avgLoss = losses.length ? losses.reduce((a, b) => a + b, 0) / losses.length : 0;
+        const avgGain = gains.length
+          ? gains.reduce((a, b) => a + b, 0) / gains.length
+          : 0;
+        const avgLoss = losses.length
+          ? losses.reduce((a, b) => a + b, 0) / losses.length
+          : 0;
 
         const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-        const rsi = 100 - (100 / (1 + rs));
+        const rsi = 100 - 100 / (1 + rs);
 
         rsiValues.push(rsi);
 
         // Strategy logic: Buy when RSI < 30, Sell when RSI > 70
         if (position === 0 && rsi < 30) {
           // Enter long position
-          const quantity = Math.floor(capital * 0.1 / price); // Use 10% of capital
+          const quantity = Math.floor((capital * 0.1) / price); // Use 10% of capital
           if (quantity > 0) {
             const tradeCost = quantity * price * commission;
             position = quantity;
@@ -1397,11 +1414,11 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
             totalTrades++;
 
             trades.push({
-              date: date.toISOString().split('T')[0],
-              type: 'BUY',
+              date: date.toISOString().split("T")[0],
+              type: "BUY",
               price,
               quantity,
-              cost: tradeCost
+              cost: tradeCost,
             });
           }
         } else if (position > 0 && rsi > 70) {
@@ -1413,12 +1430,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
           if (pnl > 0) winningTrades++;
 
           trades.push({
-            date: date.toISOString().split('T')[0],
-            type: 'SELL',
+            date: date.toISOString().split("T")[0],
+            type: "SELL",
             price,
             quantity: position,
             pnl,
-            cost: tradeCost
+            cost: tradeCost,
           });
 
           position = 0;
@@ -1426,35 +1443,44 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
       }
 
       // Calculate current portfolio value
-      const currentValue = capital + (position * price);
+      const currentValue = capital + position * price;
       equityCurve.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split("T")[0],
         value: currentValue,
-        price
+        price,
       });
 
       // Track max drawdown
       if (currentValue > maxCapital) {
         maxCapital = currentValue;
       }
-      const drawdown = (maxCapital - currentValue) / maxCapital * 100;
+      const drawdown = ((maxCapital - currentValue) / maxCapital) * 100;
       if (drawdown > maxDrawdown) {
         maxDrawdown = drawdown;
       }
     }
 
     // Calculate final metrics
-    const finalValue = capital + (position * historicalData[historicalData.length - 1].close);
+    const finalValue =
+      capital + position * historicalData[historicalData.length - 1].close;
     const totalReturn = ((finalValue - initialCapital) / initialCapital) * 100;
     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
 
-    const profitableTrades = trades.filter(t => t.pnl && t.pnl > 0);
-    const losingTrades = trades.filter(t => t.pnl && t.pnl < 0);
+    const profitableTrades = trades.filter((t) => t.pnl && t.pnl > 0);
+    const losingTrades = trades.filter((t) => t.pnl && t.pnl < 0);
 
-    const avgWin = profitableTrades.length > 0 ?
-      profitableTrades.reduce((sum, t) => sum + t.pnl, 0) / profitableTrades.length : 0;
-    const avgLoss = losingTrades.length > 0 ?
-      Math.abs(losingTrades.reduce((sum, t) => sum + t.pnl, 0) / losingTrades.length) : 0;
+    const avgWin =
+      profitableTrades.length > 0
+        ? profitableTrades.reduce((sum, t) => sum + t.pnl, 0) /
+          profitableTrades.length
+        : 0;
+    const avgLoss =
+      losingTrades.length > 0
+        ? Math.abs(
+            losingTrades.reduce((sum, t) => sum + t.pnl, 0) /
+              losingTrades.length,
+          )
+        : 0;
 
     return {
       initialCapital,
@@ -1469,7 +1495,7 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
       profitFactor: avgLoss > 0 ? avgWin / avgLoss : 0,
       trades,
       equityCurve,
-      sharpeRatio: calculateSharpeRatio(equityCurve)
+      sharpeRatio: calculateSharpeRatio(equityCurve),
     };
   };
 
@@ -1478,12 +1504,16 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
 
     const returns = [];
     for (let i = 1; i < equityCurve.length; i++) {
-      const dailyReturn = (equityCurve[i].value - equityCurve[i-1].value) / equityCurve[i-1].value;
+      const dailyReturn =
+        (equityCurve[i].value - equityCurve[i - 1].value) /
+        equityCurve[i - 1].value;
       returns.push(dailyReturn);
     }
 
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+    const variance =
+      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) /
+      returns.length;
     const stdDev = Math.sqrt(variance);
 
     return stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0; // Annualized Sharpe
@@ -1500,7 +1530,10 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Select Strategy</Label>
-              <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+              <Select
+                value={selectedStrategy}
+                onValueChange={setSelectedStrategy}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a strategy to backtest" />
                 </SelectTrigger>
@@ -1520,10 +1553,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                 <Input
                   type="date"
                   value={backtestConfig.startDate}
-                  onChange={(e) => setBacktestConfig(prev => ({
-                    ...prev,
-                    startDate: e.target.value
-                  }))}
+                  onChange={(e) =>
+                    setBacktestConfig((prev) => ({
+                      ...prev,
+                      startDate: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -1531,10 +1566,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                 <Input
                   type="date"
                   value={backtestConfig.endDate}
-                  onChange={(e) => setBacktestConfig(prev => ({
-                    ...prev,
-                    endDate: e.target.value
-                  }))}
+                  onChange={(e) =>
+                    setBacktestConfig((prev) => ({
+                      ...prev,
+                      endDate: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -1543,17 +1580,21 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
               <Label>Trading Symbol</Label>
               <Select
                 value={backtestConfig.symbol}
-                onValueChange={(value) => setBacktestConfig(prev => ({
-                  ...prev,
-                  symbol: value
-                }))}
+                onValueChange={(value) =>
+                  setBacktestConfig((prev) => ({
+                    ...prev,
+                    symbol: value,
+                  }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NSE:NIFTY50-INDEX">NIFTY 50</SelectItem>
-                  <SelectItem value="NSE:NIFTYBANK-INDEX">BANK NIFTY</SelectItem>
+                  <SelectItem value="NSE:NIFTYBANK-INDEX">
+                    BANK NIFTY
+                  </SelectItem>
                   <SelectItem value="BSE:SENSEX-INDEX">SENSEX</SelectItem>
                 </SelectContent>
               </Select>
@@ -1565,10 +1606,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                 <Input
                   type="number"
                   value={backtestConfig.initialCapital}
-                  onChange={(e) => setBacktestConfig(prev => ({
-                    ...prev,
-                    initialCapital: parseFloat(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setBacktestConfig((prev) => ({
+                      ...prev,
+                      initialCapital: parseFloat(e.target.value),
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -1577,10 +1620,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   type="number"
                   step="0.001"
                   value={backtestConfig.commission}
-                  onChange={(e) => setBacktestConfig(prev => ({
-                    ...prev,
-                    commission: parseFloat(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setBacktestConfig((prev) => ({
+                      ...prev,
+                      commission: parseFloat(e.target.value),
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -1589,10 +1634,12 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   type="number"
                   step="0.001"
                   value={backtestConfig.slippage}
-                  onChange={(e) => setBacktestConfig(prev => ({
-                    ...prev,
-                    slippage: parseFloat(e.target.value)
-                  }))}
+                  onChange={(e) =>
+                    setBacktestConfig((prev) => ({
+                      ...prev,
+                      slippage: parseFloat(e.target.value),
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -1629,7 +1676,9 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   <div className="text-2xl font-bold text-trading-bull">
                     {backtestResult.totalReturn.toFixed(2)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Total Return</div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Return
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-accent/20 rounded-lg">
                   <div className="text-2xl font-bold">
@@ -1641,13 +1690,17 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   <div className="text-2xl font-bold">
                     {backtestResult.totalTrades}
                   </div>
-                  <div className="text-sm text-muted-foreground">Total Trades</div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Trades
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-accent/20 rounded-lg">
                   <div className="text-2xl font-bold text-trading-bear">
                     {backtestResult.maxDrawdown.toFixed(2)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Max Drawdown</div>
+                  <div className="text-sm text-muted-foreground">
+                    Max Drawdown
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1669,9 +1722,16 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   <LineChart data={backtestResult.equityCurve}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis tickFormatter={(value) => `₹${(value/1000).toFixed(0)}K`} />
+                    <YAxis
+                      tickFormatter={(value) =>
+                        `₹${(value / 1000).toFixed(0)}K`
+                      }
+                    />
                     <Tooltip
-                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Portfolio Value']}
+                      formatter={(value: number) => [
+                        `₹${value.toLocaleString()}`,
+                        "Portfolio Value",
+                      ]}
                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Line
@@ -1696,36 +1756,52 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span>Initial Capital:</span>
-                  <span className="font-mono">₹{backtestResult.initialCapital.toLocaleString()}</span>
+                  <span className="font-mono">
+                    ₹{backtestResult.initialCapital.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Final Capital:</span>
-                  <span className="font-mono">₹{backtestResult.finalCapital.toLocaleString()}</span>
+                  <span className="font-mono">
+                    ₹{backtestResult.finalCapital.toLocaleString()}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span>Total Trades:</span>
-                  <span className="font-mono">{backtestResult.totalTrades}</span>
+                  <span className="font-mono">
+                    {backtestResult.totalTrades}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Winning Trades:</span>
-                  <span className="font-mono">{backtestResult.winningTrades}</span>
+                  <span className="font-mono">
+                    {backtestResult.winningTrades}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Average Win:</span>
-                  <span className="font-mono text-trading-bull">₹{backtestResult.avgWin.toFixed(2)}</span>
+                  <span className="font-mono text-trading-bull">
+                    ₹{backtestResult.avgWin.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Average Loss:</span>
-                  <span className="font-mono text-trading-bear">₹{backtestResult.avgLoss.toFixed(2)}</span>
+                  <span className="font-mono text-trading-bear">
+                    ₹{backtestResult.avgLoss.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Profit Factor:</span>
-                  <span className="font-mono">{backtestResult.profitFactor.toFixed(2)}</span>
+                  <span className="font-mono">
+                    {backtestResult.profitFactor.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sharpe Ratio:</span>
-                  <span className="font-mono">{backtestResult.sharpeRatio.toFixed(2)}</span>
+                  <span className="font-mono">
+                    {backtestResult.sharpeRatio.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -1752,23 +1828,37 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {backtestResult.trades.slice(-20).map((trade: any, index: number) => (
-                    <TableRow key={index}>
-                      <TableCell>{trade.date}</TableCell>
-                      <TableCell>
-                        <Badge variant={trade.type === 'BUY' ? 'default' : 'secondary'}>
-                          {trade.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">₹{trade.price.toFixed(2)}</TableCell>
-                      <TableCell>{trade.quantity}</TableCell>
-                      <TableCell className={`font-mono ${
-                        trade.pnl ? (trade.pnl >= 0 ? 'text-trading-bull' : 'text-trading-bear') : ''
-                      }`}>
-                        {trade.pnl ? `₹${trade.pnl.toFixed(2)}` : '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {backtestResult.trades
+                    .slice(-20)
+                    .map((trade: any, index: number) => (
+                      <TableRow key={index}>
+                        <TableCell>{trade.date}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              trade.type === "BUY" ? "default" : "secondary"
+                            }
+                          >
+                            {trade.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono">
+                          ₹{trade.price.toFixed(2)}
+                        </TableCell>
+                        <TableCell>{trade.quantity}</TableCell>
+                        <TableCell
+                          className={`font-mono ${
+                            trade.pnl
+                              ? trade.pnl >= 0
+                                ? "text-trading-bull"
+                                : "text-trading-bear"
+                              : ""
+                          }`}
+                        >
+                          {trade.pnl ? `₹${trade.pnl.toFixed(2)}` : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>

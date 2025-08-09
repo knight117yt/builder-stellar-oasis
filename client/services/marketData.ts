@@ -147,8 +147,10 @@ class MarketDataService {
     options: RequestInit = {},
   ): Promise<T> {
     // For known problematic endpoints, go straight to mock data
-    if (endpoint.includes('/market/straddle-data')) {
-      console.warn(`Using mock data for straddle endpoint due to API issues: ${endpoint}`);
+    if (endpoint.includes("/market/straddle-data")) {
+      console.warn(
+        `Using mock data for straddle endpoint due to API issues: ${endpoint}`,
+      );
       try {
         return this.getMockDataForEndpoint(endpoint) as T;
       } catch (mockError) {
@@ -173,12 +175,18 @@ class MarketDataService {
 
       return await response.json();
     } catch (error) {
-      console.warn(`API request failed for ${endpoint}, falling back to mock data:`, error);
+      console.warn(
+        `API request failed for ${endpoint}, falling back to mock data:`,
+        error,
+      );
       // Fall back to mock data for common endpoints
       try {
         return this.getMockDataForEndpoint(endpoint) as T;
       } catch (mockError) {
-        console.error(`Mock data fallback also failed for ${endpoint}:`, mockError);
+        console.error(
+          `Mock data fallback also failed for ${endpoint}:`,
+          mockError,
+        );
         // Return a basic error response that won't break the calling code
         return { error: "API and mock data unavailable", endpoint } as T;
       }
@@ -187,48 +195,51 @@ class MarketDataService {
 
   // Mock data fallback for when backend is not available
   private getMockDataForEndpoint(endpoint: string): any {
-    if (endpoint.includes('/market/live-data')) {
+    if (endpoint.includes("/market/live-data")) {
       return this.getMockLiveData();
     }
-    if (endpoint.includes('/analysis/ai-analyze')) {
+    if (endpoint.includes("/analysis/ai-analyze")) {
       return this.getMockAIAnalysis();
     }
-    if (endpoint.includes('/market/historical')) {
+    if (endpoint.includes("/market/historical")) {
       // Extract symbol from endpoint URL
-      const urlParams = new URLSearchParams(endpoint.split('?')[1] || '');
-      const symbol = urlParams.get('symbol') || 'NSE:NIFTY50-INDEX';
+      const urlParams = new URLSearchParams(endpoint.split("?")[1] || "");
+      const symbol = urlParams.get("symbol") || "NSE:NIFTY50-INDEX";
       return this.getMockHistoricalData(symbol);
     }
-    if (endpoint.includes('/account/info')) {
+    if (endpoint.includes("/account/info")) {
       return this.getMockAccountInfo();
     }
-    if (endpoint.includes('/market/straddle-data')) {
+    if (endpoint.includes("/market/straddle-data")) {
       // Extract symbol and expiry from endpoint URL parameters
       try {
-        const urlParams = new URLSearchParams(endpoint.split('?')[1] || '');
-        const symbol = urlParams.get('symbol') || 'NSE:NIFTY50-INDEX';
-        const expiry = urlParams.get('expiry') || '24JAN';
+        const urlParams = new URLSearchParams(endpoint.split("?")[1] || "");
+        const symbol = urlParams.get("symbol") || "NSE:NIFTY50-INDEX";
+        const expiry = urlParams.get("expiry") || "24JAN";
         return this.getMockStraddleDataForSymbol(symbol, expiry);
       } catch (e) {
         return this.getMockStraddleData();
       }
     }
-    if (endpoint.includes('/algo/strategies') || endpoint.includes('/strategies')) {
+    if (
+      endpoint.includes("/algo/strategies") ||
+      endpoint.includes("/strategies")
+    ) {
       return this.getMockStrategies();
     }
-    if (endpoint.includes('/algo/create-strategy')) {
+    if (endpoint.includes("/algo/create-strategy")) {
       return this.getMockCreateStrategy();
     }
-    if (endpoint.includes('/strategies/custom/create')) {
+    if (endpoint.includes("/strategies/custom/create")) {
       return this.getMockCustomStrategyCreation();
     }
-    if (endpoint.includes('/strategies/backtest')) {
+    if (endpoint.includes("/strategies/backtest")) {
       return this.getMockBacktestResult();
     }
-    if (endpoint.includes('/market/option-chain')) {
+    if (endpoint.includes("/market/option-chain")) {
       return this.getMockOptionChain();
     }
-    if (endpoint.includes('/screener/scan')) {
+    if (endpoint.includes("/screener/scan")) {
       return this.getMockScreenerResults();
     }
     // Return empty data structure for any other endpoint
@@ -239,34 +250,34 @@ class MarketDataService {
     return {
       data: {
         "NSE:NIFTY50-INDEX": {
-          ltp: 19850.50,
-          change: 125.30,
+          ltp: 19850.5,
+          change: 125.3,
           change_percent: 0.63,
           volume: 1250000,
           high: 19890.25,
-          low: 19780.10,
-          open: 19820.00
+          low: 19780.1,
+          open: 19820.0,
         },
         "NSE:NIFTYBANK-INDEX": {
           ltp: 44250.75,
-          change: -85.20,
+          change: -85.2,
           change_percent: -0.19,
           volume: 850000,
-          high: 44380.50,
+          high: 44380.5,
           low: 44150.25,
-          open: 44200.30
+          open: 44200.3,
         },
         "BSE:SENSEX-INDEX": {
-          ltp: 72240.80,
+          ltp: 72240.8,
           change: 180.45,
           change_percent: 0.25,
           volume: 2100000,
-          high: 72350.20,
-          low: 72120.40,
-          open: 72180.60
-        }
+          high: 72350.2,
+          low: 72120.4,
+          open: 72180.6,
+        },
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -286,19 +297,23 @@ class MarketDataService {
         technical_indicators: {
           rsi: 58.5,
           macd: "bullish",
-          moving_averages: "bullish"
+          moving_averages: "bullish",
         },
-        sentiment_score: 0.7
+        sentiment_score: 0.7,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
   private getMockHistoricalData(symbol?: string) {
     const data = [];
     const now = new Date();
-    const basePrice = symbol && symbol.includes("NIFTYBANK") ? 44250 :
-                     symbol && symbol.includes("SENSEX") ? 72240 : 19850;
+    const basePrice =
+      symbol && symbol.includes("NIFTYBANK")
+        ? 44250
+        : symbol && symbol.includes("SENSEX")
+          ? 72240
+          : 19850;
 
     for (let i = 30; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
@@ -311,7 +326,7 @@ class MarketDataService {
         high: price + Math.random() * 50,
         low: price - Math.random() * 50,
         close: price,
-        volume: Math.floor(1000000 + Math.random() * 500000)
+        volume: Math.floor(1000000 + Math.random() * 500000),
       });
     }
 
@@ -319,15 +334,15 @@ class MarketDataService {
       s: "ok",
       symbol: symbol || "NSE:NIFTY50-INDEX",
       timeframe: "1D",
-      candles: data.map(d => [
+      candles: data.map((d) => [
         d.timestamp,
         d.open,
         d.high,
         d.low,
         d.close,
-        d.volume
+        d.volume,
       ]),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -337,9 +352,9 @@ class MarketDataService {
         balance: 100000,
         available_margin: 80000,
         used_margin: 20000,
-        total_balance: 100000
+        total_balance: 100000,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -358,13 +373,13 @@ class MarketDataService {
     const straddles = [];
 
     for (let i = -5; i <= 5; i++) {
-      const strike = baseStrike + (i * 50);
+      const strike = baseStrike + i * 50;
       const distance = Math.abs(strike - spotPrice);
 
       // Generate realistic option prices based on distance from spot
       const intrinsicCall = Math.max(0, spotPrice - strike);
       const intrinsicPut = Math.max(0, strike - spotPrice);
-      const timeValue = Math.max(5, 50 - (distance / 10));
+      const timeValue = Math.max(5, 50 - distance / 10);
 
       const callPrice = intrinsicCall + timeValue + (Math.random() * 10 - 5);
       const putPrice = intrinsicPut + timeValue + (Math.random() * 10 - 5);
@@ -378,7 +393,7 @@ class MarketDataService {
         call_price: finalCallPrice,
         put_price: finalPutPrice,
         straddle_premium: finalCallPrice + finalPutPrice,
-        distance_from_spot: distance
+        distance_from_spot: distance,
       });
     }
 
@@ -390,7 +405,7 @@ class MarketDataService {
       spot_price: spotPrice,
       expiry,
       straddles,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -403,9 +418,21 @@ class MarketDataService {
           symbol: "NSE:NIFTY50-INDEX",
           strategy_type: "technical",
           parameters: [
-            { name: "rsi_period", value: 14, description: "RSI calculation period" },
-            { name: "oversold_level", value: 30, description: "RSI oversold threshold" },
-            { name: "overbought_level", value: 70, description: "RSI overbought threshold" }
+            {
+              name: "rsi_period",
+              value: 14,
+              description: "RSI calculation period",
+            },
+            {
+              name: "oversold_level",
+              value: 30,
+              description: "RSI oversold threshold",
+            },
+            {
+              name: "overbought_level",
+              value: 70,
+              description: "RSI overbought threshold",
+            },
           ],
           status: "active",
           created_at: new Date().toISOString(),
@@ -414,8 +441,8 @@ class MarketDataService {
             profitable_trades: 18,
             total_pnl: 12500,
             win_rate: 72,
-            max_drawdown: 8.5
-          }
+            max_drawdown: 8.5,
+          },
         },
         {
           id: "strategy_2",
@@ -423,8 +450,16 @@ class MarketDataService {
           symbol: "NSE:NIFTYBANK-INDEX",
           strategy_type: "technical",
           parameters: [
-            { name: "fast_ma", value: 20, description: "Fast moving average period" },
-            { name: "slow_ma", value: 50, description: "Slow moving average period" }
+            {
+              name: "fast_ma",
+              value: 20,
+              description: "Fast moving average period",
+            },
+            {
+              name: "slow_ma",
+              value: 50,
+              description: "Slow moving average period",
+            },
           ],
           status: "inactive",
           created_at: new Date(Date.now() - 86400000).toISOString(),
@@ -433,10 +468,10 @@ class MarketDataService {
             profitable_trades: 9,
             total_pnl: 5800,
             win_rate: 60,
-            max_drawdown: 12.3
-          }
-        }
-      ]
+            max_drawdown: 12.3,
+          },
+        },
+      ],
     };
   }
 
@@ -455,7 +490,7 @@ class MarketDataService {
         call_volume: Math.floor(Math.random() * 10000),
         put_volume: Math.floor(Math.random() * 10000),
         call_iv: 15 + Math.random() * 20,
-        put_iv: 15 + Math.random() * 20
+        put_iv: 15 + Math.random() * 20,
       });
     }
 
@@ -464,9 +499,9 @@ class MarketDataService {
         symbol: "NSE:NIFTY50-INDEX",
         expiry: "24JAN2024",
         spot_price: spotPrice,
-        options: strikes
+        options: strikes,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -478,30 +513,30 @@ class MarketDataService {
             symbol: "NSE:RELIANCE-EQ",
             name: "Reliance Industries",
             price: 2450.75,
-            change: 25.30,
+            change: 25.3,
             change_percent: 1.04,
             volume: 1250000,
             market_cap: 1650000000000,
             pe_ratio: 24.5,
             sector: "Energy",
-            exchange: "NSE"
+            exchange: "NSE",
           },
           {
             symbol: "NSE:TCS-EQ",
             name: "Tata Consultancy Services",
-            price: 3680.20,
+            price: 3680.2,
             change: -15.45,
             change_percent: -0.42,
             volume: 850000,
             market_cap: 1340000000000,
             pe_ratio: 28.7,
             sector: "Information Technology",
-            exchange: "NSE"
-          }
+            exchange: "NSE",
+          },
         ],
-        total: 2
+        total: 2,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -517,8 +552,8 @@ class MarketDataService {
         strategy_type: "technical",
         parameters: [],
         created_at: new Date().toISOString(),
-        status: "inactive"
-      }
+        status: "inactive",
+      },
     };
   }
 
@@ -526,7 +561,7 @@ class MarketDataService {
     return {
       strategy_id: `custom_${Date.now()}`,
       status: "created",
-      message: "Custom strategy created successfully (mock)"
+      message: "Custom strategy created successfully (mock)",
     };
   }
 
@@ -544,11 +579,11 @@ class MarketDataService {
       trades: [],
       equity_curve: [],
       performance_metrics: {
-        avg_win: 850.50,
+        avg_win: 850.5,
         avg_loss: 460.25,
-        largest_win: 2450.00,
-        largest_loss: 1250.00
-      }
+        largest_win: 2450.0,
+        largest_loss: 1250.0,
+      },
     };
   }
 
@@ -765,7 +800,7 @@ class MarketDataService {
 
   // Straddle Data
   async getStraddleData(symbol: string, expiry?: string): Promise<any> {
-    const cacheKey = `straddle_data_${symbol}_${expiry || 'default'}`;
+    const cacheKey = `straddle_data_${symbol}_${expiry || "default"}`;
 
     // Check cache first (30 second TTL for straddle data)
     const cached = this.getCacheItem(cacheKey);
@@ -935,13 +970,10 @@ class MarketDataService {
     slippage: number;
   }): Promise<any> {
     try {
-      const response = await this.makeRequest<any>(
-        "/strategies/backtest",
-        {
-          method: "POST",
-          body: JSON.stringify(config),
-        },
-      );
+      const response = await this.makeRequest<any>("/strategies/backtest", {
+        method: "POST",
+        body: JSON.stringify(config),
+      });
 
       return response;
     } catch (error) {
@@ -998,7 +1030,6 @@ class MarketDataService {
 
     return data;
   }
-
 
   private getMockOptionChain(symbol: string): OptionData[] {
     const options: OptionData[] = [];

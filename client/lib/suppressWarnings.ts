@@ -34,8 +34,12 @@ const SUPPRESSED_WARNING_PATTERNS = [
 
 function shouldSuppressWarning(message: string): boolean {
   // More aggressive suppression for Recharts warnings
-  if (message.includes("Support for defaultProps will be removed") &&
-      (message.includes("XAxis") || message.includes("YAxis") || message.includes("ReferenceLine"))) {
+  if (
+    message.includes("Support for defaultProps will be removed") &&
+    (message.includes("XAxis") ||
+      message.includes("YAxis") ||
+      message.includes("ReferenceLine"))
+  ) {
     return true;
   }
 
@@ -60,23 +64,25 @@ function createFilteredConsoleMethod(originalMethod: typeof console.warn) {
     const allArgsString = args.join(" ");
 
     // Check if any argument contains recharts component names
-    const hasRechartComponents = args.some((arg: any) =>
-      typeof arg === "string" && (
-        arg.includes("XAxis") ||
-        arg.includes("YAxis") ||
-        arg.includes("ReferenceLine") ||
-        arg.includes("CartesianGrid") ||
-        arg.includes("Tooltip") ||
-        arg.includes("Bar") ||
-        arg.includes("Line") ||
-        arg.includes("Surface")
-      )
+    const hasRechartComponents = args.some(
+      (arg: any) =>
+        typeof arg === "string" &&
+        (arg.includes("XAxis") ||
+          arg.includes("YAxis") ||
+          arg.includes("ReferenceLine") ||
+          arg.includes("CartesianGrid") ||
+          arg.includes("Tooltip") ||
+          arg.includes("Bar") ||
+          arg.includes("Line") ||
+          arg.includes("Surface")),
     );
 
     // Only suppress in development
     if (
       process.env.NODE_ENV === "development" &&
-      (shouldSuppressWarning(message) || shouldSuppressWarning(allArgsString) || hasRechartComponents)
+      (shouldSuppressWarning(message) ||
+        shouldSuppressWarning(allArgsString) ||
+        hasRechartComponents)
     ) {
       return; // Suppress the warning
     }
