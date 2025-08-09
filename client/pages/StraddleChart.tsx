@@ -105,24 +105,9 @@ export default function StraddleChart() {
   const loadStraddleData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/market/straddle-data?symbol=${encodeURIComponent(selectedIndex.value)}&expiry=${selectedExpiry}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("fyers_token") || localStorage.getItem("mock_token")}`,
-          },
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setStraddleData(data);
-      } else {
-        // Fallback to mock data
-        const mockData = generateMockStraddleData(selectedIndex.value);
-        setStraddleData(mockData);
-      }
-
+      // Use marketData service which has proper fallbacks
+      const data = await marketDataService.getStraddleData(selectedIndex.value, selectedExpiry);
+      setStraddleData(data);
       setLastUpdate(new Date());
     } catch (error) {
       console.error("Failed to load straddle data:", error);
