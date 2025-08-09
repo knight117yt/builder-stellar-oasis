@@ -291,12 +291,17 @@ class MarketDataService {
     }
 
     return {
-      data: {
-        symbol: "NSE:NIFTY50-INDEX",
-        timeframe: "1D",
-        candles: data,
-        status: "ok"
-      },
+      s: "ok",
+      symbol: symbol || "NSE:NIFTY50-INDEX",
+      timeframe: "1D",
+      candles: data.map(d => [
+        d.timestamp,
+        d.open,
+        d.high,
+        d.low,
+        d.close,
+        d.volume
+      ]),
       timestamp: new Date().toISOString()
     };
   }
