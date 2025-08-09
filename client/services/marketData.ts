@@ -729,33 +729,38 @@ class MarketDataService {
     const cached = this.getCacheItem(cacheKey);
     if (cached) return cached;
 
+    // Always try to return mock data as primary strategy due to API issues
     try {
       const params = new URLSearchParams({
         symbol,
         ...(expiry && { expiry }),
       });
 
+      // Use makeRequest which has built-in fallbacks
       const response = await this.makeRequest<any>(
         `/market/straddle-data?${params}`,
       );
 
-      // Validate response and cache if valid
-      if (response && (response.straddles || response.symbol)) {
+      // Validate response structure
+      if (response && response.straddles && Array.isArray(response.straddles)) {
+        this.setCacheItem(cacheKey, response, 30);
+        return response;
+      } else if (response && response.symbol) {
+        // Handle different response formats
         this.setCacheItem(cacheKey, response, 30);
         return response;
       } else {
-        // If response is invalid, return mock data
-        console.warn("Invalid straddle data response, using mock data");
-        const mockData = this.getMockStraddleData();
-        this.setCacheItem(cacheKey, mockData, 30);
-        return mockData;
+        throw new Error("Invalid response format");
       }
     } catch (error) {
+      // Always fallback to mock data on any error
       console.warn("Straddle data API unavailable, using mock data:", error);
-      const mockData = this.getMockStraddleData();
-      this.setCacheItem(cacheKey, mockData, 30);
-      return mockData;
     }
+
+    // Ensure we always return valid mock data
+    const mockData = this.getMockStraddleData();
+    this.setCacheItem(cacheKey, mockData, 30);
+    return mockData;
   }
 
   // AI Analysis
