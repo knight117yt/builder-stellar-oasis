@@ -563,10 +563,11 @@ class MarketDataService {
         ...(toDate && { to_date: toDate }),
       });
 
-      const response = await this.makeRequest<HistoricalDataResponse>(
+      const response = await this.makeRequest<any>(
         `/market/historical?${params}`,
       );
 
+      // Handle both API response format and mock response format
       if (response.s === "ok" && response.candles) {
         const candles = response.candles.map((candle) => ({
           timestamp: candle[0],
@@ -575,6 +576,19 @@ class MarketDataService {
           low: candle[3],
           close: candle[4],
           volume: candle[5],
+        }));
+
+        this.setCacheItem(cacheKey, candles, 300);
+        return candles;
+      } else if (response.data && response.data.candles) {
+        // Handle mock data format with nested data
+        const candles = response.data.candles.map((candle: any) => ({
+          timestamp: candle.timestamp,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          volume: candle.volume,
         }));
 
         this.setCacheItem(cacheKey, candles, 300);
