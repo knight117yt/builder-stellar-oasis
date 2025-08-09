@@ -164,7 +164,13 @@ class MarketDataService {
     } catch (error) {
       console.warn(`API request failed for ${endpoint}, falling back to mock data:`, error);
       // Fall back to mock data for common endpoints
-      return this.getMockDataForEndpoint(endpoint) as T;
+      try {
+        return this.getMockDataForEndpoint(endpoint) as T;
+      } catch (mockError) {
+        console.error(`Mock data fallback also failed for ${endpoint}:`, mockError);
+        // Return a basic error response that won't break the calling code
+        return { error: "API and mock data unavailable", endpoint } as T;
+      }
     }
   }
 
