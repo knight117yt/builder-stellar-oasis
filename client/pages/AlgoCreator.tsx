@@ -955,14 +955,14 @@ export default function AlgoCreator() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Trading Strategies ({strategies.length})</span>
+                <span>Trading Strategies ({strategies?.length || 0})</span>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {strategies.filter((s) => s.status === "active").length}{" "}
+                    {strategies?.filter((s) => s.status === "active").length || 0}{" "}
                     Active
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    {strategies.filter((s) => s.status === "inactive").length}{" "}
+                    {strategies?.filter((s) => s.status === "inactive").length || 0}{" "}
                     Inactive
                   </Badge>
                 </div>
@@ -1067,7 +1067,7 @@ export default function AlgoCreator() {
                 </Table>
               </div>
 
-              {strategies.length === 0 && (
+              {(!strategies || strategies.length === 0) && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No strategies created yet</p>
@@ -1090,9 +1090,9 @@ export default function AlgoCreator() {
                 <Bot className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{strategies.length}</div>
+                <div className="text-2xl font-bold">{strategies?.length || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  {strategies.filter((s) => s.status === "active").length}{" "}
+                  {strategies?.filter((s) => s.status === "active").length || 0}{" "}
                   active
                 </p>
               </CardContent>
@@ -1127,7 +1127,7 @@ export default function AlgoCreator() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {strategies.length > 0
+                  {strategies && strategies.length > 0
                     ? (
                         strategies.reduce(
                           (sum, s) => sum + (s.performance?.win_rate || 0),
