@@ -12,14 +12,20 @@ const SUPPRESSED_WARNING_PATTERNS = [
   // Recharts defaultProps warnings - more flexible pattern matching
   /Support for defaultProps will be removed from function components/,
   /defaultProps will be removed from function components/,
-  // Specific Recharts components
-  /XAxis.*defaultProps/,
-  /YAxis.*defaultProps/,
+  // Specific Recharts components - broader patterns
+  /.*Axis.*defaultProps/,
   /ReferenceLine.*defaultProps/,
   /CartesianGrid.*defaultProps/,
   /Tooltip.*defaultProps/,
   /Bar.*defaultProps/,
   /Line.*defaultProps/,
+  /Area.*defaultProps/,
+  /ResponsiveContainer.*defaultProps/,
+  // Generic recharts pattern
+  /recharts.*defaultProps/i,
+  // Other component patterns
+  /Surface.*defaultProps/,
+  /ChartLayoutContextProvider.*defaultProps/,
   // Add other third-party warnings here as needed
 ];
 
