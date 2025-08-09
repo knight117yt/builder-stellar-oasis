@@ -983,7 +983,7 @@ export default function AlgoCreator() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {strategies.map((strategy) => (
+                    {strategies?.map((strategy) => (
                       <TableRow key={strategy.id}>
                         <TableCell>
                           <div>
