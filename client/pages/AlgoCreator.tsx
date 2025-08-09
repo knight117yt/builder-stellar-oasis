@@ -775,7 +775,7 @@ export default function AlgoCreator() {
                         )}
                     </div>
                     <div className="space-y-2">
-                      <Label>Daily Loss Limit (₹)</Label>
+                      <Label>Daily Loss Limit (���)</Label>
                       <Input
                         type="number"
                         value={strategyForm.risk_management.daily_loss_limit}
@@ -1207,21 +1207,24 @@ export default function AlgoCreator() {
         </TabsContent>
 
         <TabsContent value="backtesting" className="space-y-6">
+          {/* Backtesting Configuration */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
                 Strategy Backtesting
               </CardTitle>
+              <CardDescription>
+                Test your strategies against historical data to evaluate performance
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Backtesting functionality is coming soon</p>
-                <p className="text-sm">
-                  Test your strategies against historical data before going live
-                </p>
-              </div>
+              <BacktestingInterface
+                strategies={strategies || []}
+                onBacktestComplete={(result) => {
+                  console.log('Backtest completed:', result);
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
