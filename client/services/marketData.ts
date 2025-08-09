@@ -266,10 +266,11 @@ class MarketDataService {
     };
   }
 
-  private getMockHistoricalData() {
+  private getMockHistoricalData(symbol?: string) {
     const data = [];
     const now = new Date();
-    const basePrice = 19850;
+    const basePrice = symbol && symbol.includes("NIFTYBANK") ? 44250 :
+                     symbol && symbol.includes("SENSEX") ? 72240 : 19850;
 
     for (let i = 30; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
