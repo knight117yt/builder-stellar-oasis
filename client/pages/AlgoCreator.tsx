@@ -56,6 +56,15 @@ import {
   Copy,
   Edit,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { marketDataService } from "@/services/marketData";
 
 interface StrategyParameter {
