@@ -524,18 +524,21 @@ export default function StraddleChart() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {straddleData?.straddles.map((straddle) => {
+                    {straddleData?.straddles
+                      .filter(s => s.call_price > 0 && s.put_price > 0) // Filter out invalid straddles
+                      .map((straddle) => {
                       const isATM =
                         Math.abs(
                           straddle.strike - (straddleData?.spot_price || 0),
                         ) < 25;
                       const isITM =
                         straddle.strike < (straddleData?.spot_price || 0);
+                      const isCurrentStraddle = straddle.strike === currentStraddle?.strike;
 
                       return (
                         <TableRow
                           key={straddle.strike}
-                          className={isATM ? "bg-accent/50" : ""}
+                          className={isCurrentStraddle ? "bg-primary/10 border-primary/20" : isATM ? "bg-accent/50" : ""}
                         >
                           <TableCell className="font-medium">
                             {straddle.strike}
