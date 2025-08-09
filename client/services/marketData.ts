@@ -344,28 +344,51 @@ class MarketDataService {
   }
 
   private getMockStraddleData() {
-    const spotPrice = 19850;
+    return this.getMockStraddleDataForSymbol("NSE:NIFTY50-INDEX", "24JAN");
+  }
+
+  private getMockStraddleDataForSymbol(symbol: string, expiry: string) {
+    const spotPrice = symbol.includes("NIFTYBANK")
+      ? 44250
+      : symbol.includes("SENSEX")
+        ? 72240
+        : 19850;
+
     const baseStrike = Math.round(spotPrice / 50) * 50;
     const straddles = [];
 
-    for (let i = -2; i <= 2; i++) {
+    for (let i = -5; i <= 5; i++) {
       const strike = baseStrike + (i * 50);
-      const callPrice = Math.max(5, spotPrice - strike + Math.random() * 40 - 20);
-      const putPrice = Math.max(5, strike - spotPrice + Math.random() * 40 - 20);
+      const distance = Math.abs(strike - spotPrice);
+
+      // Generate realistic option prices based on distance from spot
+      const intrinsicCall = Math.max(0, spotPrice - strike);
+      const intrinsicPut = Math.max(0, strike - spotPrice);
+      const timeValue = Math.max(5, 50 - (distance / 10));
+
+      const callPrice = intrinsicCall + timeValue + (Math.random() * 10 - 5);
+      const putPrice = intrinsicPut + timeValue + (Math.random() * 10 - 5);
+
+      // Ensure minimum prices
+      const finalCallPrice = Math.max(0.5, callPrice);
+      const finalPutPrice = Math.max(0.5, putPrice);
 
       straddles.push({
         strike,
-        call_price: callPrice,
-        put_price: putPrice,
-        straddle_premium: callPrice + putPrice,
-        distance_from_spot: Math.abs(strike - spotPrice)
+        call_price: finalCallPrice,
+        put_price: finalPutPrice,
+        straddle_premium: finalCallPrice + finalPutPrice,
+        distance_from_spot: distance
       });
     }
 
+    // Sort by strike price
+    straddles.sort((a, b) => a.strike - b.strike);
+
     return {
-      symbol: "NSE:NIFTY50-INDEX",
+      symbol,
       spot_price: spotPrice,
-      expiry: "24JAN",
+      expiry,
       straddles,
       timestamp: new Date().toISOString()
     };
