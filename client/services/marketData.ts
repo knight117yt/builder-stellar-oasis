@@ -194,6 +194,9 @@ class MarketDataService {
     if (endpoint.includes('/strategies/custom/create')) {
       return this.getMockCustomStrategyCreation();
     }
+    if (endpoint.includes('/strategies/backtest')) {
+      return this.getMockBacktestResult();
+    }
     if (endpoint.includes('/market/option-chain')) {
       return this.getMockOptionChain();
     }
