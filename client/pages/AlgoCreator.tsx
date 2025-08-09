@@ -706,7 +706,7 @@ export default function AlgoCreator() {
                         <code>market_data[symbol]['ltp']</code>
                       </li>
                       <li>
-                        • Access volume: <code>market_data[symbol]['v']</code>
+                        �� Access volume: <code>market_data[symbol]['v']</code>
                       </li>
                     </ul>
                   </div>
@@ -1261,6 +1261,30 @@ function BacktestingInterface({ strategies, onBacktestComplete }: BacktestingInt
   const [backtestResult, setBacktestResult] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [historicalData, setHistoricalData] = useState<any[]>([]);
+
+  const generateMockHistoricalData = (symbol: string) => {
+    const data = [];
+    const basePrice = symbol.includes("NIFTYBANK") ? 44250 :
+                     symbol.includes("SENSEX") ? 72240 : 19850;
+    const now = Date.now();
+
+    for (let i = 90; i >= 0; i--) {
+      const timestamp = Math.floor((now - i * 24 * 60 * 60 * 1000) / 1000);
+      const variation = (Math.random() - 0.5) * 200;
+      const price = basePrice + variation;
+
+      data.push({
+        timestamp,
+        open: price - 20 + Math.random() * 40,
+        high: price + Math.random() * 50,
+        low: price - Math.random() * 50,
+        close: price,
+        volume: Math.floor(1000000 + Math.random() * 500000)
+      });
+    }
+
+    return data;
+  };
 
   const runBacktest = async () => {
     if (!selectedStrategy) {
