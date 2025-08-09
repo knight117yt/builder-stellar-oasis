@@ -175,30 +175,6 @@ export default function StraddleChart() {
     return () => clearInterval(interval);
   }, [selectedIndex.value, selectedExpiry]);
 
-  // Track straddle history whenever data updates
-  useEffect(() => {
-    if (straddleData && currentStraddle) {
-      const timestamp = new Date();
-      const historyPoint = {
-        timestamp: timestamp.toISOString(),
-        time: timestamp.toLocaleTimeString(),
-        strike: currentStraddle.strike,
-        premium: currentStraddle.straddle_premium,
-        callPrice: currentStraddle.call_price,
-        putPrice: currentStraddle.put_price,
-        spotPrice: straddleData.spot_price
-      };
-
-      setStraddleHistory(prev => {
-        const updated = [...prev, historyPoint];
-        // Keep only last 100 points to avoid memory issues
-        return updated.slice(-100);
-      });
-
-      setCurrentStraddleStrike(currentStraddle.strike);
-    }
-  }, [straddleData, currentStraddle]);
-
   const refreshData = () => {
     loadStraddleData();
   };
@@ -226,6 +202,30 @@ export default function StraddleChart() {
 
   // Use lowest premium straddle as current straddle
   const currentStraddle = lowestPremiumStraddle || atmStraddle;
+
+  // Track straddle history whenever data updates
+  useEffect(() => {
+    if (straddleData && currentStraddle) {
+      const timestamp = new Date();
+      const historyPoint = {
+        timestamp: timestamp.toISOString(),
+        time: timestamp.toLocaleTimeString(),
+        strike: currentStraddle.strike,
+        premium: currentStraddle.straddle_premium,
+        callPrice: currentStraddle.call_price,
+        putPrice: currentStraddle.put_price,
+        spotPrice: straddleData.spot_price
+      };
+
+      setStraddleHistory(prev => {
+        const updated = [...prev, historyPoint];
+        // Keep only last 100 points to avoid memory issues
+        return updated.slice(-100);
+      });
+
+      setCurrentStraddleStrike(currentStraddle.strike);
+    }
+  }, [straddleData, currentStraddle]);
 
   // Calculate metrics (only for valid straddles)
   const totalPremium = validStraddles.reduce((sum, s) => sum + s.straddle_premium, 0);
