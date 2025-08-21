@@ -141,8 +141,10 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.auth_url) {
-          // Redirect to Fyers OAuth
-          window.location.href = data.auth_url;
+          // Show manual auth code option and open OAuth in new tab
+          setOauthUrl(data.auth_url);
+          setShowManualAuth(true);
+          setError("OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.");
         } else {
           setError(data.message || "Failed to initiate OAuth");
         }
@@ -161,6 +163,54 @@ export default function Login() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualAuthCode = async () => {
+    if (!manualAuthCode.trim()) {
+      setError("Please enter the authorization code");
+      return;
+    }
+
+    if (!credentials.appId || !credentials.secretId) {
+      setError("Please enter App ID and Secret ID");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/fyers-manual", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          authCode: manualAuthCode.trim(),
+          appId: credentials.appId,
+          secretId: credentials.secretId,
+          pin: credentials.pin,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.token) {
+          localStorage.setItem("fyers_token", data.token);
+          localStorage.setItem("auth_mode", data.mode || "live");
+          navigate("/dashboard");
+        } else {
+          setError(data.message || "Manual authentication failed");
+        }
+      } else {
+        throw new Error("Manual authentication failed");
+      }
+    } catch (err) {
+      console.error("Manual auth error:", err);
+      setError("Manual authentication failed. Please check your auth code.");
     } finally {
       setLoading(false);
     }
