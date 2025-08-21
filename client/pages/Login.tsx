@@ -179,30 +179,17 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/fyers-manual", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          authCode: manualAuthCode.trim(),
-          appId: credentials.appId,
-          secretId: credentials.secretId,
-          pin: credentials.pin,
-        }),
+      const result = await authService.processManualAuthCode({
+        authCode: manualAuthCode.trim(),
+        appId: credentials.appId,
+        secretId: credentials.secretId,
+        pin: credentials.pin,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.token) {
-          localStorage.setItem("fyers_token", data.token);
-          localStorage.setItem("auth_mode", data.mode || "live");
-          navigate("/dashboard");
-        } else {
-          setError(data.message || "Manual authentication failed");
-        }
+      if (result.success && result.token) {
+        navigate("/dashboard");
       } else {
-        throw new Error("Manual authentication failed");
+        setError(result.message || "Manual authentication failed");
       }
     } catch (err) {
       console.error("Manual auth error:", err);
