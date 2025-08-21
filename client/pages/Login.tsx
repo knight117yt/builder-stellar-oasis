@@ -43,11 +43,17 @@ export default function Login() {
     const errorMessage = searchParams.get("message");
 
     if (status === "success" && token) {
+      // Clear any existing errors
+      setError("");
+      // Store authentication data
       localStorage.setItem("fyers_token", token);
       localStorage.setItem("auth_mode", mode || "live");
-      navigate("/dashboard");
+      // Navigate to dashboard
+      navigate("/dashboard", { replace: true });
     } else if (status === "error" && errorMessage) {
       setError(decodeURIComponent(errorMessage));
+      // Clear the URL parameters to prevent loops
+      navigate("/login", { replace: true });
     }
   }, [searchParams, navigate]);
 
