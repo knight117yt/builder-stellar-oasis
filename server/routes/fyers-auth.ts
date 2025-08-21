@@ -339,7 +339,13 @@ def initiate_oauth_v3(app_id, secret_id):
     try:
         try:
             from fyers_apiv3 import fyersModel
-            
+
+            print(f"Initiating OAuth with app_id: {app_id[:8]}...", file=sys.stderr)
+
+            # Validate inputs
+            if not app_id or not secret_id:
+                raise Exception("Missing app_id or secret_id")
+
             # Create session object
             session = fyersModel.SessionModel(
                 client_id=app_id,
@@ -349,28 +355,35 @@ def initiate_oauth_v3(app_id, secret_id):
                 grant_type="authorization_code"
             )
 
+            print("Generating OAuth URL...", file=sys.stderr)
+
             # Generate auth URL
             auth_url = session.generate_authcode()
-            
-            if auth_url:
+
+            print(f"Generated auth URL: {auth_url}", file=sys.stderr)
+
+            if auth_url and isinstance(auth_url, str) and auth_url.startswith('http'):
                 return {
                     "success": True,
                     "auth_url": auth_url,
                     "message": "OAuth URL generated successfully"
                 }
             else:
-                raise Exception("Failed to generate OAuth URL")
-                
-        except ImportError:
+                raise Exception(f"Invalid OAuth URL generated: {auth_url}")
+
+        except ImportError as import_error:
+            print(f"Fyers API v3 import failed: {import_error}", file=sys.stderr)
             return {
                 "success": False,
-                "message": "Fyers API v3 not available. Please install fyers-apiv3"
+                "message": "Fyers API v3 not available. Please install fyers-apiv3 or use mock mode"
             }
-        
+
     except Exception as e:
+        error_msg = f"OAuth initiation error: {str(e)}"
+        print(error_msg, file=sys.stderr)
         return {
             "success": False,
-            "message": f"OAuth initiation error: {str(e)}"
+            "message": error_msg
         }
 
 if __name__ == "__main__":
