@@ -35,6 +35,8 @@ export default function Login() {
   const [oauthUrl, setOauthUrl] = useState("");
   const [showManualAuth, setShowManualAuth] = useState(false);
   const [manualAuthCode, setManualAuthCode] = useState("");
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   // Handle OAuth callback
   useEffect(() => {
