@@ -51,7 +51,7 @@ def authenticate_fyers_v3(app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="https://127.0.0.1:8080/fyers/callback",
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -170,11 +170,11 @@ def process_oauth_callback_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="https://127.0.0.1:8080/fyers/callback",
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
-            
+
             # Set authorization code
             session.set_token(auth_code)
             
@@ -235,10 +235,10 @@ if __name__ == "__main__":
 
     // Get stored credentials from session or environment
     const storedAppId =
-      req.session?.fyers_app_id || process.env.FYERS_APP_ID || "";
+      req.session.fyers_app_id || process.env.FYERS_APP_ID || "";
     const storedSecretId =
-      req.session?.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
-    const storedPin = req.session?.fyers_pin || "";
+      req.session.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
+    const storedPin = req.session.fyers_pin || "";
 
     const { stdout, stderr } = await execAsync(
       `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${code}" "${storedAppId}" "${storedSecretId}" "${storedPin}"`,
@@ -253,17 +253,17 @@ if __name__ == "__main__":
     // Redirect back to frontend with token
     if (result.success) {
       res.redirect(
-        `http://localhost:3000/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
+        `http://127.0.0.1:8080/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
       );
     } else {
       res.redirect(
-        `http://localhost:3000/?status=error&message=${encodeURIComponent(result.message)}`,
+        `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent(result.message)}`,
       );
     }
   } catch (error) {
     console.error("OAuth callback error:", error);
     res.redirect(
-      `http://localhost:3000/?status=error&message=${encodeURIComponent("Authentication failed")}`,
+      `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent("Authentication failed")}`,
     );
   }
 };
@@ -281,12 +281,9 @@ export const handleFyersOAuth: RequestHandler = async (req, res) => {
     }
 
     // Store credentials in session for callback
-    req.session = {
-      ...req.session,
-      fyers_app_id: appId,
-      fyers_secret_id: secretId,
-      fyers_pin: pin,
-    };
+    req.session.fyers_app_id = appId;
+    req.session.fyers_secret_id = secretId;
+    req.session.fyers_pin = pin;
 
     const pythonScript = `
 import sys
@@ -301,11 +298,11 @@ def initiate_oauth_v3(app_id, secret_id):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="https://127.0.0.1:8080/fyers/callback",
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
-            
+
             # Generate auth URL
             auth_url = session.generate_authcode()
             
@@ -353,6 +350,116 @@ if __name__ == "__main__":
     res.status(500).json({
       success: false,
       message: "Failed to initiate OAuth flow",
+    });
+  }
+};
+
+// New endpoint to process manual auth code
+export const handleManualAuthCode: RequestHandler = async (req, res) => {
+  try {
+    const { authCode, appId, secretId, pin } = req.body;
+
+    if (!authCode || !appId || !secretId) {
+      return res.status(400).json({
+        success: false,
+        message: "Auth code, App ID, and Secret ID are required",
+      });
+    }
+
+    // Process the manual auth code using the same Python script as OAuth callback
+    const pythonScript = `
+import sys
+import json
+import hashlib
+
+def process_manual_auth_code_v3(auth_code, app_id, secret_id, pin):
+    try:
+        # Import Fyers v3 API
+        try:
+            from fyers_apiv3 import fyersModel
+
+            # Create session object
+            session = fyersModel.SessionModel(
+                client_id=app_id,
+                secret_key=secret_id,
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
+                response_type="code",
+                grant_type="authorization_code"
+            )
+
+            # Set authorization code
+            session.set_token(auth_code)
+
+            # Generate access token
+            token_response = session.generate_token()
+
+            if token_response and 'access_token' in token_response:
+                # Initialize FyersModel with access token
+                fyers = fyersModel.FyersModel(
+                    client_id=app_id,
+                    token=token_response['access_token'],
+                    log_path=""
+                )
+
+                # Verify token by getting profile
+                profile = fyers.get_profile()
+
+                if profile and profile.get('s') == 'ok':
+                    response = {
+                        "success": True,
+                        "token": token_response['access_token'],
+                        "refresh_token": token_response.get('refresh_token', ''),
+                        "message": "Manual auth code authentication successful",
+                        "profile": profile.get('data', {}),
+                        "mode": "live"
+                    }
+                    return response
+                else:
+                    raise Exception("Token verification failed")
+            else:
+                raise Exception("Failed to generate access token")
+
+        except ImportError:
+            # Fyers API v3 not available, use mock mode
+            response = {
+                "success": True,
+                "token": f"mock_manual_token_{auth_code[:8]}",
+                "message": "Mock manual auth code authentication successful",
+                "mode": "mock"
+            }
+            return response
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Manual auth code processing error: {str(e)}"
+        }
+
+if __name__ == "__main__":
+    auth_code = sys.argv[1]
+    app_id = sys.argv[2] if len(sys.argv) > 2 else ""
+    secret_id = sys.argv[3] if len(sys.argv) > 3 else ""
+    pin = sys.argv[4] if len(sys.argv) > 4 else ""
+
+    result = process_manual_auth_code_v3(auth_code, app_id, secret_id, pin)
+    print(json.dumps(result))
+`;
+
+    const { stdout, stderr } = await execAsync(
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${authCode}" "${appId}" "${secretId}" "${pin || ""}"`,
+    );
+
+    if (stderr) {
+      console.warn("Manual auth code stderr:", stderr);
+    }
+
+    const result: FyersAuthResponse = JSON.parse(stdout.trim());
+    res.json(result);
+  } catch (error) {
+    console.error("Manual auth code error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process manual auth code",
     });
   }
 };

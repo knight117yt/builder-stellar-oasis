@@ -32,6 +32,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthUrl, setOauthUrl] = useState("");
+  const [showManualAuth, setShowManualAuth] = useState(false);
+  const [manualAuthCode, setManualAuthCode] = useState("");
 
   // Handle OAuth callback
   useEffect(() => {
@@ -139,8 +141,12 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.auth_url) {
-          // Redirect to Fyers OAuth
-          window.location.href = data.auth_url;
+          // Show manual auth code option and open OAuth in new tab
+          setOauthUrl(data.auth_url);
+          setShowManualAuth(true);
+          setError(
+            "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+          );
         } else {
           setError(data.message || "Failed to initiate OAuth");
         }
@@ -159,6 +165,54 @@ export default function Login() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualAuthCode = async () => {
+    if (!manualAuthCode.trim()) {
+      setError("Please enter the authorization code");
+      return;
+    }
+
+    if (!credentials.appId || !credentials.secretId) {
+      setError("Please enter App ID and Secret ID");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/fyers-manual", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          authCode: manualAuthCode.trim(),
+          appId: credentials.appId,
+          secretId: credentials.secretId,
+          pin: credentials.pin,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.token) {
+          localStorage.setItem("fyers_token", data.token);
+          localStorage.setItem("auth_mode", data.mode || "live");
+          navigate("/dashboard");
+        } else {
+          setError(data.message || "Manual authentication failed");
+        }
+      } else {
+        throw new Error("Manual authentication failed");
+      }
+    } catch (err) {
+      console.error("Manual auth error:", err);
+      setError("Manual authentication failed. Please check your auth code.");
     } finally {
       setLoading(false);
     }
@@ -307,6 +361,61 @@ export default function Login() {
                   )}
                 </Button>
 
+                {showManualAuth && oauthUrl && (
+                  <div className="space-y-3 p-4 bg-muted rounded-lg">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => window.open(oauthUrl, "_blank")}
+                        disabled={loading}
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Open OAuth
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowManualAuth(false);
+                          setManualAuthCode("");
+                          setOauthUrl("");
+                        }}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="authCode">Authorization Code</Label>
+                      <Input
+                        id="authCode"
+                        type="text"
+                        value={manualAuthCode}
+                        onChange={(e) => setManualAuthCode(e.target.value)}
+                        placeholder="Paste the authorization code here"
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        After completing OAuth authentication, copy the
+                        authorization code from the callback URL and paste it
+                        here.
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleManualAuthCode}
+                      disabled={loading || !manualAuthCode.trim()}
+                    >
+                      {loading ? "Processing..." : "Authenticate with Code"}
+                    </Button>
+                  </div>
+                )}
+
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -339,7 +448,7 @@ export default function Login() {
               </div>
             </form>
 
-            {oauthUrl && (
+            {oauthUrl && !showManualAuth && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">
                   OAuth URL generated. Click the button above to authenticate

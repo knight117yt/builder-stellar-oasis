@@ -24,8 +24,10 @@
     "python:install": "pip install -r python_backend/requirements.txt"
   },
   "dependencies": {
+    "@types/express-session": "^1.18.2",
     "dotenv": "^17.2.0",
     "express": "^4.18.2",
+    "express-session": "^1.18.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
