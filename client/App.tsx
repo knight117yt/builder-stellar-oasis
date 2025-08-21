@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Login from "./pages/Login";
+import FyersCallback from "./pages/FyersCallback";
 import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
 import Analysis from "./pages/Analysis";
@@ -45,6 +46,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/fyers/callback" element={<FyersCallback />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route
                 path="/dashboard"

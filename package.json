@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "vite",
     "dev:python": "python python_backend/main.py",
+    "callback-server": "python python_backend/fyers_callback.py",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",

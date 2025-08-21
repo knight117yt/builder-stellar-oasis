@@ -38,12 +38,13 @@ export default function Login() {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
 
-  // Handle OAuth callback
+  // Handle OAuth callback and URL parameters
   useEffect(() => {
     const token = searchParams.get("token");
     const status = searchParams.get("status");
     const mode = searchParams.get("mode");
     const errorMessage = searchParams.get("message");
+    const showManualAuth = searchParams.get("show_manual_auth");
 
     if (status === "success" && token) {
       // Clear any existing errors
@@ -57,6 +58,12 @@ export default function Login() {
       setError(decodeURIComponent(errorMessage));
       // Clear the URL parameters to prevent loops
       navigate("/login", { replace: true });
+    } else if (showManualAuth === "true") {
+      // Show manual auth input if coming from callback page
+      setShowManualAuth(true);
+      setError(
+        "Paste the authorization code from the Fyers callback page to complete authentication.",
+      );
     }
   }, [searchParams, navigate]);
 
@@ -147,11 +154,14 @@ export default function Login() {
       });
 
       if (result.success && result.auth_url) {
-        // Show manual auth code option and open OAuth in new tab
+        // Automatically open OAuth in new tab
+        window.open(result.auth_url, "_blank");
+
+        // Show manual auth code option
         setOauthUrl(result.auth_url);
         setShowManualAuth(true);
         setError(
-          "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+          "OAuth authentication opened in a new tab. After completing authentication, you will be redirected to a page with the authorization code. Copy the code and paste it in the field below to complete login.",
         );
       } else {
         setError(result.message || "Failed to initiate OAuth");
@@ -368,32 +378,45 @@ export default function Login() {
                   )}
                 </Button>
 
-                {showManualAuth && oauthUrl && (
-                  <div className="space-y-3 p-4 bg-muted rounded-lg">
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => window.open(oauthUrl, "_blank")}
-                        disabled={loading}
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Open OAuth
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          setShowManualAuth(false);
-                          setManualAuthCode("");
-                          setOauthUrl("");
-                        }}
-                        disabled={loading}
-                      >
-                        Cancel
-                      </Button>
+                {showManualAuth && (
+                  <div className="space-y-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                    <div className="text-center">
+                      <h3 className="font-medium text-primary">
+                        Step 2: Complete Authentication
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        The OAuth page has opened in a new tab. Complete the
+                        authentication there, then return here.
+                      </p>
                     </div>
+
+                    {oauthUrl && (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(oauthUrl, "_blank")}
+                          disabled={loading}
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          Reopen OAuth
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setShowManualAuth(false);
+                            setManualAuthCode("");
+                            setOauthUrl("");
+                            setError("");
+                          }}
+                          disabled={loading}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="authCode">Authorization Code</Label>
@@ -402,13 +425,14 @@ export default function Login() {
                         type="text"
                         value={manualAuthCode}
                         onChange={(e) => setManualAuthCode(e.target.value)}
-                        placeholder="Paste the authorization code here"
+                        placeholder="Paste the authorization code from the callback page"
                         disabled={loading}
+                        className="font-mono"
                       />
                       <p className="text-xs text-muted-foreground">
-                        After completing OAuth authentication, copy the
-                        authorization code from the callback URL and paste it
-                        here.
+                        After completing OAuth authentication in the new tab,
+                        copy the authorization code from the callback page and
+                        paste it here.
                       </p>
                     </div>
 
@@ -418,7 +442,7 @@ export default function Login() {
                       onClick={handleManualAuthCode}
                       disabled={loading || !manualAuthCode.trim()}
                     >
-                      {loading ? "Processing..." : "Authenticate with Code"}
+                      {loading ? "Processing..." : "Complete Authentication"}
                     </Button>
                   </div>
                 )}

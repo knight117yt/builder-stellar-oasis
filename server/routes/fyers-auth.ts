@@ -51,7 +51,7 @@ def authenticate_fyers_v3(app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
+                redirect_uri="http://127.0.0.1:5000/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -178,7 +178,7 @@ def process_oauth_callback_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
+                redirect_uri="http://127.0.0.1:5000/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -361,7 +361,7 @@ def initiate_oauth_v3(app_id, secret_id):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
+                redirect_uri="http://127.0.0.1:5000/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -460,7 +460,7 @@ def process_manual_auth_code_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
+                redirect_uri="http://127.0.0.1:5000/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
