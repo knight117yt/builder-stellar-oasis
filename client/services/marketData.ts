@@ -5,8 +5,8 @@ import {
 } from "./realTimeDataService";
 
 const API_BASE_URL = import.meta.env.DEV
-  ? "http://localhost:8000"
-  : `http://${window.location.hostname}:8000`;
+  ? "/api"
+  : "/api";
 
 // Authentication token management
 function getAuthToken(): string | null {
