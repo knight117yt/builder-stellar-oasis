@@ -38,12 +38,13 @@ export default function Login() {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
 
-  // Handle OAuth callback
+  // Handle OAuth callback and URL parameters
   useEffect(() => {
     const token = searchParams.get("token");
     const status = searchParams.get("status");
     const mode = searchParams.get("mode");
     const errorMessage = searchParams.get("message");
+    const showManualAuth = searchParams.get("show_manual_auth");
 
     if (status === "success" && token) {
       // Clear any existing errors
@@ -57,6 +58,10 @@ export default function Login() {
       setError(decodeURIComponent(errorMessage));
       // Clear the URL parameters to prevent loops
       navigate("/login", { replace: true });
+    } else if (showManualAuth === "true") {
+      // Show manual auth input if coming from callback page
+      setShowManualAuth(true);
+      setError("Paste the authorization code from the Fyers callback page to complete authentication.");
     }
   }, [searchParams, navigate]);
 
