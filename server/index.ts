@@ -55,7 +55,8 @@ export function createServer() {
   // Authentication routes
   app.post("/api/auth/fyers-login", handleFyersLogin);
   app.post("/api/auth/fyers-oauth", handleFyersOAuth);
-  app.get("/fyers/callback", handleFyersCallback);
+  app.post("/api/auth/fyers-manual", handleManualAuthCode);
+  app.get("/api/auth/fyers/callback", handleFyersCallback);
 
   // Market data routes
   app.get("/api/market/data", handleMarketData);
