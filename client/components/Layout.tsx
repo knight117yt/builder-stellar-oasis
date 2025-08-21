@@ -79,7 +79,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
         <div className="flex grow flex-col overflow-y-auto bg-sidebar border-r border-sidebar-border">
-          <SidebarContent />
+          <SidebarContent onLogout={handleLogout} />
         </div>
       </div>
 
