@@ -235,10 +235,10 @@ if __name__ == "__main__":
 
     // Get stored credentials from session or environment
     const storedAppId =
-      req.session?.fyers_app_id || process.env.FYERS_APP_ID || "";
+      req.session.fyers_app_id || process.env.FYERS_APP_ID || "";
     const storedSecretId =
-      req.session?.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
-    const storedPin = req.session?.fyers_pin || "";
+      req.session.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
+    const storedPin = req.session.fyers_pin || "";
 
     const { stdout, stderr } = await execAsync(
       `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${code}" "${storedAppId}" "${storedSecretId}" "${storedPin}"`,
