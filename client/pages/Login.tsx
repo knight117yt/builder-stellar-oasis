@@ -32,6 +32,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthUrl, setOauthUrl] = useState("");
+  const [showManualAuth, setShowManualAuth] = useState(false);
+  const [manualAuthCode, setManualAuthCode] = useState("");
 
   // Handle OAuth callback
   useEffect(() => {
