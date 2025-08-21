@@ -93,7 +93,7 @@ export function createServer() {
     const basePrice = 19850;
 
     for (let i = 0; i < 100; i++) {
-      const timestamp = Date.now() - (i * 24 * 60 * 60 * 1000);
+      const timestamp = Date.now() - i * 24 * 60 * 60 * 1000;
       const open = basePrice + (Math.random() - 0.5) * 200;
       const high = open + Math.random() * 50;
       const low = open - Math.random() * 50;

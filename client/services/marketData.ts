@@ -4,9 +4,7 @@ import {
   OptionData,
 } from "./realTimeDataService";
 
-const API_BASE_URL = import.meta.env.DEV
-  ? "/api"
-  : "/api";
+const API_BASE_URL = import.meta.env.DEV ? "/api" : "/api";
 
 // Authentication token management
 function getAuthToken(): string | null {
