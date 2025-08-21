@@ -359,6 +359,59 @@ export default function Login() {
                   )}
                 </Button>
 
+                {showManualAuth && oauthUrl && (
+                  <div className="space-y-3 p-4 bg-muted rounded-lg">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => window.open(oauthUrl, '_blank')}
+                        disabled={loading}
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Open OAuth
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowManualAuth(false);
+                          setManualAuthCode("");
+                          setOauthUrl("");
+                        }}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="authCode">Authorization Code</Label>
+                      <Input
+                        id="authCode"
+                        type="text"
+                        value={manualAuthCode}
+                        onChange={(e) => setManualAuthCode(e.target.value)}
+                        placeholder="Paste the authorization code here"
+                        disabled={loading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        After completing OAuth authentication, copy the authorization code from the callback URL and paste it here.
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleManualAuthCode}
+                      disabled={loading || !manualAuthCode.trim()}
+                    >
+                      {loading ? "Processing..." : "Authenticate with Code"}
+                    </Button>
+                  </div>
+                )}
+
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
