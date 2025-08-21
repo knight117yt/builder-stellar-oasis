@@ -125,7 +125,7 @@ if __name__ == "__main__":
         success: false,
         installed: false,
         error: error.message,
-        message: "Failed to check Fyers API v3 installation"
+        message: "Failed to check Fyers API v3 installation",
       });
     }
   });

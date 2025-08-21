@@ -118,7 +118,9 @@ export default function Login() {
       setShowDebug(true);
 
       if (!result.installed) {
-        setError(`Debug Check: ${result.message}. You can still use Demo Mode with mock data.`);
+        setError(
+          `Debug Check: ${result.message}. You can still use Demo Mode with mock data.`,
+        );
       }
     } catch (err) {
       console.error("Debug check failed:", err);
@@ -322,7 +324,9 @@ export default function Login() {
               {error && (
                 <Alert
                   variant={
-                    error.includes("demo mode") || error.includes("Debug Check") ? "default" : "destructive"
+                    error.includes("demo mode") || error.includes("Debug Check")
+                      ? "default"
+                      : "destructive"
                   }
                 >
                   <AlertCircle className="h-4 w-4" />
@@ -337,7 +341,10 @@ export default function Login() {
                           <li>Fyers API v3 not properly installed</li>
                           <li>Network connectivity issues</li>
                         </ul>
-                        <p className="mt-1">Try: 1) Check Debug Info 2) Use Demo Mode 3) Restart OAuth flow</p>
+                        <p className="mt-1">
+                          Try: 1) Check Debug Info 2) Use Demo Mode 3) Restart
+                          OAuth flow
+                        </p>
                       </div>
                     )}
                   </AlertDescription>
@@ -475,20 +482,29 @@ export default function Login() {
                 <div className="space-y-2 text-xs">
                   <div>
                     <span className="font-medium">Fyers API v3:</span>{" "}
-                    <span className={debugInfo.installed ? "text-green-600" : "text-red-600"}>
-                      {debugInfo.installed ? `Installed (v${debugInfo.version})` : "Not Installed"}
+                    <span
+                      className={
+                        debugInfo.installed ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {debugInfo.installed
+                        ? `Installed (v${debugInfo.version})`
+                        : "Not Installed"}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium">Status:</span> {debugInfo.message}
+                    <span className="font-medium">Status:</span>{" "}
+                    {debugInfo.message}
                   </div>
                   {debugInfo.error && (
                     <div>
-                      <span className="font-medium">Error:</span> {debugInfo.error}
+                      <span className="font-medium">Error:</span>{" "}
+                      {debugInfo.error}
                     </div>
                   )}
                   <div>
-                    <span className="font-medium">Python:</span> {debugInfo.python_version?.split(' ')[0]}
+                    <span className="font-medium">Python:</span>{" "}
+                    {debugInfo.python_version?.split(" ")[0]}
                   </div>
                 </div>
                 <Button

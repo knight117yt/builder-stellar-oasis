@@ -286,7 +286,9 @@ if __name__ == "__main__":
       req.session.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
     const storedPin = req.session.fyers_pin || "";
 
-    console.log(`OAuth callback processing - App ID: ${storedAppId ? storedAppId.substring(0, 8) + "..." : "missing"}, Auth Code: ${code ? code.substring(0, 8) + "..." : "missing"}`);
+    console.log(
+      `OAuth callback processing - App ID: ${storedAppId ? storedAppId.substring(0, 8) + "..." : "missing"}, Auth Code: ${code ? code.substring(0, 8) + "..." : "missing"}`,
+    );
 
     if (!storedAppId || !storedSecretId) {
       console.error("Missing stored credentials for OAuth callback");
