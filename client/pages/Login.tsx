@@ -65,40 +65,24 @@ export default function Login() {
 
     try {
       // Try Fyers API v3 authentication
-      const response = await fetch("/api/auth/fyers-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
+      const result = await authService.directLogin(credentials);
 
-      if (response.ok) {
-        const data = await response.json();
-
-        if (data.mode === "oauth_required" && data.auth_url) {
-          // OAuth flow required
-          setOauthUrl(data.auth_url);
-          setError(
-            "OAuth authentication required. Click the OAuth button below.",
-          );
-        } else if (data.token) {
-          // Direct authentication successful
-          localStorage.setItem("fyers_token", data.token);
-          localStorage.setItem("auth_mode", data.mode || "live");
-          navigate("/dashboard");
-        } else {
-          throw new Error(data.message || "Authentication failed");
-        }
+      if (result.mode === "oauth_required" && result.auth_url) {
+        // OAuth flow required
+        setOauthUrl(result.auth_url);
+        setError(
+          "OAuth authentication required. Click the OAuth button below.",
+        );
+      } else if (result.token) {
+        // Direct authentication successful
+        navigate("/dashboard");
       } else {
-        throw new Error("Fyers API connection failed");
+        throw new Error(result.message || "Authentication failed");
       }
     } catch (err) {
       // Fallback to mock data mode
       console.warn("Fyers API unavailable, using mock data mode:", err);
-      const mockToken = `mock_token_v3_${Date.now()}`;
-      localStorage.setItem("fyers_token", mockToken);
-      localStorage.setItem("auth_mode", "mock");
+      const mockResult = authService.mockLogin();
       setError("Using demo mode with mock data (Fyers API v3 unavailable)");
 
       // Navigate after showing the warning briefly
@@ -113,9 +97,7 @@ export default function Login() {
   const handleMockLogin = () => {
     setLoading(true);
     // Direct mock mode login
-    const mockToken = `mock_token_v3_${Date.now()}`;
-    localStorage.setItem("fyers_token", mockToken);
-    localStorage.setItem("auth_mode", "mock");
+    const mockResult = authService.mockLogin();
 
     setTimeout(() => {
       setLoading(false);
