@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Login from "./pages/Login";
+import FyersCallback from "./pages/FyersCallback";
 import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
 import Analysis from "./pages/Analysis";
