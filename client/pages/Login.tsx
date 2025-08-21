@@ -431,8 +431,63 @@ export default function Login() {
                 >
                   {loading ? "Loading..." : "Demo Mode (Mock Data)"}
                 </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Debug
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleDebugCheck}
+                  disabled={loading}
+                >
+                  {loading ? "Checking..." : "Check Fyers API v3 Installation"}
+                </Button>
               </div>
             </form>
+
+            {showDebug && debugInfo && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <h3 className="text-sm font-medium mb-2">Debug Information</h3>
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="font-medium">Fyers API v3:</span>{" "}
+                    <span className={debugInfo.installed ? "text-green-600" : "text-red-600"}>
+                      {debugInfo.installed ? `Installed (v${debugInfo.version})` : "Not Installed"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span> {debugInfo.message}
+                  </div>
+                  {debugInfo.error && (
+                    <div>
+                      <span className="font-medium">Error:</span> {debugInfo.error}
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium">Python:</span> {debugInfo.python_version?.split(' ')[0]}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setShowDebug(false)}
+                >
+                  Hide Debug Info
+                </Button>
+              </div>
+            )}
 
             {oauthUrl && !showManualAuth && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
