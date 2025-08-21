@@ -322,11 +322,25 @@ export default function Login() {
               {error && (
                 <Alert
                   variant={
-                    error.includes("demo mode") ? "default" : "destructive"
+                    error.includes("demo mode") || error.includes("Debug Check") ? "default" : "destructive"
                   }
                 >
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    {error.includes("Failed to generate access token") && (
+                      <div className="mt-2 text-xs">
+                        <p>Common causes:</p>
+                        <ul className="list-disc list-inside ml-2">
+                          <li>Invalid App ID or Secret ID</li>
+                          <li>Authorization code expired or already used</li>
+                          <li>Fyers API v3 not properly installed</li>
+                          <li>Network connectivity issues</li>
+                        </ul>
+                        <p className="mt-1">Try: 1) Check Debug Info 2) Use Demo Mode 3) Restart OAuth flow</p>
+                      </div>
+                    )}
+                  </AlertDescription>
                 </Alert>
               )}
 
