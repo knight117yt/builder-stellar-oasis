@@ -19,7 +19,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       try {
         // First check if basic auth data exists
         const hasAuthData = authService.isAuthenticated();
-        
+
         if (!hasAuthData) {
           setIsAuthenticated(false);
           setIsValidating(false);
@@ -35,7 +35,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
         // Validate token with server for live mode
         const isValidToken = await authService.validateToken();
-        
+
         if (!isValidToken) {
           // Token is invalid, clear auth data
           authService.clearAuthData();

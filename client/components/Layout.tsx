@@ -67,7 +67,10 @@ export function Layout({ children }: LayoutProps) {
           onClick={() => setSidebarOpen(false)}
         />
         <div className="fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border">
-          <SidebarContent onNavigate={() => setSidebarOpen(false)} onLogout={handleLogout} />
+          <SidebarContent
+            onNavigate={() => setSidebarOpen(false)}
+            onLogout={handleLogout}
+          />
         </div>
       </div>
 
@@ -141,7 +144,13 @@ export function Layout({ children }: LayoutProps) {
   );
 }
 
-function SidebarContent({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout?: () => void }) {
+function SidebarContent({
+  onNavigate,
+  onLogout,
+}: {
+  onNavigate?: () => void;
+  onLogout?: () => void;
+}) {
   const location = useLocation();
 
   return (

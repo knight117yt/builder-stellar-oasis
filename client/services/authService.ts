@@ -1,7 +1,7 @@
 // Authentication service for Fyers v3 integration
 export class AuthService {
   private static instance: AuthService;
-  
+
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
       AuthService.instance = new AuthService();
@@ -100,7 +100,12 @@ export class AuthService {
     appId: string;
     secretId: string;
     pin?: string;
-  }): Promise<{ success: boolean; token?: string; mode?: string; message: string }> {
+  }): Promise<{
+    success: boolean;
+    token?: string;
+    mode?: string;
+    message: string;
+  }> {
     try {
       const response = await fetch("/api/auth/fyers-manual", {
         method: "POST",
@@ -113,7 +118,7 @@ export class AuthService {
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.token) {
         this.setAuthData(result.token, result.mode || "live");
       }
@@ -130,7 +135,12 @@ export class AuthService {
     appId: string;
     secretId: string;
     pin: string;
-  }): Promise<{ success: boolean; token?: string; mode?: string; message: string }> {
+  }): Promise<{
+    success: boolean;
+    token?: string;
+    mode?: string;
+    message: string;
+  }> {
     try {
       const response = await fetch("/api/auth/fyers-login", {
         method: "POST",
@@ -143,7 +153,7 @@ export class AuthService {
       }
 
       const result = await response.json();
-      
+
       if (result.token) {
         this.setAuthData(result.token, result.mode || "live");
       }
@@ -156,15 +166,20 @@ export class AuthService {
   }
 
   // Mock login
-  public mockLogin(): { success: boolean; token: string; mode: string; message: string } {
+  public mockLogin(): {
+    success: boolean;
+    token: string;
+    mode: string;
+    message: string;
+  } {
     const mockToken = `mock_token_v3_${Date.now()}`;
     this.setAuthData(mockToken, "mock");
-    
+
     return {
       success: true,
       token: mockToken,
       mode: "mock",
-      message: "Mock authentication successful"
+      message: "Mock authentication successful",
     };
   }
 
@@ -174,7 +189,7 @@ export class AuthService {
       const response = await fetch("/api/status", {
         headers: this.getAuthHeaders(),
       });
-      
+
       return response.ok;
     } catch (error) {
       console.error("Token validation failed:", error);

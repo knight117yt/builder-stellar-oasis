@@ -67,9 +67,11 @@ export function createServer() {
     req.session.destroy((err) => {
       if (err) {
         console.error("Session destruction error:", err);
-        return res.status(500).json({ success: false, message: "Logout failed" });
+        return res
+          .status(500)
+          .json({ success: false, message: "Logout failed" });
       }
-      res.clearCookie('connect.sid');
+      res.clearCookie("connect.sid");
       res.json({ success: true, message: "Logged out successfully" });
     });
   });
