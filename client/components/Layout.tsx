@@ -41,7 +41,7 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const authMode = localStorage.getItem("auth_mode") || "mock";
+  const authMode = authService.getAuthMode() || "mock";
 
   const handleLogout = async () => {
     try {
