@@ -49,73 +49,73 @@ const App = () => (
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Dashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/option-chain"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <OptionChain />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/analysis"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Analysis />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/ai-analysis"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <AIAnalysis />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/straddle-chart"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <StraddleChart />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/screener"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Screener />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/algo-creator"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <AlgoCreator />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/alerts"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Alerts />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Settings />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route path="*" element={<NotFound />} />
