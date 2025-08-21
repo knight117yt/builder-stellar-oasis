@@ -7,6 +7,7 @@ import {
   handleFyersLogin,
   handleFyersCallback,
   handleFyersOAuth,
+  handleManualAuthCode,
 } from "./routes/fyers-auth";
 import {
   handleMarketData,
