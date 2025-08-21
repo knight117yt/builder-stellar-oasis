@@ -2,7 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { handleFyersLogin, handleFyersCallback, handleFyersOAuth } from "./routes/fyers-auth";
+import {
+  handleFyersLogin,
+  handleFyersCallback,
+  handleFyersOAuth,
+} from "./routes/fyers-auth";
 import {
   handleMarketData,
   handleOptionChain,

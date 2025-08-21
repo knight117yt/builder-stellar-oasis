@@ -11,7 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Eye, EyeOff, AlertCircle, ExternalLink } from "lucide-react";
+import {
+  TrendingUp,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -60,11 +66,13 @@ export default function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         if (data.mode === "oauth_required" && data.auth_url) {
           // OAuth flow required
           setOauthUrl(data.auth_url);
-          setError("OAuth authentication required. Click the OAuth button below.");
+          setError(
+            "OAuth authentication required. Click the OAuth button below.",
+          );
         } else if (data.token) {
           // Direct authentication successful
           localStorage.setItem("fyers_token", data.token);
@@ -142,12 +150,12 @@ export default function Login() {
     } catch (err) {
       console.error("OAuth error:", err);
       setError("OAuth initiation failed. Using fallback authentication.");
-      
+
       // Fallback to mock mode
       const mockToken = `mock_oauth_v3_${Date.now()}`;
       localStorage.setItem("fyers_token", mockToken);
       localStorage.setItem("auth_mode", "mock");
-      
+
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
@@ -175,7 +183,8 @@ export default function Login() {
           <CardHeader>
             <CardTitle>Fyers v3 Authentication</CardTitle>
             <CardDescription>
-              Connect your Fyers account using the latest v3 API to access market data and trading features
+              Connect your Fyers account using the latest v3 API to access
+              market data and trading features
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -271,20 +280,26 @@ export default function Login() {
               </div>
 
               {error && (
-                <Alert variant={error.includes("demo mode") ? "default" : "destructive"}>
+                <Alert
+                  variant={
+                    error.includes("demo mode") ? "default" : "destructive"
+                  }
+                >
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               <div className="space-y-3">
-                <Button 
+                <Button
                   type="button"
                   className="w-full"
                   onClick={handleFyersOAuth}
                   disabled={loading}
                 >
-                  {loading ? "Initiating OAuth..." : (
+                  {loading ? (
+                    "Initiating OAuth..."
+                  ) : (
                     <>
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Authenticate with Fyers v3 OAuth
@@ -303,7 +318,12 @@ export default function Login() {
                   </div>
                 </div>
 
-                <Button type="submit" variant="outline" className="w-full" disabled={loading}>
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="w-full"
+                  disabled={loading}
+                >
                   {loading ? "Signing in..." : "Direct Login (Fallback)"}
                 </Button>
 
@@ -322,7 +342,8 @@ export default function Login() {
             {oauthUrl && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">
-                  OAuth URL generated. Click the button above to authenticate with Fyers.
+                  OAuth URL generated. Click the button above to authenticate
+                  with Fyers.
                 </p>
                 <p className="text-xs text-muted-foreground break-all">
                   {oauthUrl}

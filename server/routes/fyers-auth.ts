@@ -234,9 +234,11 @@ if __name__ == "__main__":
 `;
 
     // Get stored credentials from session or environment
-    const storedAppId = req.session?.fyers_app_id || process.env.FYERS_APP_ID || '';
-    const storedSecretId = req.session?.fyers_secret_id || process.env.FYERS_SECRET_ID || '';
-    const storedPin = req.session?.fyers_pin || '';
+    const storedAppId =
+      req.session?.fyers_app_id || process.env.FYERS_APP_ID || "";
+    const storedSecretId =
+      req.session?.fyers_secret_id || process.env.FYERS_SECRET_ID || "";
+    const storedPin = req.session?.fyers_pin || "";
 
     const { stdout, stderr } = await execAsync(
       `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${code}" "${storedAppId}" "${storedSecretId}" "${storedPin}"`,
@@ -250,7 +252,9 @@ if __name__ == "__main__":
 
     // Redirect back to frontend with token
     if (result.success) {
-      res.redirect(`http://localhost:3000/?token=${result.token}&status=success&mode=${result.mode || 'live'}`);
+      res.redirect(
+        `http://localhost:3000/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
+      );
     } else {
       res.redirect(
         `http://localhost:3000/?status=error&message=${encodeURIComponent(result.message)}`,
@@ -277,11 +281,11 @@ export const handleFyersOAuth: RequestHandler = async (req, res) => {
     }
 
     // Store credentials in session for callback
-    req.session = { 
-      ...req.session, 
-      fyers_app_id: appId, 
-      fyers_secret_id: secretId, 
-      fyers_pin: pin 
+    req.session = {
+      ...req.session,
+      fyers_app_id: appId,
+      fyers_secret_id: secretId,
+      fyers_pin: pin,
     };
 
     const pythonScript = `
@@ -344,7 +348,6 @@ if __name__ == "__main__":
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("OAuth initiation error:", error);
     res.status(500).json({

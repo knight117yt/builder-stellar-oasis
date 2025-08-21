@@ -19,47 +19,51 @@ const marketDataSchema = z.object({
 
 const fyersQuoteSchema = z.object({
   s: z.string(), // status
-  d: z.array(z.object({
-    n: z.string(), // symbol name
-    s: z.string(), // symbol
-    v: z.object({
-      lp: z.number(), // last price
-      o: z.number(), // open
-      h: z.number(), // high
-      l: z.number(), // low
-      ch: z.number(), // change
-      chp: z.number(), // change percentage
-      vol: z.number().optional(), // volume
-      oi: z.number().optional(), // open interest
-      bid: z.number().optional(), // bid price
-      ask: z.number().optional(), // ask price
-      ltt: z.string().optional(), // last trade time
-    })
-  }))
+  d: z.array(
+    z.object({
+      n: z.string(), // symbol name
+      s: z.string(), // symbol
+      v: z.object({
+        lp: z.number(), // last price
+        o: z.number(), // open
+        h: z.number(), // high
+        l: z.number(), // low
+        ch: z.number(), // change
+        chp: z.number(), // change percentage
+        vol: z.number().optional(), // volume
+        oi: z.number().optional(), // open interest
+        bid: z.number().optional(), // bid price
+        ask: z.number().optional(), // ask price
+        ltt: z.string().optional(), // last trade time
+      }),
+    }),
+  ),
 });
 
 const optionChainSchema = z.object({
-  strikes: z.array(z.object({
-    strike: z.number(),
-    call: z.object({
-      symbol: z.string(),
-      ltp: z.number(),
-      iv: z.number().optional(),
-      delta: z.number().optional(),
-      gamma: z.number().optional(),
-      theta: z.number().optional(),
-      vega: z.number().optional(),
+  strikes: z.array(
+    z.object({
+      strike: z.number(),
+      call: z.object({
+        symbol: z.string(),
+        ltp: z.number(),
+        iv: z.number().optional(),
+        delta: z.number().optional(),
+        gamma: z.number().optional(),
+        theta: z.number().optional(),
+        vega: z.number().optional(),
+      }),
+      put: z.object({
+        symbol: z.string(),
+        ltp: z.number(),
+        iv: z.number().optional(),
+        delta: z.number().optional(),
+        gamma: z.number().optional(),
+        theta: z.number().optional(),
+        vega: z.number().optional(),
+      }),
     }),
-    put: z.object({
-      symbol: z.string(),
-      ltp: z.number(),
-      iv: z.number().optional(),
-      delta: z.number().optional(),
-      gamma: z.number().optional(),
-      theta: z.number().optional(),
-      vega: z.number().optional(),
-    })
-  }))
+  ),
 });
 
 export type MarketData = z.infer<typeof marketDataSchema>;
@@ -75,9 +79,11 @@ function getAuthToken(): string | null {
 
 // Check if we're in mock mode
 function isMockMode(): boolean {
-  return localStorage.getItem("auth_mode") === "mock" || 
-         getAuthToken()?.includes("mock") || 
-         false;
+  return (
+    localStorage.getItem("auth_mode") === "mock" ||
+    getAuthToken()?.includes("mock") ||
+    false
+  );
 }
 
 // Enhanced Market Data Service with Fyers v3 API integration
@@ -108,7 +114,7 @@ class MarketDataService {
         `${this.baseUrl}/market/live-data?symbols=${symbols.join(",")}`,
         {
           headers: this.getAuthHeaders(),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -116,7 +122,7 @@ class MarketDataService {
       }
 
       const result = await response.json();
-      
+
       // If using Fyers v3 API format, transform the data
       if (result.s === "ok" && result.d) {
         const transformedData: Record<string, MarketData> = {};
@@ -138,7 +144,7 @@ class MarketDataService {
         });
         return transformedData;
       }
-      
+
       // Fallback to existing format
       return result.data || this.generateMockData(symbols);
     } catch (error) {
@@ -151,7 +157,7 @@ class MarketDataService {
   async getOptionChain(
     symbol: string,
     expiry?: string,
-    strikeCount: number = 10
+    strikeCount: number = 10,
   ): Promise<OptionChain> {
     try {
       const params = new URLSearchParams({
@@ -164,7 +170,7 @@ class MarketDataService {
         `${this.baseUrl}/market/option-chain?${params}`,
         {
           headers: this.getAuthHeaders(),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -172,12 +178,12 @@ class MarketDataService {
       }
 
       const result = await response.json();
-      
+
       if (result.s === "ok" && result.data) {
         // Transform Fyers v3 option chain format
         return optionChainSchema.parse(result.data);
       }
-      
+
       return result.data || this.generateMockOptionChain(symbol, strikeCount);
     } catch (error) {
       console.warn("Option chain fetch failed, using mock data:", error);
@@ -190,7 +196,7 @@ class MarketDataService {
     symbol: string,
     resolution: string = "D",
     from: Date,
-    to: Date
+    to: Date,
   ): Promise<any[]> {
     try {
       const params = new URLSearchParams({
@@ -204,7 +210,7 @@ class MarketDataService {
         `${this.baseUrl}/market/historical?${params}`,
         {
           headers: this.getAuthHeaders(),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -212,13 +218,15 @@ class MarketDataService {
       }
 
       const result = await response.json();
-      
+
       if (result.s === "ok" && result.candles) {
         // Fyers v3 API format: [timestamp, open, high, low, close, volume]
         return result.candles;
       }
-      
-      return result.candles || this.generateMockHistoricalData(symbol, from, to);
+
+      return (
+        result.candles || this.generateMockHistoricalData(symbol, from, to)
+      );
     } catch (error) {
       console.warn("Historical data fetch failed, using mock data:", error);
       return this.generateMockHistoricalData(symbol, from, to);
@@ -237,7 +245,7 @@ class MarketDataService {
         `${this.baseUrl}/market/straddle-data?${params}`,
         {
           headers: this.getAuthHeaders(),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -258,7 +266,7 @@ class MarketDataService {
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const wsUrl = `${protocol}//${window.location.host}/ws`;
-        
+
         this.wsConnection = new WebSocket(wsUrl);
 
         this.wsConnection.onopen = () => {
@@ -270,7 +278,7 @@ class MarketDataService {
         this.wsConnection.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            
+
             if (data.type === "market_data" && data.symbol && data.data) {
               const marketData: MarketData = {
                 symbol: data.symbol,
@@ -314,15 +322,17 @@ class MarketDataService {
     if (!this.subscribers.has(symbol)) {
       this.subscribers.set(symbol, new Set());
     }
-    
+
     this.subscribers.get(symbol)!.add(callback);
 
     // Send subscription message to WebSocket
     if (this.wsConnection?.readyState === WebSocket.OPEN) {
-      this.wsConnection.send(JSON.stringify({
-        type: "subscribe",
-        symbol: symbol,
-      }));
+      this.wsConnection.send(
+        JSON.stringify({
+          type: "subscribe",
+          symbol: symbol,
+        }),
+      );
     }
 
     // Return unsubscribe function
@@ -332,13 +342,15 @@ class MarketDataService {
         symbolSubscribers.delete(callback);
         if (symbolSubscribers.size === 0) {
           this.subscribers.delete(symbol);
-          
+
           // Send unsubscribe message to WebSocket
           if (this.wsConnection?.readyState === WebSocket.OPEN) {
-            this.wsConnection.send(JSON.stringify({
-              type: "unsubscribe",
-              symbol: symbol,
-            }));
+            this.wsConnection.send(
+              JSON.stringify({
+                type: "unsubscribe",
+                symbol: symbol,
+              }),
+            );
           }
         }
       }
@@ -349,7 +361,7 @@ class MarketDataService {
   private notifySubscribers(symbol: string, data: MarketData): void {
     const symbolSubscribers = this.subscribers.get(symbol);
     if (symbolSubscribers) {
-      symbolSubscribers.forEach(callback => callback(data));
+      symbolSubscribers.forEach((callback) => callback(data));
     }
   }
 
@@ -357,13 +369,18 @@ class MarketDataService {
   private attemptReconnect(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
-      setTimeout(() => {
-        this.connectWebSocket().catch(error => {
-          console.error("Reconnection failed:", error);
-        });
-      }, Math.pow(2, this.reconnectAttempts) * 1000); // Exponential backoff
+      console.log(
+        `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+      );
+
+      setTimeout(
+        () => {
+          this.connectWebSocket().catch((error) => {
+            console.error("Reconnection failed:", error);
+          });
+        },
+        Math.pow(2, this.reconnectAttempts) * 1000,
+      ); // Exponential backoff
     }
   }
 
@@ -380,7 +397,7 @@ class MarketDataService {
   async login(
     authMode: "fyers" | "mock",
     accessToken: string,
-    credentials?: { appId: string; secretId: string; pin?: string }
+    credentials?: { appId: string; secretId: string; pin?: string },
   ): Promise<{ success: boolean; token: string; message: string }> {
     try {
       if (authMode === "fyers" && credentials) {
@@ -391,7 +408,7 @@ class MarketDataService {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
           localStorage.setItem("fyers_token", result.token);
           localStorage.setItem("auth_mode", result.mode || "live");
@@ -404,11 +421,11 @@ class MarketDataService {
         const mockToken = `mock_token_v3_${Date.now()}`;
         localStorage.setItem("fyers_token", mockToken);
         localStorage.setItem("auth_mode", "mock");
-        
+
         return {
           success: true,
           token: mockToken,
-          message: "Mock authentication successful"
+          message: "Mock authentication successful",
         };
       }
     } catch (error) {
@@ -420,17 +437,21 @@ class MarketDataService {
   // Mock data generators (for fallback scenarios)
   private generateMockData(symbols: string[]): Record<string, MarketData> {
     const data: Record<string, MarketData> = {};
-    
-    symbols.forEach(symbol => {
-      const basePrice = symbol.includes("NIFTY") ? 19850 : 
-                      symbol.includes("BANKNIFTY") ? 44250 : 
-                      symbol.includes("SENSEX") ? 65000 : 1000;
-      
+
+    symbols.forEach((symbol) => {
+      const basePrice = symbol.includes("NIFTY")
+        ? 19850
+        : symbol.includes("BANKNIFTY")
+          ? 44250
+          : symbol.includes("SENSEX")
+            ? 65000
+            : 1000;
+
       const change = (Math.random() - 0.5) * 100;
       const open = basePrice + (Math.random() - 0.5) * 50;
       const high = Math.max(open, basePrice + change) + Math.random() * 25;
       const low = Math.min(open, basePrice + change) - Math.random() * 25;
-      
+
       data[symbol] = {
         symbol,
         ltp: basePrice + change,
@@ -446,22 +467,29 @@ class MarketDataService {
         timestamp: new Date().toISOString(),
       };
     });
-    
+
     return data;
   }
 
-  private generateMockOptionChain(symbol: string, strikeCount: number): OptionChain {
+  private generateMockOptionChain(
+    symbol: string,
+    strikeCount: number,
+  ): OptionChain {
     const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
     const strikes: any[] = [];
-    
-    for (let i = -Math.floor(strikeCount/2); i <= Math.floor(strikeCount/2); i++) {
-      const strike = basePrice + (i * 50);
-      
+
+    for (
+      let i = -Math.floor(strikeCount / 2);
+      i <= Math.floor(strikeCount / 2);
+      i++
+    ) {
+      const strike = basePrice + i * 50;
+
       strikes.push({
         strike,
         call: {
           symbol: `${symbol.replace(":", "")}${strike}CE`,
-          ltp: Math.max(0.05, basePrice - strike + (Math.random() * 20)),
+          ltp: Math.max(0.05, basePrice - strike + Math.random() * 20),
           iv: 0.15 + Math.random() * 0.3,
           delta: Math.max(0, Math.min(1, 0.5 + (basePrice - strike) / 1000)),
           gamma: Math.random() * 0.001,
@@ -470,66 +498,72 @@ class MarketDataService {
         },
         put: {
           symbol: `${symbol.replace(":", "")}${strike}PE`,
-          ltp: Math.max(0.05, strike - basePrice + (Math.random() * 20)),
+          ltp: Math.max(0.05, strike - basePrice + Math.random() * 20),
           iv: 0.15 + Math.random() * 0.3,
           delta: Math.max(-1, Math.min(0, -0.5 + (basePrice - strike) / 1000)),
           gamma: Math.random() * 0.001,
           theta: -Math.random() * 5,
           vega: Math.random() * 10,
-        }
+        },
       });
     }
-    
+
     return { strikes };
   }
 
-  private generateMockHistoricalData(symbol: string, from: Date, to: Date): any[] {
+  private generateMockHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+  ): any[] {
     const candles: any[] = [];
     const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
     let currentPrice = basePrice;
-    
-    const days = Math.ceil((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000));
-    
+
+    const days = Math.ceil(
+      (to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000),
+    );
+
     for (let i = 0; i < days; i++) {
-      const timestamp = from.getTime() + (i * 24 * 60 * 60 * 1000);
+      const timestamp = from.getTime() + i * 24 * 60 * 60 * 1000;
       const open = currentPrice + (Math.random() - 0.5) * 50;
       const high = open + Math.random() * 75;
       const low = open - Math.random() * 75;
       const close = low + Math.random() * (high - low);
       const volume = Math.floor(Math.random() * 1000000) + 100000;
-      
+
       candles.push([timestamp, open, high, low, close, volume]);
       currentPrice = close;
     }
-    
+
     return candles;
   }
 
   private generateMockStraddleData(symbol: string): any {
     const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
     const nearestStrike = Math.round(basePrice / 50) * 50;
-    
+
     const straddles = [];
     for (let i = -2; i <= 2; i++) {
-      const strike = nearestStrike + (i * 50);
+      const strike = nearestStrike + i * 50;
       const callPrice = Math.max(0.5, basePrice - strike + Math.random() * 20);
       const putPrice = Math.max(0.5, strike - basePrice + Math.random() * 20);
-      
+
       straddles.push({
         strike,
         call_price: callPrice,
         put_price: putPrice,
         straddle_premium: callPrice + putPrice,
-        distance_from_spot: Math.abs(strike - basePrice)
+        distance_from_spot: Math.abs(strike - basePrice),
       });
     }
-    
+
     return {
       symbol,
       spot_price: basePrice,
       expiry: "24JAN",
       straddles,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }

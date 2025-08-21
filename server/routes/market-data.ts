@@ -19,7 +19,9 @@ interface OptionChainRequest {
 // Enhanced market data handler using Fyers v3 API
 export const handleMarketData: RequestHandler = async (req, res) => {
   try {
-    const symbols = (req.query.symbols as string)?.split(",") || ["NSE:NIFTY50-INDEX"];
+    const symbols = (req.query.symbols as string)?.split(",") || [
+      "NSE:NIFTY50-INDEX",
+    ];
     const token = req.headers.authorization?.replace("Bearer ", "") || "";
 
     const pythonScript = `
@@ -141,7 +143,7 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbols.join(",")}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbols.join(",")}" "${token}"`,
     );
 
     if (stderr) {
@@ -150,12 +152,13 @@ if __name__ == "__main__":
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Market data error:", error);
-    
+
     // Fallback response
-    const symbols = (req.query.symbols as string)?.split(",") || ["NSE:NIFTY50-INDEX"];
+    const symbols = (req.query.symbols as string)?.split(",") || [
+      "NSE:NIFTY50-INDEX",
+    ];
     const fallbackData = generateJSMockData(symbols);
     res.json(fallbackData);
   }
@@ -164,7 +167,7 @@ if __name__ == "__main__":
 // Enhanced option chain handler using Fyers v3 API
 export const handleOptionChain: RequestHandler = async (req, res) => {
   try {
-    const symbol = req.query.symbol as string || "NSE:NIFTY50-INDEX";
+    const symbol = (req.query.symbol as string) || "NSE:NIFTY50-INDEX";
     const expiry = req.query.expiry as string;
     const strikeCount = parseInt(req.query.strike_count as string) || 10;
     const token = req.headers.authorization?.replace("Bearer ", "") || "";
@@ -299,7 +302,7 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${expiry || ''}" "${strikeCount}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${expiry || ""}" "${strikeCount}" "${token}"`,
     );
 
     if (stderr) {
@@ -308,12 +311,11 @@ if __name__ == "__main__":
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Option chain error:", error);
-    
+
     // Fallback response
-    const symbol = req.query.symbol as string || "NSE:NIFTY50-INDEX";
+    const symbol = (req.query.symbol as string) || "NSE:NIFTY50-INDEX";
     const strikeCount = parseInt(req.query.strike_count as string) || 10;
     const fallbackData = generateJSMockOptionChain(symbol, strikeCount);
     res.json(fallbackData);
@@ -323,7 +325,7 @@ if __name__ == "__main__":
 // Enhanced candlestick patterns handler
 export const handleCandlestickPatterns: RequestHandler = async (req, res) => {
   try {
-    const symbol = req.query.symbol as string || "NSE:NIFTY50-INDEX";
+    const symbol = (req.query.symbol as string) || "NSE:NIFTY50-INDEX";
     const token = req.headers.authorization?.replace("Bearer ", "") || "";
 
     const pythonScript = `
@@ -428,7 +430,7 @@ if __name__ == "__main__":
 `;
 
     const { stdout, stderr } = await execAsync(
-      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${token}"`
+      `python3 -c "${pythonScript.replace(/"/g, '\\"')}" "${symbol}" "${token}"`,
     );
 
     if (stderr) {
@@ -437,12 +439,11 @@ if __name__ == "__main__":
 
     const result = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Pattern analysis error:", error);
-    
+
     // Fallback response
-    const symbol = req.query.symbol as string || "NSE:NIFTY50-INDEX";
+    const symbol = (req.query.symbol as string) || "NSE:NIFTY50-INDEX";
     const fallbackData = generateJSMockPatterns(symbol);
     res.json(fallbackData);
   }
@@ -452,11 +453,14 @@ if __name__ == "__main__":
 function generateJSMockData(symbols: string[]) {
   const result = {
     s: "ok",
-    d: symbols.map(symbol => {
-      const basePrice = symbol.includes("NIFTY") ? 19850 : 
-                      symbol.includes("BANKNIFTY") ? 44250 : 1000;
+    d: symbols.map((symbol) => {
+      const basePrice = symbol.includes("NIFTY")
+        ? 19850
+        : symbol.includes("BANKNIFTY")
+          ? 44250
+          : 1000;
       const change = (Math.random() - 0.5) * 100;
-      
+
       return {
         n: symbol.split(":").pop(),
         s: symbol,
@@ -471,12 +475,12 @@ function generateJSMockData(symbols: string[]) {
           oi: Math.floor(Math.random() * 5000000) + 1000000,
           bid: +(basePrice + change - 0.05).toFixed(2),
           ask: +(basePrice + change + 0.05).toFixed(2),
-          ltt: new Date().toISOString()
-        }
+          ltt: new Date().toISOString(),
+        },
       };
-    })
+    }),
   };
-  
+
   return result;
 }
 
@@ -484,37 +488,41 @@ function generateJSMockOptionChain(symbol: string, strikeCount: number) {
   const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
   const strikeInterval = symbol.includes("NIFTY") ? 50 : 100;
   const atmStrike = Math.round(basePrice / strikeInterval) * strikeInterval;
-  
+
   const strikes = [];
   const halfCount = Math.floor(strikeCount / 2);
-  
+
   for (let i = -halfCount; i <= halfCount; i++) {
-    const strike = atmStrike + (i * strikeInterval);
+    const strike = atmStrike + i * strikeInterval;
     const moneyness = basePrice / strike;
-    
+
     strikes.push({
       strike,
       call: {
         symbol: `${symbol.replace(":", "")}_CUR_${strike}_CE`,
-        ltp: +(Math.max(0.05, (basePrice - strike) + Math.random() * 20)).toFixed(2),
-        iv: +(0.20 + Math.random() * 0.1).toFixed(4),
-        delta: +(Math.max(0, Math.min(1, moneyness))).toFixed(4),
+        ltp: +Math.max(0.05, basePrice - strike + Math.random() * 20).toFixed(
+          2,
+        ),
+        iv: +(0.2 + Math.random() * 0.1).toFixed(4),
+        delta: +Math.max(0, Math.min(1, moneyness)).toFixed(4),
         gamma: +(Math.random() * 0.002).toFixed(6),
         theta: +(-Math.random() * 10).toFixed(2),
-        vega: +(Math.random() * 20).toFixed(2)
+        vega: +(Math.random() * 20).toFixed(2),
       },
       put: {
         symbol: `${symbol.replace(":", "")}_CUR_${strike}_PE`,
-        ltp: +(Math.max(0.05, (strike - basePrice) + Math.random() * 20)).toFixed(2),
-        iv: +(0.20 + Math.random() * 0.1).toFixed(4),
-        delta: +(Math.max(-1, Math.min(0, moneyness - 1))).toFixed(4),
+        ltp: +Math.max(0.05, strike - basePrice + Math.random() * 20).toFixed(
+          2,
+        ),
+        iv: +(0.2 + Math.random() * 0.1).toFixed(4),
+        delta: +Math.max(-1, Math.min(0, moneyness - 1)).toFixed(4),
         gamma: +(Math.random() * 0.002).toFixed(6),
         theta: +(-Math.random() * 10).toFixed(2),
-        vega: +(Math.random() * 20).toFixed(2)
-      }
+        vega: +(Math.random() * 20).toFixed(2),
+      },
     });
   }
-  
+
   return {
     s: "ok",
     data: {
@@ -522,28 +530,30 @@ function generateJSMockOptionChain(symbol: string, strikeCount: number) {
       underlying: {
         symbol,
         ltp: basePrice,
-        expiry: "CUR"
-      }
-    }
+        expiry: "CUR",
+      },
+    },
   };
 }
 
 function generateJSMockPatterns(symbol: string) {
   const patterns = ["CDLDOJI", "CDLHAMMER", "CDLENGULFING", "CDLMORNINGSTAR"];
-  const detected = patterns.slice(0, Math.floor(Math.random() * 3) + 1).map(pattern => ({
-    pattern,
-    strength: Math.random() > 0.5 ? 100 : -100,
-    confidence: +(0.6 + Math.random() * 0.3).toFixed(2),
-    signal: Math.random() > 0.5 ? "bullish" : "bearish",
-    description: `Pattern: ${pattern}`
-  }));
-  
+  const detected = patterns
+    .slice(0, Math.floor(Math.random() * 3) + 1)
+    .map((pattern) => ({
+      pattern,
+      strength: Math.random() > 0.5 ? 100 : -100,
+      confidence: +(0.6 + Math.random() * 0.3).toFixed(2),
+      signal: Math.random() > 0.5 ? "bullish" : "bearish",
+      description: `Pattern: ${pattern}`,
+    }));
+
   return {
     s: "ok",
     data: {
       symbol,
       patterns: detected,
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    },
   };
 }
