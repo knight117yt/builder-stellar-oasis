@@ -444,7 +444,7 @@ export default function Login() {
               </div>
             </form>
 
-            {oauthUrl && (
+            {oauthUrl && !showManualAuth && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">
                   OAuth URL generated. Click the button above to authenticate
