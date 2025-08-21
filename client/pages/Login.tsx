@@ -35,6 +35,8 @@ export default function Login() {
   const [oauthUrl, setOauthUrl] = useState("");
   const [showManualAuth, setShowManualAuth] = useState(false);
   const [manualAuthCode, setManualAuthCode] = useState("");
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   // Handle OAuth callback
   useEffect(() => {
@@ -103,6 +105,29 @@ export default function Login() {
       setLoading(false);
       navigate("/dashboard");
     }, 1000);
+  };
+
+  const handleDebugCheck = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/debug");
+      const result = await response.json();
+      setDebugInfo(result);
+      setShowDebug(true);
+
+      if (!result.installed) {
+        setError(
+          `Debug Check: ${result.message}. You can still use Demo Mode with mock data.`,
+        );
+      }
+    } catch (err) {
+      console.error("Debug check failed:", err);
+      setError("Debug check failed. Server may not be responding correctly.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFyersOAuth = async () => {
@@ -299,11 +324,30 @@ export default function Login() {
               {error && (
                 <Alert
                   variant={
-                    error.includes("demo mode") ? "default" : "destructive"
+                    error.includes("demo mode") || error.includes("Debug Check")
+                      ? "default"
+                      : "destructive"
                   }
                 >
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    {error.includes("Failed to generate access token") && (
+                      <div className="mt-2 text-xs">
+                        <p>Common causes:</p>
+                        <ul className="list-disc list-inside ml-2">
+                          <li>Invalid App ID or Secret ID</li>
+                          <li>Authorization code expired or already used</li>
+                          <li>Fyers API v3 not properly installed</li>
+                          <li>Network connectivity issues</li>
+                        </ul>
+                        <p className="mt-1">
+                          Try: 1) Check Debug Info 2) Use Demo Mode 3) Restart
+                          OAuth flow
+                        </p>
+                      </div>
+                    )}
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -408,8 +452,72 @@ export default function Login() {
                 >
                   {loading ? "Loading..." : "Demo Mode (Mock Data)"}
                 </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Debug
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleDebugCheck}
+                  disabled={loading}
+                >
+                  {loading ? "Checking..." : "Check Fyers API v3 Installation"}
+                </Button>
               </div>
             </form>
+
+            {showDebug && debugInfo && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <h3 className="text-sm font-medium mb-2">Debug Information</h3>
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="font-medium">Fyers API v3:</span>{" "}
+                    <span
+                      className={
+                        debugInfo.installed ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {debugInfo.installed
+                        ? `Installed (v${debugInfo.version})`
+                        : "Not Installed"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span>{" "}
+                    {debugInfo.message}
+                  </div>
+                  {debugInfo.error && (
+                    <div>
+                      <span className="font-medium">Error:</span>{" "}
+                      {debugInfo.error}
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium">Python:</span>{" "}
+                    {debugInfo.python_version?.split(" ")[0]}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setShowDebug(false)}
+                >
+                  Hide Debug Info
+                </Button>
+              </div>
+            )}
 
             {oauthUrl && !showManualAuth && (
               <div className="mt-4 p-3 bg-muted rounded-lg">
