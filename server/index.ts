@@ -2,7 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { handleFyersLogin, handleFyersCallback } from "./routes/fyers-auth";
+import {
+  handleFyersLogin,
+  handleFyersCallback,
+  handleFyersOAuth,
+} from "./routes/fyers-auth";
 import {
   handleMarketData,
   handleOptionChain,
@@ -40,6 +44,7 @@ export function createServer() {
 
   // Authentication routes
   app.post("/api/auth/fyers-login", handleFyersLogin);
+  app.post("/api/auth/fyers-oauth", handleFyersOAuth);
   app.get("/fyers/callback", handleFyersCallback);
 
   // Market data routes

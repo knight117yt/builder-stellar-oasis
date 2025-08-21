@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Eye, EyeOff, AlertCircle } from "lucide-react";
+import {
+  TrendingUp,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [credentials, setCredentials] = useState({
     appId: "POEXISKB7W-100",
     secretId: "",
@@ -24,6 +31,23 @@ export default function Login() {
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthUrl, setOauthUrl] = useState("");
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const status = searchParams.get("status");
+    const mode = searchParams.get("mode");
+    const errorMessage = searchParams.get("message");
+
+    if (status === "success" && token) {
+      localStorage.setItem("fyers_token", token);
+      localStorage.setItem("auth_mode", mode || "live");
+      navigate("/dashboard");
+    } else if (status === "error" && errorMessage) {
+      setError(decodeURIComponent(errorMessage));
+    }
+  }, [searchParams, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +55,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Try Fyers API authentication first
+      // Try Fyers API v3 authentication
       const response = await fetch("/api/auth/fyers-login", {
         method: "POST",
         headers: {
@@ -42,19 +66,31 @@ export default function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("fyers_token", data.token);
-        localStorage.setItem("auth_mode", "live");
-        navigate("/dashboard");
+
+        if (data.mode === "oauth_required" && data.auth_url) {
+          // OAuth flow required
+          setOauthUrl(data.auth_url);
+          setError(
+            "OAuth authentication required. Click the OAuth button below.",
+          );
+        } else if (data.token) {
+          // Direct authentication successful
+          localStorage.setItem("fyers_token", data.token);
+          localStorage.setItem("auth_mode", data.mode || "live");
+          navigate("/dashboard");
+        } else {
+          throw new Error(data.message || "Authentication failed");
+        }
       } else {
         throw new Error("Fyers API connection failed");
       }
     } catch (err) {
       // Fallback to mock data mode
-      console.warn("Fyers API unavailable, using mock data mode");
-      const mockToken = `mock_token_${Date.now()}`;
+      console.warn("Fyers API unavailable, using mock data mode:", err);
+      const mockToken = `mock_token_v3_${Date.now()}`;
       localStorage.setItem("fyers_token", mockToken);
       localStorage.setItem("auth_mode", "mock");
-      setError("Using demo mode with mock data (Fyers API unavailable)");
+      setError("Using demo mode with mock data (Fyers API v3 unavailable)");
 
       // Navigate after showing the warning briefly
       setTimeout(() => {
@@ -68,7 +104,7 @@ export default function Login() {
   const handleMockLogin = () => {
     setLoading(true);
     // Direct mock mode login
-    const mockToken = `mock_token_${Date.now()}`;
+    const mockToken = `mock_token_v3_${Date.now()}`;
     localStorage.setItem("fyers_token", mockToken);
     localStorage.setItem("auth_mode", "mock");
 
@@ -78,11 +114,54 @@ export default function Login() {
     }, 1000);
   };
 
-  const handleFyersOAuth = () => {
-    // Redirect to Fyers OAuth
-    const redirectUrl = "http://127.0.0.1:5000/fyers/callback";
-    const fyersAuthUrl = `https://api-t2.fyers.in/vagator/v2/auth?client_id=${credentials.appId}&redirect_uri=${redirectUrl}&response_type=code&state=sample_state`;
-    window.location.href = fyersAuthUrl;
+  const handleFyersOAuth = async () => {
+    if (!credentials.appId || !credentials.secretId) {
+      setError("Please enter App ID and Secret ID before initiating OAuth");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/fyers-oauth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          appId: credentials.appId,
+          secretId: credentials.secretId,
+          pin: credentials.pin,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.auth_url) {
+          // Redirect to Fyers OAuth
+          window.location.href = data.auth_url;
+        } else {
+          setError(data.message || "Failed to initiate OAuth");
+        }
+      } else {
+        throw new Error("OAuth initiation failed");
+      }
+    } catch (err) {
+      console.error("OAuth error:", err);
+      setError("OAuth initiation failed. Using fallback authentication.");
+
+      // Fallback to mock mode
+      const mockToken = `mock_oauth_v3_${Date.now()}`;
+      localStorage.setItem("fyers_token", mockToken);
+      localStorage.setItem("auth_mode", "mock");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,10 +181,10 @@ export default function Login() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Fyers Authentication</CardTitle>
+            <CardTitle>Fyers v3 Authentication</CardTitle>
             <CardDescription>
-              Connect your Fyers account to access market data and trading
-              features
+              Connect your Fyers account using the latest v3 API to access
+              market data and trading features
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -123,13 +202,15 @@ export default function Login() {
                     }))
                   }
                   placeholder="Enter your Fyers App ID"
-                  disabled
-                  className="bg-muted"
+                  required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Your Fyers App ID from the developer portal
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="secretId">Secret ID</Label>
+                <Label htmlFor="secretId">Secret Key</Label>
                 <div className="relative">
                   <Input
                     id="secretId"
@@ -141,7 +222,7 @@ export default function Login() {
                         secretId: e.target.value,
                       }))
                     }
-                    placeholder="Enter your Fyers Secret ID"
+                    placeholder="Enter your Fyers Secret Key"
                     required
                   />
                   <Button
@@ -158,10 +239,13 @@ export default function Login() {
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Your Fyers Secret Key (keep this secure)
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pin">Trading PIN</Label>
+                <Label htmlFor="pin">Trading PIN (Optional)</Label>
                 <div className="relative">
                   <Input
                     id="pin"
@@ -173,9 +257,8 @@ export default function Login() {
                         pin: e.target.value,
                       }))
                     }
-                    placeholder="Enter your trading PIN"
+                    placeholder="Enter your trading PIN (optional)"
                     maxLength={6}
-                    required
                   />
                   <Button
                     type="button"
@@ -191,18 +274,37 @@ export default function Login() {
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Required only for trading operations
+                </p>
               </div>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert
+                  variant={
+                    error.includes("demo mode") ? "default" : "destructive"
+                  }
+                >
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               <div className="space-y-3">
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={handleFyersOAuth}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    "Initiating OAuth..."
+                  ) : (
+                    <>
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Authenticate with Fyers v3 OAuth
+                    </>
+                  )}
                 </Button>
 
                 <div className="relative">
@@ -217,12 +319,12 @@ export default function Login() {
                 </div>
 
                 <Button
-                  type="button"
+                  type="submit"
                   variant="outline"
                   className="w-full"
-                  onClick={handleFyersOAuth}
+                  disabled={loading}
                 >
-                  Fyers OAuth
+                  {loading ? "Signing in..." : "Direct Login (Fallback)"}
                 </Button>
 
                 <Button
@@ -236,6 +338,18 @@ export default function Login() {
                 </Button>
               </div>
             </form>
+
+            {oauthUrl && (
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">
+                  OAuth URL generated. Click the button above to authenticate
+                  with Fyers.
+                </p>
+                <p className="text-xs text-muted-foreground break-all">
+                  {oauthUrl}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -250,6 +364,9 @@ export default function Login() {
               Privacy Policy
             </a>
             .
+          </p>
+          <p className="mt-2 text-xs">
+            This app uses Fyers v3 API for enhanced security and performance.
           </p>
         </div>
       </div>

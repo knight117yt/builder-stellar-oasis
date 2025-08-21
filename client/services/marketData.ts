@@ -1,1027 +1,469 @@
-import {
-  MarketData,
-  HistoricalCandle,
-  OptionData,
-} from "./realTimeDataService";
+import { z } from "zod";
 
-const API_BASE_URL = import.meta.env.DEV ? "/api" : "/api";
+// Enhanced data schemas for Fyers v3 API
+const marketDataSchema = z.object({
+  symbol: z.string(),
+  ltp: z.number(),
+  open: z.number().optional(),
+  high: z.number().optional(),
+  low: z.number().optional(),
+  close: z.number().optional(),
+  ch: z.number().optional(),
+  chp: z.number().optional(),
+  volume: z.number().optional(),
+  oi: z.number().optional(),
+  bid: z.number().optional(),
+  ask: z.number().optional(),
+  timestamp: z.string().optional(),
+});
 
-// Authentication token management
+const fyersQuoteSchema = z.object({
+  s: z.string(), // status
+  d: z.array(
+    z.object({
+      n: z.string(), // symbol name
+      s: z.string(), // symbol
+      v: z.object({
+        lp: z.number(), // last price
+        o: z.number(), // open
+        h: z.number(), // high
+        l: z.number(), // low
+        ch: z.number(), // change
+        chp: z.number(), // change percentage
+        vol: z.number().optional(), // volume
+        oi: z.number().optional(), // open interest
+        bid: z.number().optional(), // bid price
+        ask: z.number().optional(), // ask price
+        ltt: z.string().optional(), // last trade time
+      }),
+    }),
+  ),
+});
+
+const optionChainSchema = z.object({
+  strikes: z.array(
+    z.object({
+      strike: z.number(),
+      call: z.object({
+        symbol: z.string(),
+        ltp: z.number(),
+        iv: z.number().optional(),
+        delta: z.number().optional(),
+        gamma: z.number().optional(),
+        theta: z.number().optional(),
+        vega: z.number().optional(),
+      }),
+      put: z.object({
+        symbol: z.string(),
+        ltp: z.number(),
+        iv: z.number().optional(),
+        delta: z.number().optional(),
+        gamma: z.number().optional(),
+        theta: z.number().optional(),
+        vega: z.number().optional(),
+      }),
+    }),
+  ),
+});
+
+export type MarketData = z.infer<typeof marketDataSchema>;
+export type FyersQuote = z.infer<typeof fyersQuoteSchema>;
+export type OptionChain = z.infer<typeof optionChainSchema>;
+
+// Utility function to get stored token
 function getAuthToken(): string | null {
   return (
     localStorage.getItem("fyers_token") || localStorage.getItem("mock_token")
   );
 }
 
-function getAuthHeaders() {
-  const token = getAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+// Check if we're in mock mode
+function isMockMode(): boolean {
+  return (
+    localStorage.getItem("auth_mode") === "mock" ||
+    getAuthToken()?.includes("mock") ||
+    false
+  );
 }
 
-// API response interfaces
-interface APIResponse<T = any> {
-  data?: T;
-  message?: string;
-  error?: string;
-  timestamp?: string;
-}
-
-interface HistoricalDataResponse {
-  s: string;
-  candles: number[][];
-  symbol?: string;
-  timeframe?: string;
-}
-
-interface OptionChainResponse {
-  s: string;
-  data: OptionData[];
-  symbol?: string;
-  expiry?: string;
-  spot_price?: number;
-}
-
-interface StockSearchResponse {
-  stocks: Array<{
-    symbol: string;
-    name: string;
-    exchange: string;
-    sector?: string;
-    industry?: string;
-  }>;
-}
-
-interface StockDetailsResponse {
-  symbol: string;
-  name: string;
-  exchange: string;
-  market_data: MarketData;
-  has_options: boolean;
-  fundamentals?: Record<string, any>;
-  technicals?: Record<string, any>;
-}
-
-interface ScreenerResponse {
-  stocks: Array<{
-    symbol: string;
-    name: string;
-    price: number;
-    change: number;
-    change_percent: number;
-    volume: number;
-    market_cap?: number;
-    pe_ratio?: number;
-    sector?: string;
-    exchange: string;
-  }>;
-  total: number;
-}
-
-interface AIAnalysisResponse {
-  symbol: string;
-  analysis: {
-    trend: string;
-    strength: number;
-    support_levels: number[];
-    resistance_levels: number[];
-    recommendation: string;
-    confidence: number;
-    price_target?: number;
-    stop_loss?: number;
-    technical_indicators?: Record<string, any>;
-    sentiment_score?: number;
-  };
-  timestamp: string;
-}
-
-interface AlgoStrategyResponse {
-  strategy_id: string;
-  status: string;
-  strategy: {
-    id: string;
-    name: string;
-    symbol: string;
-    strategy_type: string;
-    parameters: Array<{
-      name: string;
-      value: any;
-      description?: string;
-    }>;
-    created_at: string;
-    status: string;
-  };
-}
-
+// Enhanced Market Data Service with Fyers v3 API integration
 class MarketDataService {
-  private cache = new Map<
-    string,
-    { data: any; timestamp: number; ttl: number }
-  >();
+  private baseUrl: string;
+  private wsConnection: WebSocket | null = null;
+  private subscribers: Map<string, Set<(data: MarketData) => void>> = new Map();
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
 
-  // Cache management
-  private setCacheItem(key: string, data: any, ttlSeconds = 60) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl: ttlSeconds * 1000,
+  constructor() {
+    this.baseUrl = "/api";
+  }
+
+  // Get authentication headers for API calls
+  private getAuthHeaders(): HeadersInit {
+    const token = getAuthToken();
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  }
+
+  // Enhanced live data fetching with Fyers v3 API
+  async getLiveData(symbols: string[]): Promise<Record<string, MarketData>> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/market/live-data?symbols=${symbols.join(",")}`,
+        {
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // If using Fyers v3 API format, transform the data
+      if (result.s === "ok" && result.d) {
+        const transformedData: Record<string, MarketData> = {};
+        result.d.forEach((quote: any) => {
+          transformedData[quote.s] = {
+            symbol: quote.s,
+            ltp: quote.v.lp,
+            open: quote.v.o,
+            high: quote.v.h,
+            low: quote.v.l,
+            ch: quote.v.ch,
+            chp: quote.v.chp,
+            volume: quote.v.vol,
+            oi: quote.v.oi,
+            bid: quote.v.bid,
+            ask: quote.v.ask,
+            timestamp: quote.v.ltt || new Date().toISOString(),
+          };
+        });
+        return transformedData;
+      }
+
+      // Fallback to existing format
+      return result.data || this.generateMockData(symbols);
+    } catch (error) {
+      console.warn("Live data fetch failed, using mock data:", error);
+      return this.generateMockData(symbols);
+    }
+  }
+
+  // Enhanced option chain with Greeks from Fyers v3
+  async getOptionChain(
+    symbol: string,
+    expiry?: string,
+    strikeCount: number = 10,
+  ): Promise<OptionChain> {
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        ...(expiry && { expiry }),
+        strike_count: strikeCount.toString(),
+      });
+
+      const response = await fetch(
+        `${this.baseUrl}/market/option-chain?${params}`,
+        {
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.s === "ok" && result.data) {
+        // Transform Fyers v3 option chain format
+        return optionChainSchema.parse(result.data);
+      }
+
+      return result.data || this.generateMockOptionChain(symbol, strikeCount);
+    } catch (error) {
+      console.warn("Option chain fetch failed, using mock data:", error);
+      return this.generateMockOptionChain(symbol, strikeCount);
+    }
+  }
+
+  // Enhanced historical data with Fyers v3 API
+  async getHistoricalData(
+    symbol: string,
+    resolution: string = "D",
+    from: Date,
+    to: Date,
+  ): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        resolution,
+        from: Math.floor(from.getTime() / 1000).toString(),
+        to: Math.floor(to.getTime() / 1000).toString(),
+      });
+
+      const response = await fetch(
+        `${this.baseUrl}/market/historical?${params}`,
+        {
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.s === "ok" && result.candles) {
+        // Fyers v3 API format: [timestamp, open, high, low, close, volume]
+        return result.candles;
+      }
+
+      return (
+        result.candles || this.generateMockHistoricalData(symbol, from, to)
+      );
+    } catch (error) {
+      console.warn("Historical data fetch failed, using mock data:", error);
+      return this.generateMockHistoricalData(symbol, from, to);
+    }
+  }
+
+  // Enhanced straddle data with Fyers v3 API
+  async getStraddleData(symbol: string, expiry?: string): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        symbol,
+        ...(expiry && { expiry }),
+      });
+
+      const response = await fetch(
+        `${this.baseUrl}/market/straddle-data?${params}`,
+        {
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.warn("Straddle data fetch failed, using mock data:", error);
+      return this.generateMockStraddleData(symbol);
+    }
+  }
+
+  // WebSocket connection for real-time data with Fyers v3 WebSocket
+  connectWebSocket(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+        this.wsConnection = new WebSocket(wsUrl);
+
+        this.wsConnection.onopen = () => {
+          console.log("WebSocket connected for real-time data");
+          this.reconnectAttempts = 0;
+          resolve();
+        };
+
+        this.wsConnection.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "market_data" && data.symbol && data.data) {
+              const marketData: MarketData = {
+                symbol: data.symbol,
+                ltp: data.data.lp || data.data.ltp,
+                open: data.data.o || data.data.open,
+                high: data.data.h || data.data.high,
+                low: data.data.l || data.data.low,
+                ch: data.data.ch,
+                chp: data.data.chp,
+                volume: data.data.vol || data.data.volume,
+                oi: data.data.oi,
+                bid: data.data.bid,
+                ask: data.data.ask,
+                timestamp: data.timestamp || new Date().toISOString(),
+              };
+
+              this.notifySubscribers(data.symbol, marketData);
+            }
+          } catch (error) {
+            console.error("Error parsing WebSocket message:", error);
+          }
+        };
+
+        this.wsConnection.onclose = () => {
+          console.log("WebSocket disconnected");
+          this.attemptReconnect();
+        };
+
+        this.wsConnection.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          reject(error);
+        };
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
-  private getCacheItem(key: string): any | null {
-    const item = this.cache.get(key);
-    if (!item) return null;
-
-    if (Date.now() - item.timestamp > item.ttl) {
-      this.cache.delete(key);
-      return null;
+  // Subscribe to real-time updates for a symbol
+  subscribe(symbol: string, callback: (data: MarketData) => void): () => void {
+    if (!this.subscribers.has(symbol)) {
+      this.subscribers.set(symbol, new Set());
     }
 
-    return item.data;
-  }
+    this.subscribers.get(symbol)!.add(callback);
 
-  // HTTP request helper with fallback to mock data
-  private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    // For known problematic endpoints, go straight to mock data
-    if (endpoint.includes("/market/straddle-data")) {
-      console.warn(
-        `Using mock data for straddle endpoint due to API issues: ${endpoint}`,
+    // Send subscription message to WebSocket
+    if (this.wsConnection?.readyState === WebSocket.OPEN) {
+      this.wsConnection.send(
+        JSON.stringify({
+          type: "subscribe",
+          symbol: symbol,
+        }),
       );
-      try {
-        return this.getMockDataForEndpoint(endpoint) as T;
-      } catch (mockError) {
-        console.error(`Mock data fallback failed for ${endpoint}:`, mockError);
-        return { error: "Mock data unavailable", endpoint } as T;
-      }
     }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-          ...options.headers,
-        },
-      });
+    // Return unsubscribe function
+    return () => {
+      const symbolSubscribers = this.subscribers.get(symbol);
+      if (symbolSubscribers) {
+        symbolSubscribers.delete(callback);
+        if (symbolSubscribers.size === 0) {
+          this.subscribers.delete(symbol);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          // Send unsubscribe message to WebSocket
+          if (this.wsConnection?.readyState === WebSocket.OPEN) {
+            this.wsConnection.send(
+              JSON.stringify({
+                type: "unsubscribe",
+                symbol: symbol,
+              }),
+            );
+          }
+        }
       }
+    };
+  }
 
-      return await response.json();
-    } catch (error) {
-      console.warn(
-        `API request failed for ${endpoint}, falling back to mock data:`,
-        error,
+  // Notify all subscribers for a symbol
+  private notifySubscribers(symbol: string, data: MarketData): void {
+    const symbolSubscribers = this.subscribers.get(symbol);
+    if (symbolSubscribers) {
+      symbolSubscribers.forEach((callback) => callback(data));
+    }
+  }
+
+  // Attempt to reconnect WebSocket
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      console.log(
+        `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
       );
-      // Fall back to mock data for common endpoints
-      try {
-        return this.getMockDataForEndpoint(endpoint) as T;
-      } catch (mockError) {
-        console.error(
-          `Mock data fallback also failed for ${endpoint}:`,
-          mockError,
-        );
-        // Return a basic error response that won't break the calling code
-        return { error: "API and mock data unavailable", endpoint } as T;
-      }
-    }
-  }
 
-  // Mock data fallback for when backend is not available
-  private getMockDataForEndpoint(endpoint: string): any {
-    if (endpoint.includes("/market/live-data")) {
-      return this.getMockLiveData();
-    }
-    if (endpoint.includes("/analysis/ai-analyze")) {
-      return this.getMockAIAnalysis();
-    }
-    if (endpoint.includes("/market/historical")) {
-      // Extract symbol from endpoint URL
-      const urlParams = new URLSearchParams(endpoint.split("?")[1] || "");
-      const symbol = urlParams.get("symbol") || "NSE:NIFTY50-INDEX";
-      return this.getMockHistoricalData(symbol);
-    }
-    if (endpoint.includes("/account/info")) {
-      return this.getMockAccountInfo();
-    }
-    if (endpoint.includes("/market/straddle-data")) {
-      // Extract symbol and expiry from endpoint URL parameters
-      try {
-        const urlParams = new URLSearchParams(endpoint.split("?")[1] || "");
-        const symbol = urlParams.get("symbol") || "NSE:NIFTY50-INDEX";
-        const expiry = urlParams.get("expiry") || "24JAN";
-        return this.getMockStraddleDataForSymbol(symbol, expiry);
-      } catch (e) {
-        return this.getMockStraddleData();
-      }
-    }
-    if (
-      endpoint.includes("/algo/strategies") ||
-      endpoint.includes("/strategies")
-    ) {
-      return this.getMockStrategies();
-    }
-    if (endpoint.includes("/algo/create-strategy")) {
-      return this.getMockCreateStrategy();
-    }
-    if (endpoint.includes("/strategies/custom/create")) {
-      return this.getMockCustomStrategyCreation();
-    }
-    if (endpoint.includes("/strategies/backtest")) {
-      return this.getMockBacktestResult();
-    }
-    if (endpoint.includes("/market/option-chain")) {
-      return this.getMockOptionChain();
-    }
-    if (endpoint.includes("/screener/scan")) {
-      return this.getMockScreenerResults();
-    }
-    // Return empty data structure for any other endpoint
-    return { data: {}, message: "Backend unavailable, using mock data" };
-  }
-
-  private getMockLiveData() {
-    return {
-      data: {
-        "NSE:NIFTY50-INDEX": {
-          ltp: 19850.5,
-          change: 125.3,
-          change_percent: 0.63,
-          volume: 1250000,
-          high: 19890.25,
-          low: 19780.1,
-          open: 19820.0,
+      setTimeout(
+        () => {
+          this.connectWebSocket().catch((error) => {
+            console.error("Reconnection failed:", error);
+          });
         },
-        "NSE:NIFTYBANK-INDEX": {
-          ltp: 44250.75,
-          change: -85.2,
-          change_percent: -0.19,
-          volume: 850000,
-          high: 44380.5,
-          low: 44150.25,
-          open: 44200.3,
-        },
-        "BSE:SENSEX-INDEX": {
-          ltp: 72240.8,
-          change: 180.45,
-          change_percent: 0.25,
-          volume: 2100000,
-          high: 72350.2,
-          low: 72120.4,
-          open: 72180.6,
-        },
-      },
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  private getMockAIAnalysis() {
-    return {
-      data: {
-        symbol: "NSE:NIFTY50-INDEX",
-        timeframe: "D",
-        trend: "bullish",
-        strength: 0.75,
-        support_levels: [19750, 19650, 19550],
-        resistance_levels: [19950, 20050, 20150],
-        recommendation: "Buy",
-        confidence: 0.82,
-        price_target: 20100,
-        stop_loss: 19700,
-        technical_indicators: {
-          rsi: 58.5,
-          macd: "bullish",
-          moving_averages: "bullish",
-        },
-        sentiment_score: 0.7,
-      },
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  private getMockHistoricalData(symbol?: string) {
-    const data = [];
-    const now = new Date();
-    const basePrice =
-      symbol && symbol.includes("NIFTYBANK")
-        ? 44250
-        : symbol && symbol.includes("SENSEX")
-          ? 72240
-          : 19850;
-
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const variation = (Math.random() - 0.5) * 200;
-      const price = basePrice + variation;
-
-      data.push({
-        timestamp: Math.floor(date.getTime() / 1000),
-        open: price - 20 + Math.random() * 40,
-        high: price + Math.random() * 50,
-        low: price - Math.random() * 50,
-        close: price,
-        volume: Math.floor(1000000 + Math.random() * 500000),
-      });
+        Math.pow(2, this.reconnectAttempts) * 1000,
+      ); // Exponential backoff
     }
-
-    return {
-      s: "ok",
-      symbol: symbol || "NSE:NIFTY50-INDEX",
-      timeframe: "1D",
-      candles: data.map((d) => [
-        d.timestamp,
-        d.open,
-        d.high,
-        d.low,
-        d.close,
-        d.volume,
-      ]),
-      timestamp: new Date().toISOString(),
-    };
   }
 
-  private getMockAccountInfo() {
-    return {
-      data: {
-        balance: 100000,
-        available_margin: 80000,
-        used_margin: 20000,
-        total_balance: 100000,
-      },
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  private getMockStraddleData() {
-    return this.getMockStraddleDataForSymbol("NSE:NIFTY50-INDEX", "24JAN");
-  }
-
-  private getMockStraddleDataForSymbol(symbol: string, expiry: string) {
-    const spotPrice = symbol.includes("NIFTYBANK")
-      ? 44250
-      : symbol.includes("SENSEX")
-        ? 72240
-        : 19850;
-
-    const baseStrike = Math.round(spotPrice / 50) * 50;
-    const straddles = [];
-
-    for (let i = -5; i <= 5; i++) {
-      const strike = baseStrike + i * 50;
-      const distance = Math.abs(strike - spotPrice);
-
-      // Generate realistic option prices based on distance from spot
-      const intrinsicCall = Math.max(0, spotPrice - strike);
-      const intrinsicPut = Math.max(0, strike - spotPrice);
-      const timeValue = Math.max(5, 50 - distance / 10);
-
-      const callPrice = intrinsicCall + timeValue + (Math.random() * 10 - 5);
-      const putPrice = intrinsicPut + timeValue + (Math.random() * 10 - 5);
-
-      // Ensure minimum prices
-      const finalCallPrice = Math.max(0.5, callPrice);
-      const finalPutPrice = Math.max(0.5, putPrice);
-
-      straddles.push({
-        strike,
-        call_price: finalCallPrice,
-        put_price: finalPutPrice,
-        straddle_premium: finalCallPrice + finalPutPrice,
-        distance_from_spot: distance,
-      });
+  // Disconnect WebSocket
+  disconnect(): void {
+    if (this.wsConnection) {
+      this.wsConnection.close();
+      this.wsConnection = null;
     }
-
-    // Sort by strike price
-    straddles.sort((a, b) => a.strike - b.strike);
-
-    return {
-      symbol,
-      spot_price: spotPrice,
-      expiry,
-      straddles,
-      timestamp: new Date().toISOString(),
-    };
+    this.subscribers.clear();
   }
 
-  private getMockStrategies() {
-    return {
-      strategies: [
-        {
-          id: "strategy_1",
-          name: "RSI Momentum Strategy",
-          symbol: "NSE:NIFTY50-INDEX",
-          strategy_type: "technical",
-          parameters: [
-            {
-              name: "rsi_period",
-              value: 14,
-              description: "RSI calculation period",
-            },
-            {
-              name: "oversold_level",
-              value: 30,
-              description: "RSI oversold threshold",
-            },
-            {
-              name: "overbought_level",
-              value: 70,
-              description: "RSI overbought threshold",
-            },
-          ],
-          status: "active",
-          created_at: new Date().toISOString(),
-          performance: {
-            total_trades: 25,
-            profitable_trades: 18,
-            total_pnl: 12500,
-            win_rate: 72,
-            max_drawdown: 8.5,
-          },
-        },
-        {
-          id: "strategy_2",
-          name: "Moving Average Crossover",
-          symbol: "NSE:NIFTYBANK-INDEX",
-          strategy_type: "technical",
-          parameters: [
-            {
-              name: "fast_ma",
-              value: 20,
-              description: "Fast moving average period",
-            },
-            {
-              name: "slow_ma",
-              value: 50,
-              description: "Slow moving average period",
-            },
-          ],
-          status: "inactive",
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          performance: {
-            total_trades: 15,
-            profitable_trades: 9,
-            total_pnl: 5800,
-            win_rate: 60,
-            max_drawdown: 12.3,
-          },
-        },
-      ],
-    };
-  }
-
-  private getMockOptionChain() {
-    const spotPrice = 19850;
-    const strikes = [];
-
-    for (let i = -5; i <= 5; i++) {
-      const strike = Math.round((spotPrice + i * 50) / 50) * 50;
-      strikes.push({
-        strike,
-        call_ltp: Math.max(0.5, spotPrice - strike + Math.random() * 50),
-        put_ltp: Math.max(0.5, strike - spotPrice + Math.random() * 50),
-        call_oi: Math.floor(Math.random() * 100000),
-        put_oi: Math.floor(Math.random() * 100000),
-        call_volume: Math.floor(Math.random() * 10000),
-        put_volume: Math.floor(Math.random() * 10000),
-        call_iv: 15 + Math.random() * 20,
-        put_iv: 15 + Math.random() * 20,
-      });
-    }
-
-    return {
-      data: {
-        symbol: "NSE:NIFTY50-INDEX",
-        expiry: "24JAN2024",
-        spot_price: spotPrice,
-        options: strikes,
-      },
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  private getMockScreenerResults() {
-    return {
-      data: {
-        stocks: [
-          {
-            symbol: "NSE:RELIANCE-EQ",
-            name: "Reliance Industries",
-            price: 2450.75,
-            change: 25.3,
-            change_percent: 1.04,
-            volume: 1250000,
-            market_cap: 1650000000000,
-            pe_ratio: 24.5,
-            sector: "Energy",
-            exchange: "NSE",
-          },
-          {
-            symbol: "NSE:TCS-EQ",
-            name: "Tata Consultancy Services",
-            price: 3680.2,
-            change: -15.45,
-            change_percent: -0.42,
-            volume: 850000,
-            market_cap: 1340000000000,
-            pe_ratio: 28.7,
-            sector: "Information Technology",
-            exchange: "NSE",
-          },
-        ],
-        total: 2,
-      },
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  private getMockCreateStrategy() {
-    const strategyId = `mock_strategy_${Date.now()}`;
-    return {
-      strategy_id: strategyId,
-      status: "created",
-      strategy: {
-        id: strategyId,
-        name: "Mock Strategy",
-        symbol: "NSE:NIFTY50-INDEX",
-        strategy_type: "technical",
-        parameters: [],
-        created_at: new Date().toISOString(),
-        status: "inactive",
-      },
-    };
-  }
-
-  private getMockCustomStrategyCreation() {
-    return {
-      strategy_id: `custom_${Date.now()}`,
-      status: "created",
-      message: "Custom strategy created successfully (mock)",
-    };
-  }
-
-  private getMockBacktestResult() {
-    return {
-      strategy_id: "mock_strategy",
-      total_return: 15.75,
-      annual_return: 22.3,
-      sharpe_ratio: 1.42,
-      max_drawdown: 8.5,
-      total_trades: 45,
-      winning_trades: 28,
-      win_rate: 62.2,
-      profit_factor: 1.85,
-      trades: [],
-      equity_curve: [],
-      performance_metrics: {
-        avg_win: 850.5,
-        avg_loss: 460.25,
-        largest_win: 2450.0,
-        largest_loss: 1250.0,
-      },
-    };
-  }
-
-  // Authentication
+  // Authentication methods
   async login(
     authMode: "fyers" | "mock",
     accessToken: string,
-  ): Promise<APIResponse> {
-    return this.makeRequest("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({
-        auth_mode: authMode,
-        access_token: accessToken,
-      }),
-    });
-  }
-
-  // Market data endpoints
-  async getLiveMarketData(
-    symbols: string[],
-  ): Promise<Record<string, MarketData>> {
-    const symbolsParam = symbols.join(",");
-    const cacheKey = `live_data_${symbolsParam}`;
-
-    // Check cache first (1 second TTL for live data)
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
+    credentials?: { appId: string; secretId: string; pin?: string },
+  ): Promise<{ success: boolean; token: string; message: string }> {
     try {
-      const response = await this.makeRequest<
-        APIResponse<Record<string, MarketData>>
-      >(`/market/live-data?symbols=${encodeURIComponent(symbolsParam)}`);
-
-      const data = response.data || {};
-      this.setCacheItem(cacheKey, data, 1);
-      return data;
-    } catch (error) {
-      console.error("Failed to fetch live market data:", error);
-      return this.getMockMarketData(symbols);
-    }
-  }
-
-  async getHistoricalData(
-    symbol: string,
-    timeframe = "D",
-    fromDate?: string,
-    toDate?: string,
-  ): Promise<HistoricalCandle[]> {
-    const cacheKey = `historical_${symbol}_${timeframe}_${fromDate}_${toDate}`;
-
-    // Check cache first (5 minute TTL for historical data)
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const params = new URLSearchParams({
-        symbol,
-        timeframe,
-        ...(fromDate && { from_date: fromDate }),
-        ...(toDate && { to_date: toDate }),
-      });
-
-      const response = await this.makeRequest<any>(
-        `/market/historical?${params}`,
-      );
-
-      // Handle both API response format and mock response format
-      if (response.s === "ok" && response.candles) {
-        const candles = response.candles.map((candle) => ({
-          timestamp: candle[0],
-          open: candle[1],
-          high: candle[2],
-          low: candle[3],
-          close: candle[4],
-          volume: candle[5],
-        }));
-
-        this.setCacheItem(cacheKey, candles, 300);
-        return candles;
-      } else if (response.data && response.data.candles) {
-        // Handle mock data format with nested data
-        const candles = response.data.candles.map((candle: any) => ({
-          timestamp: candle.timestamp,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume,
-        }));
-
-        this.setCacheItem(cacheKey, candles, 300);
-        return candles;
-      }
-
-      throw new Error("Invalid historical data response");
-    } catch (error) {
-      console.error("Failed to fetch historical data:", error);
-      // The makeRequest should have already provided mock data
-      // If we get here, return the mock data directly
-      const mockResponse = this.getMockHistoricalData(symbol);
-      if (mockResponse.s === "ok" && mockResponse.candles) {
-        const candles = mockResponse.candles.map((candle: any) => ({
-          timestamp: candle[0],
-          open: candle[1],
-          high: candle[2],
-          low: candle[3],
-          close: candle[4],
-          volume: candle[5],
-        }));
-        return candles;
-      }
-      return [];
-    }
-  }
-
-  async getOptionChain(symbol: string, expiry?: string): Promise<OptionData[]> {
-    const cacheKey = `option_chain_${symbol}_${expiry || "default"}`;
-
-    // Check cache first (10 second TTL for option chain)
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const params = new URLSearchParams({
-        symbol,
-        ...(expiry && { expiry }),
-      });
-
-      const response = await this.makeRequest<OptionChainResponse>(
-        `/market/option-chain?${params}`,
-      );
-
-      if (response.s === "ok" && response.data) {
-        this.setCacheItem(cacheKey, response.data, 10);
-        return response.data;
-      }
-
-      throw new Error("Invalid option chain response");
-    } catch (error) {
-      console.error("Failed to fetch option chain:", error);
-      return this.getMockOptionChain(symbol);
-    }
-  }
-
-  // Stock search and details
-  async searchStocks(query: string): Promise<StockSearchResponse> {
-    const cacheKey = `search_${query}`;
-
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const response = await this.makeRequest<StockSearchResponse>(
-        `/stocks/search?query=${encodeURIComponent(query)}`,
-      );
-
-      this.setCacheItem(cacheKey, response, 300);
-      return response;
-    } catch (error) {
-      console.error("Failed to search stocks:", error);
-      return { stocks: [] };
-    }
-  }
-
-  async getStockDetails(symbol: string): Promise<StockDetailsResponse | null> {
-    const cacheKey = `stock_details_${symbol}`;
-
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const response = await this.makeRequest<StockDetailsResponse>(
-        `/stocks/${encodeURIComponent(symbol)}/details`,
-      );
-
-      this.setCacheItem(cacheKey, response, 60);
-      return response;
-    } catch (error) {
-      console.error("Failed to get stock details:", error);
-      return null;
-    }
-  }
-
-  // Screener
-  async screenStocks(filters: {
-    min_price?: number;
-    max_price?: number;
-    min_volume?: number;
-    max_volume?: number;
-    min_market_cap?: number;
-    max_market_cap?: number;
-    min_pe_ratio?: number;
-    max_pe_ratio?: number;
-    sectors?: string[];
-    exchanges?: string[];
-    price_change_min?: number;
-    price_change_max?: number;
-  }): Promise<ScreenerResponse> {
-    try {
-      const response = await this.makeRequest<ScreenerResponse>(
-        "/screener/filter",
-        {
+      if (authMode === "fyers" && credentials) {
+        const response = await fetch("/api/auth/fyers-login", {
           method: "POST",
-          body: JSON.stringify(filters),
-        },
-      );
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        });
 
-      return response;
-    } catch (error) {
-      console.error("Failed to screen stocks:", error);
-      return { stocks: [], total: 0 };
-    }
-  }
+        const result = await response.json();
 
-  // Straddle Data
-  async getStraddleData(symbol: string, expiry?: string): Promise<any> {
-    const cacheKey = `straddle_data_${symbol}_${expiry || "default"}`;
-
-    // Check cache first (30 second TTL for straddle data)
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    // Always try to return mock data as primary strategy due to API issues
-    try {
-      const params = new URLSearchParams({
-        symbol,
-        ...(expiry && { expiry }),
-      });
-
-      // Use makeRequest which has built-in fallbacks
-      const response = await this.makeRequest<any>(
-        `/market/straddle-data?${params}`,
-      );
-
-      // Validate response structure
-      if (response && response.straddles && Array.isArray(response.straddles)) {
-        this.setCacheItem(cacheKey, response, 30);
-        return response;
-      } else if (response && response.symbol) {
-        // Handle different response formats
-        this.setCacheItem(cacheKey, response, 30);
-        return response;
+        if (result.success) {
+          localStorage.setItem("fyers_token", result.token);
+          localStorage.setItem("auth_mode", result.mode || "live");
+          return result;
+        } else {
+          throw new Error(result.message);
+        }
       } else {
-        throw new Error("Invalid response format");
+        // Mock mode
+        const mockToken = `mock_token_v3_${Date.now()}`;
+        localStorage.setItem("fyers_token", mockToken);
+        localStorage.setItem("auth_mode", "mock");
+
+        return {
+          success: true,
+          token: mockToken,
+          message: "Mock authentication successful",
+        };
       }
     } catch (error) {
-      // Always fallback to mock data on any error
-      console.warn("Straddle data API unavailable, using mock data:", error);
-    }
-
-    // Ensure we always return valid mock data
-    const mockData = this.getMockStraddleData();
-    this.setCacheItem(cacheKey, mockData, 30);
-    return mockData;
-  }
-
-  // AI Analysis
-  async getAIAnalysis(
-    symbol: string,
-    timeframe = "D",
-  ): Promise<AIAnalysisResponse | null> {
-    const cacheKey = `ai_analysis_${symbol}_${timeframe}`;
-
-    const cached = this.getCacheItem(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const response = await this.makeRequest<AIAnalysisResponse>(
-        `/analysis/ai-analyze?symbol=${encodeURIComponent(symbol)}&timeframe=${timeframe}`,
-        { method: "POST" },
-      );
-
-      this.setCacheItem(cacheKey, response, 300);
-      return response;
-    } catch (error) {
-      console.error("Failed to get AI analysis:", error);
-      return null;
+      console.error("Login failed:", error);
+      throw error;
     }
   }
 
-  // Account information
-  async getAccountInfo(): Promise<any> {
-    try {
-      const response = await this.makeRequest<any>("/account/info");
-      return response.data;
-    } catch (error) {
-      console.error("Failed to get account info:", error);
-      return {
-        balance: 100000,
-        available_margin: 80000,
-        used_margin: 20000,
-        total_balance: 100000,
-      };
-    }
-  }
-
-  // Algorithm Trading
-  async createStrategy(strategy: {
-    name: string;
-    symbol: string;
-    strategy_type: string;
-    parameters: Array<{
-      name: string;
-      value: any;
-      description?: string;
-    }>;
-    custom_code?: string;
-    risk_management?: any;
-    position_sizing?: any;
-  }): Promise<AlgoStrategyResponse | null> {
-    try {
-      const response = await this.makeRequest<AlgoStrategyResponse>(
-        "/algo/create-strategy",
-        {
-          method: "POST",
-          body: JSON.stringify(strategy),
-        },
-      );
-
-      return response;
-    } catch (error) {
-      console.error("Failed to create strategy:", error);
-      return null;
-    }
-  }
-
-  async getStrategies(): Promise<{ strategies: any[] }> {
-    try {
-      const response = await this.makeRequest<{ strategies: any[] }>(
-        "/algo/strategies",
-      );
-      return response;
-    } catch (error) {
-      console.error("Failed to get strategies:", error);
-      return { strategies: [] };
-    }
-  }
-
-  async toggleStrategy(
-    strategyId: string,
-  ): Promise<{ strategy_id: string; status: string } | null> {
-    try {
-      const response = await this.makeRequest<{
-        strategy_id: string;
-        status: string;
-      }>(`/algo/strategies/${strategyId}/toggle`, { method: "POST" });
-
-      return response;
-    } catch (error) {
-      console.error("Failed to toggle strategy:", error);
-      return null;
-    }
-  }
-
-  async createCustomStrategy(strategy: {
-    name: string;
-    description: string;
-    code: string;
-  }): Promise<any> {
-    try {
-      const response = await this.makeRequest<any>(
-        "/strategies/custom/create",
-        {
-          method: "POST",
-          body: JSON.stringify(strategy),
-        },
-      );
-
-      return response;
-    } catch (error) {
-      console.error("Failed to create custom strategy:", error);
-      return null;
-    }
-  }
-
-  // Backtesting
-  async runBacktest(config: {
-    strategy_id: string;
-    symbol: string;
-    start_date: string;
-    end_date: string;
-    initial_capital: number;
-    commission: number;
-    slippage: number;
-  }): Promise<any> {
-    try {
-      const response = await this.makeRequest<any>("/strategies/backtest", {
-        method: "POST",
-        body: JSON.stringify(config),
-      });
-
-      return response;
-    } catch (error) {
-      console.error("Failed to run backtest:", error);
-      return this.getMockBacktestResult();
-    }
-  }
-
-  async getCustomStrategies(): Promise<{ strategies: any[] }> {
-    try {
-      const response = await this.makeRequest<{ strategies: any[] }>(
-        "/strategies/custom",
-      );
-      return response;
-    } catch (error) {
-      console.error("Failed to get custom strategies:", error);
-      return { strategies: [] };
-    }
-  }
-
-  // Health check
-  async checkHealth(): Promise<boolean> {
-    try {
-      const response = await this.makeRequest("/health");
-      return response.status === "healthy";
-    } catch (error) {
-      console.error("Health check failed:", error);
-      return false;
-    }
-  }
-
-  // Mock data fallbacks
-  private getMockMarketData(symbols: string[]): Record<string, MarketData> {
+  // Mock data generators (for fallback scenarios)
+  private generateMockData(symbols: string[]): Record<string, MarketData> {
     const data: Record<string, MarketData> = {};
 
     symbols.forEach((symbol) => {
-      const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
-      const change = (Math.random() - 0.5) * 200;
+      const basePrice = symbol.includes("NIFTY")
+        ? 19850
+        : symbol.includes("BANKNIFTY")
+          ? 44250
+          : symbol.includes("SENSEX")
+            ? 65000
+            : 1000;
+
+      const change = (Math.random() - 0.5) * 100;
+      const open = basePrice + (Math.random() - 0.5) * 50;
+      const high = Math.max(open, basePrice + change) + Math.random() * 25;
+      const low = Math.min(open, basePrice + change) - Math.random() * 25;
 
       data[symbol] = {
         symbol,
         ltp: basePrice + change,
-        change,
-        change_percent: (change / basePrice) * 100,
+        open,
+        high,
+        low,
+        ch: change,
+        chp: (change / basePrice) * 100,
         volume: Math.floor(Math.random() * 1000000) + 100000,
-        open_interest: Math.floor(Math.random() * 5000000) + 1000000,
-        high: basePrice + Math.abs(change) + Math.random() * 50,
-        low: basePrice - Math.abs(change) - Math.random() * 50,
-        open: basePrice + (Math.random() - 0.5) * 100,
-        close: basePrice,
+        oi: Math.floor(Math.random() * 5000000) + 1000000,
+        bid: basePrice + change - 0.05,
+        ask: basePrice + change + 0.05,
         timestamp: new Date().toISOString(),
       };
     });
@@ -1029,30 +471,100 @@ class MarketDataService {
     return data;
   }
 
-  private getMockOptionChain(symbol: string): OptionData[] {
-    const options: OptionData[] = [];
+  private generateMockOptionChain(
+    symbol: string,
+    strikeCount: number,
+  ): OptionChain {
     const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
+    const strikes: any[] = [];
 
-    for (let i = -10; i <= 10; i++) {
+    for (
+      let i = -Math.floor(strikeCount / 2);
+      i <= Math.floor(strikeCount / 2);
+      i++
+    ) {
       const strike = basePrice + i * 50;
 
-      options.push({
+      strikes.push({
         strike,
-        call_ltp: Math.max(
-          0.1,
-          basePrice - strike + (Math.random() - 0.5) * 40,
-        ),
-        put_ltp: Math.max(0.1, strike - basePrice + (Math.random() - 0.5) * 40),
-        call_oi: Math.floor(Math.random() * 10000) + 100,
-        put_oi: Math.floor(Math.random() * 10000) + 100,
-        call_volume: Math.floor(Math.random() * 1000) + 10,
-        put_volume: Math.floor(Math.random() * 1000) + 10,
-        call_iv: Math.random() * 20 + 15,
-        put_iv: Math.random() * 20 + 15,
+        call: {
+          symbol: `${symbol.replace(":", "")}${strike}CE`,
+          ltp: Math.max(0.05, basePrice - strike + Math.random() * 20),
+          iv: 0.15 + Math.random() * 0.3,
+          delta: Math.max(0, Math.min(1, 0.5 + (basePrice - strike) / 1000)),
+          gamma: Math.random() * 0.001,
+          theta: -Math.random() * 5,
+          vega: Math.random() * 10,
+        },
+        put: {
+          symbol: `${symbol.replace(":", "")}${strike}PE`,
+          ltp: Math.max(0.05, strike - basePrice + Math.random() * 20),
+          iv: 0.15 + Math.random() * 0.3,
+          delta: Math.max(-1, Math.min(0, -0.5 + (basePrice - strike) / 1000)),
+          gamma: Math.random() * 0.001,
+          theta: -Math.random() * 5,
+          vega: Math.random() * 10,
+        },
       });
     }
 
-    return options;
+    return { strikes };
+  }
+
+  private generateMockHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+  ): any[] {
+    const candles: any[] = [];
+    const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
+    let currentPrice = basePrice;
+
+    const days = Math.ceil(
+      (to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000),
+    );
+
+    for (let i = 0; i < days; i++) {
+      const timestamp = from.getTime() + i * 24 * 60 * 60 * 1000;
+      const open = currentPrice + (Math.random() - 0.5) * 50;
+      const high = open + Math.random() * 75;
+      const low = open - Math.random() * 75;
+      const close = low + Math.random() * (high - low);
+      const volume = Math.floor(Math.random() * 1000000) + 100000;
+
+      candles.push([timestamp, open, high, low, close, volume]);
+      currentPrice = close;
+    }
+
+    return candles;
+  }
+
+  private generateMockStraddleData(symbol: string): any {
+    const basePrice = symbol.includes("NIFTY") ? 19850 : 44250;
+    const nearestStrike = Math.round(basePrice / 50) * 50;
+
+    const straddles = [];
+    for (let i = -2; i <= 2; i++) {
+      const strike = nearestStrike + i * 50;
+      const callPrice = Math.max(0.5, basePrice - strike + Math.random() * 20);
+      const putPrice = Math.max(0.5, strike - basePrice + Math.random() * 20);
+
+      straddles.push({
+        strike,
+        call_price: callPrice,
+        put_price: putPrice,
+        straddle_premium: callPrice + putPrice,
+        distance_from_spot: Math.abs(strike - basePrice),
+      });
+    }
+
+    return {
+      symbol,
+      spot_price: basePrice,
+      expiry: "24JAN",
+      straddles,
+      timestamp: new Date().toISOString(),
+    };
   }
 }
 
