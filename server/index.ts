@@ -65,7 +65,7 @@ export function createServer() {
   });
 
   // Additional market data endpoints
-  app.get("/api/market/live-data", (_req, res) => {
+  app.get("/api/market/live-data", (req, res) => {
     const symbols = req.query.symbols as string;
     const symbolList = symbols ? symbols.split(",") : ["NSE:NIFTY50-INDEX"];
 
