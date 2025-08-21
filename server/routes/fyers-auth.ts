@@ -455,7 +455,6 @@ if __name__ == "__main__":
 
     const result: FyersAuthResponse = JSON.parse(stdout.trim());
     res.json(result);
-
   } catch (error) {
     console.error("Manual auth code error:", error);
     res.status(500).json({

@@ -144,7 +144,9 @@ export default function Login() {
           // Show manual auth code option and open OAuth in new tab
           setOauthUrl(data.auth_url);
           setShowManualAuth(true);
-          setError("OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.");
+          setError(
+            "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+          );
         } else {
           setError(data.message || "Failed to initiate OAuth");
         }
@@ -366,7 +368,7 @@ export default function Login() {
                         type="button"
                         variant="outline"
                         className="flex-1"
-                        onClick={() => window.open(oauthUrl, '_blank')}
+                        onClick={() => window.open(oauthUrl, "_blank")}
                         disabled={loading}
                       >
                         <ExternalLink className="mr-2 h-4 w-4" />
@@ -397,7 +399,9 @@ export default function Login() {
                         disabled={loading}
                       />
                       <p className="text-xs text-muted-foreground">
-                        After completing OAuth authentication, copy the authorization code from the callback URL and paste it here.
+                        After completing OAuth authentication, copy the
+                        authorization code from the callback URL and paste it
+                        here.
                       </p>
                     </div>
 
