@@ -170,11 +170,11 @@ def process_oauth_callback_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="https://127.0.0.1:8080/fyers/callback",
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
-            
+
             # Set authorization code
             session.set_token(auth_code)
             
