@@ -253,11 +253,11 @@ if __name__ == "__main__":
     // Redirect back to frontend with token
     if (result.success) {
       res.redirect(
-        `http://localhost:3000/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
+        `http://127.0.0.1:8080/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
       );
     } else {
       res.redirect(
-        `http://localhost:3000/?status=error&message=${encodeURIComponent(result.message)}`,
+        `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent(result.message)}`,
       );
     }
   } catch (error) {
