@@ -301,11 +301,11 @@ def initiate_oauth_v3(app_id, secret_id):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="https://127.0.0.1:8080/fyers/callback",
+                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
-            
+
             # Generate auth URL
             auth_url = session.generate_authcode()
             
