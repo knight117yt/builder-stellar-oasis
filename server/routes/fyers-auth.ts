@@ -281,12 +281,9 @@ export const handleFyersOAuth: RequestHandler = async (req, res) => {
     }
 
     // Store credentials in session for callback
-    req.session = {
-      ...req.session,
-      fyers_app_id: appId,
-      fyers_secret_id: secretId,
-      fyers_pin: pin,
-    };
+    req.session.fyers_app_id = appId;
+    req.session.fyers_secret_id = secretId;
+    req.session.fyers_pin = pin;
 
     const pythonScript = `
 import sys
