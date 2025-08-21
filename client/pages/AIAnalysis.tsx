@@ -306,7 +306,7 @@ export default function AIAnalysis() {
                   Confidence Level
                 </div>
                 <div className="text-lg font-bold">
-                  {analysisData
+                  {analysisData?.analysis?.confidence
                     ? `${(analysisData.analysis.confidence * 100).toFixed(0)}%`
                     : "High"}
                 </div>
@@ -345,14 +345,14 @@ export default function AIAnalysis() {
                       className={cn(
                         "flex items-center gap-2 font-medium",
                         getRecommendationColor(
-                          analysisData?.analysis.recommendation || "HOLD",
+                          analysisData?.analysis?.recommendation || "HOLD",
                         ),
                       )}
                     >
                       {getRecommendationIcon(
-                        analysisData?.analysis.recommendation || "HOLD",
+                        analysisData?.analysis?.recommendation || "HOLD",
                       )}
-                      {analysisData?.analysis.recommendation || "HOLD"}
+                      {analysisData?.analysis?.recommendation || "HOLD"}
                     </div>
                   </div>
 
@@ -361,7 +361,7 @@ export default function AIAnalysis() {
                       Confidence:
                     </span>
                     <span className="font-medium">
-                      {analysisData
+                      {analysisData?.analysis?.confidence
                         ? `${(analysisData.analysis.confidence * 100).toFixed(1)}%`
                         : "85%"}
                     </span>
@@ -373,12 +373,12 @@ export default function AIAnalysis() {
                     </span>
                     <Badge
                       variant={
-                        analysisData?.analysis.trend === "bullish"
+                        analysisData?.analysis?.trend === "bullish"
                           ? "default"
                           : "destructive"
                       }
                     >
-                      {analysisData?.analysis.trend || "Bullish"}
+                      {analysisData?.analysis?.trend || "Bullish"}
                     </Badge>
                   </div>
 
@@ -387,7 +387,7 @@ export default function AIAnalysis() {
                       Strength:
                     </span>
                     <span className="font-medium">
-                      {analysisData
+                      {analysisData?.analysis?.strength
                         ? `${(analysisData.analysis.strength * 100).toFixed(1)}%`
                         : "78%"}
                     </span>
@@ -412,7 +412,7 @@ export default function AIAnalysis() {
                     </div>
                     <div className="text-xl font-bold text-trading-bull">
                       ₹
-                      {analysisData?.analysis.price_target?.toFixed(2) ||
+                      {analysisData?.analysis?.price_target?.toFixed(2) ||
                         (currentPrice * 1.05).toFixed(2)}
                     </div>
                   </div>
@@ -423,7 +423,7 @@ export default function AIAnalysis() {
                     </div>
                     <div className="text-xl font-bold text-trading-bear">
                       ₹
-                      {analysisData?.analysis.stop_loss?.toFixed(2) ||
+                      {analysisData?.analysis?.stop_loss?.toFixed(2) ||
                         (currentPrice * 0.95).toFixed(2)}
                     </div>
                   </div>
@@ -456,7 +456,7 @@ export default function AIAnalysis() {
                     </div>
                     <div className="space-y-1">
                       {(
-                        analysisData?.analysis.resistance_levels || [
+                        analysisData?.analysis?.resistance_levels || [
                           currentPrice * 1.02,
                           currentPrice * 1.04,
                         ]
@@ -477,7 +477,7 @@ export default function AIAnalysis() {
                     </div>
                     <div className="space-y-1">
                       {(
-                        analysisData?.analysis.support_levels || [
+                        analysisData?.analysis?.support_levels || [
                           currentPrice * 0.98,
                           currentPrice * 0.96,
                         ]
@@ -516,7 +516,7 @@ export default function AIAnalysis() {
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">RSI (14)</div>
                   <div className="text-lg font-bold">
-                    {analysisData?.analysis.technical_indicators?.rsi?.toFixed(
+                    {analysisData?.analysis?.technical_indicators?.rsi?.toFixed(
                       1,
                     ) || "55.2"}
                   </div>
@@ -528,8 +528,8 @@ export default function AIAnalysis() {
                     MACD Signal
                   </div>
                   <div className="text-lg font-bold">
-                    {analysisData?.analysis.technical_indicators?.macd_signal ||
-                      "Bullish"}
+                    {analysisData?.analysis?.technical_indicators
+                      ?.macd_signal || "Bullish"}
                   </div>
                   <Badge variant="default">Strong</Badge>
                 </div>
@@ -539,7 +539,7 @@ export default function AIAnalysis() {
                     Bollinger Position
                   </div>
                   <div className="text-lg font-bold">
-                    {analysisData?.analysis.technical_indicators
+                    {analysisData?.analysis?.technical_indicators
                       ?.bollinger_position || "Middle"}
                   </div>
                   <Badge variant="outline">Normal</Badge>
@@ -550,7 +550,7 @@ export default function AIAnalysis() {
                     Volume Trend
                   </div>
                   <div className="text-lg font-bold">
-                    {analysisData?.analysis.technical_indicators
+                    {analysisData?.analysis?.technical_indicators
                       ?.volume_trend || "Increasing"}
                   </div>
                   <Badge variant="default">Positive</Badge>
@@ -575,7 +575,7 @@ export default function AIAnalysis() {
                     Overall Sentiment
                   </div>
                   <div className="text-2xl font-bold text-trading-bull">
-                    {analysisData?.analysis.sentiment_score
+                    {analysisData?.analysis?.sentiment_score
                       ? `${(analysisData.analysis.sentiment_score * 100).toFixed(0)}%`
                       : "72%"}
                   </div>
