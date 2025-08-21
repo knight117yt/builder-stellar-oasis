@@ -61,7 +61,9 @@ export default function Login() {
     } else if (showManualAuth === "true") {
       // Show manual auth input if coming from callback page
       setShowManualAuth(true);
-      setError("Paste the authorization code from the Fyers callback page to complete authentication.");
+      setError(
+        "Paste the authorization code from the Fyers callback page to complete authentication.",
+      );
     }
   }, [searchParams, navigate]);
 
@@ -379,9 +381,12 @@ export default function Login() {
                 {showManualAuth && (
                   <div className="space-y-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
                     <div className="text-center">
-                      <h3 className="font-medium text-primary">Step 2: Complete Authentication</h3>
+                      <h3 className="font-medium text-primary">
+                        Step 2: Complete Authentication
+                      </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        The OAuth page has opened in a new tab. Complete the authentication there, then return here.
+                        The OAuth page has opened in a new tab. Complete the
+                        authentication there, then return here.
                       </p>
                     </div>
 
@@ -425,7 +430,9 @@ export default function Login() {
                         className="font-mono"
                       />
                       <p className="text-xs text-muted-foreground">
-                        After completing OAuth authentication in the new tab, copy the authorization code from the callback page and paste it here.
+                        After completing OAuth authentication in the new tab,
+                        copy the authorization code from the callback page and
+                        paste it here.
                       </p>
                     </div>
 

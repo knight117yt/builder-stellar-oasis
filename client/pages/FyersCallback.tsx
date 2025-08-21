@@ -29,14 +29,16 @@ export default function FyersCallback() {
 
     if (errorParam) {
       setError(
-        errorDescription 
-          ? `Authentication failed: ${errorDescription}` 
-          : `Authentication failed: ${errorParam}`
+        errorDescription
+          ? `Authentication failed: ${errorDescription}`
+          : `Authentication failed: ${errorParam}`,
       );
     } else if (code) {
       setAuthCode(code);
     } else {
-      setError("No authorization code found in the URL. Please restart the authentication process.");
+      setError(
+        "No authorization code found in the URL. Please restart the authentication process.",
+      );
     }
   }, [searchParams]);
 
@@ -76,7 +78,9 @@ export default function FyersCallback() {
             Fyers Authentication
           </h1>
           <p className="text-sm text-muted-foreground">
-            {authCode ? "Authentication code received" : "Processing authentication"}
+            {authCode
+              ? "Authentication code received"
+              : "Processing authentication"}
           </p>
         </div>
 
@@ -96,10 +100,9 @@ export default function FyersCallback() {
               )}
             </CardTitle>
             <CardDescription>
-              {authCode 
+              {authCode
                 ? "Copy this code and paste it in the login form to complete authentication."
-                : "There was an issue with the authentication process."
-              }
+                : "There was an issue with the authentication process."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -165,12 +168,9 @@ export default function FyersCallback() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Login
               </Button>
-              
+
               {authCode && (
-                <Button
-                  onClick={handleOpenLogin}
-                  className="flex-1"
-                >
+                <Button onClick={handleOpenLogin} className="flex-1">
                   Open Login in New Tab
                 </Button>
               )}
@@ -178,9 +178,12 @@ export default function FyersCallback() {
 
             {authCode && (
               <div className="p-3 bg-muted rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Alternative Method:</h4>
+                <h4 className="text-sm font-medium mb-2">
+                  Alternative Method:
+                </h4>
                 <p className="text-xs text-muted-foreground">
-                  You can also manually copy this URL and extract the code yourself:
+                  You can also manually copy this URL and extract the code
+                  yourself:
                 </p>
                 <code className="text-xs break-all bg-background p-2 rounded mt-2 block">
                   {window.location.href}
