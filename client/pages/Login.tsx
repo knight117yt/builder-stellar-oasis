@@ -152,11 +152,14 @@ export default function Login() {
       });
 
       if (result.success && result.auth_url) {
-        // Show manual auth code option and open OAuth in new tab
+        // Automatically open OAuth in new tab
+        window.open(result.auth_url, "_blank");
+
+        // Show manual auth code option
         setOauthUrl(result.auth_url);
         setShowManualAuth(true);
         setError(
-          "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+          "OAuth authentication opened in a new tab. After completing authentication, you will be redirected to a page with the authorization code. Copy the code and paste it in the field below to complete login.",
         );
       } else {
         setError(result.message || "Failed to initiate OAuth");
