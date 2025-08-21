@@ -62,6 +62,74 @@ export function createServer() {
   app.post("/api/auth/fyers-manual", handleManualAuthCode);
   app.get("/api/auth/fyers/callback", handleFyersCallback);
 
+  // Debug endpoint to check Fyers API v3 installation
+  app.get("/api/auth/debug", async (req, res) => {
+    try {
+      const { exec } = await import("child_process");
+      const { promisify } = await import("util");
+      const execAsync = promisify(exec);
+
+      const pythonScript = `
+import sys
+import json
+
+def check_fyers_installation():
+    try:
+        import fyers_apiv3
+        from fyers_apiv3 import fyersModel
+
+        version = getattr(fyers_apiv3, '__version__', 'unknown')
+
+        return {
+            "success": True,
+            "installed": True,
+            "version": version,
+            "python_version": sys.version,
+            "message": "Fyers API v3 is properly installed"
+        }
+    except ImportError as e:
+        return {
+            "success": False,
+            "installed": False,
+            "error": str(e),
+            "python_version": sys.version,
+            "message": "Fyers API v3 is not installed"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "installed": False,
+            "error": str(e),
+            "python_version": sys.version,
+            "message": f"Error checking Fyers API v3: {str(e)}"
+        }
+
+if __name__ == "__main__":
+    result = check_fyers_installation()
+    print(json.dumps(result))
+`;
+
+      const { stdout, stderr } = await execAsync(
+        `python3 -c "${pythonScript.replace(/"/g, '\\"')}"`,
+      );
+
+      if (stderr) {
+        console.warn("Debug check stderr:", stderr);
+      }
+
+      const result = JSON.parse(stdout.trim());
+      res.json(result);
+    } catch (error) {
+      console.error("Debug check error:", error);
+      res.json({
+        success: false,
+        installed: false,
+        error: error.message,
+        message: "Failed to check Fyers API v3 installation"
+      });
+    }
+  });
+
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
