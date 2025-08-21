@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import session from "express-session";
 import { handleDemo } from "./routes/demo";
 import {
   handleFyersLogin,
@@ -21,6 +22,14 @@ export function createServer() {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Session middleware for OAuth flow
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  }));
 
   // Health check
   app.get("/api/ping", (_req, res) => {
