@@ -45,16 +45,10 @@ export function Layout({ children }: LayoutProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await authService.logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Clear local storage regardless of API call success
-      localStorage.removeItem("fyers_token");
-      localStorage.removeItem("auth_mode");
       navigate("/login");
     }
   };
