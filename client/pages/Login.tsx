@@ -133,41 +133,28 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/fyers-oauth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          appId: credentials.appId,
-          secretId: credentials.secretId,
-          pin: credentials.pin,
-        }),
+      const result = await authService.initiateOAuth({
+        appId: credentials.appId,
+        secretId: credentials.secretId,
+        pin: credentials.pin,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.auth_url) {
-          // Show manual auth code option and open OAuth in new tab
-          setOauthUrl(data.auth_url);
-          setShowManualAuth(true);
-          setError(
-            "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
-          );
-        } else {
-          setError(data.message || "Failed to initiate OAuth");
-        }
+      if (result.success && result.auth_url) {
+        // Show manual auth code option and open OAuth in new tab
+        setOauthUrl(result.auth_url);
+        setShowManualAuth(true);
+        setError(
+          "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+        );
       } else {
-        throw new Error("OAuth initiation failed");
+        setError(result.message || "Failed to initiate OAuth");
       }
     } catch (err) {
       console.error("OAuth error:", err);
       setError("OAuth initiation failed. Using fallback authentication.");
 
       // Fallback to mock mode
-      const mockToken = `mock_oauth_v3_${Date.now()}`;
-      localStorage.setItem("fyers_token", mockToken);
-      localStorage.setItem("auth_mode", "mock");
+      const mockResult = authService.mockLogin();
 
       setTimeout(() => {
         navigate("/dashboard");
