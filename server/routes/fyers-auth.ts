@@ -263,7 +263,7 @@ if __name__ == "__main__":
   } catch (error) {
     console.error("OAuth callback error:", error);
     res.redirect(
-      `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent("Authentication failed")}`,
+      `/login?status=error&message=${encodeURIComponent("Authentication failed")}`,
     );
   }
 };
