@@ -39,7 +39,24 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const authMode = localStorage.getItem("auth_mode") || "mock";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear local storage regardless of API call success
+      localStorage.removeItem("fyers_token");
+      localStorage.removeItem("auth_mode");
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="bg-background" style={{ minHeight: "1100px" }}>
