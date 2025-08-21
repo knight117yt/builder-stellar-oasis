@@ -107,6 +107,27 @@ export default function Login() {
     }, 1000);
   };
 
+  const handleDebugCheck = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/debug");
+      const result = await response.json();
+      setDebugInfo(result);
+      setShowDebug(true);
+
+      if (!result.installed) {
+        setError(`Debug Check: ${result.message}. You can still use Demo Mode with mock data.`);
+      }
+    } catch (err) {
+      console.error("Debug check failed:", err);
+      setError("Debug check failed. Server may not be responding correctly.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleFyersOAuth = async () => {
     if (!credentials.appId || !credentials.secretId) {
       setError("Please enter App ID and Secret ID before initiating OAuth");
