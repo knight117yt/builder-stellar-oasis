@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
