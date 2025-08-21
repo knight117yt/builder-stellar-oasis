@@ -62,6 +62,20 @@ export function createServer() {
   app.post("/api/auth/fyers-manual", handleManualAuthCode);
   app.get("/api/auth/fyers/callback", handleFyersCallback);
 
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Logout failed" });
+      }
+      res.clearCookie("connect.sid");
+      res.json({ success: true, message: "Logged out successfully" });
+    });
+  });
+
   // Market data routes
   app.get("/api/market/data", handleMarketData);
   app.get("/api/market/option-chain", handleOptionChain);

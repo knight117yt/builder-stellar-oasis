@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { authService } from "@/services/authService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,11 +44,17 @@ export default function Login() {
     const errorMessage = searchParams.get("message");
 
     if (status === "success" && token) {
+      // Clear any existing errors
+      setError("");
+      // Store authentication data
       localStorage.setItem("fyers_token", token);
       localStorage.setItem("auth_mode", mode || "live");
-      navigate("/dashboard");
+      // Navigate to dashboard
+      navigate("/dashboard", { replace: true });
     } else if (status === "error" && errorMessage) {
       setError(decodeURIComponent(errorMessage));
+      // Clear the URL parameters to prevent loops
+      navigate("/login", { replace: true });
     }
   }, [searchParams, navigate]);
 
@@ -58,40 +65,24 @@ export default function Login() {
 
     try {
       // Try Fyers API v3 authentication
-      const response = await fetch("/api/auth/fyers-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
+      const result = await authService.directLogin(credentials);
 
-      if (response.ok) {
-        const data = await response.json();
-
-        if (data.mode === "oauth_required" && data.auth_url) {
-          // OAuth flow required
-          setOauthUrl(data.auth_url);
-          setError(
-            "OAuth authentication required. Click the OAuth button below.",
-          );
-        } else if (data.token) {
-          // Direct authentication successful
-          localStorage.setItem("fyers_token", data.token);
-          localStorage.setItem("auth_mode", data.mode || "live");
-          navigate("/dashboard");
-        } else {
-          throw new Error(data.message || "Authentication failed");
-        }
+      if (result.mode === "oauth_required" && result.auth_url) {
+        // OAuth flow required
+        setOauthUrl(result.auth_url);
+        setError(
+          "OAuth authentication required. Click the OAuth button below.",
+        );
+      } else if (result.token) {
+        // Direct authentication successful
+        navigate("/dashboard");
       } else {
-        throw new Error("Fyers API connection failed");
+        throw new Error(result.message || "Authentication failed");
       }
     } catch (err) {
       // Fallback to mock data mode
       console.warn("Fyers API unavailable, using mock data mode:", err);
-      const mockToken = `mock_token_v3_${Date.now()}`;
-      localStorage.setItem("fyers_token", mockToken);
-      localStorage.setItem("auth_mode", "mock");
+      const mockResult = authService.mockLogin();
       setError("Using demo mode with mock data (Fyers API v3 unavailable)");
 
       // Navigate after showing the warning briefly
@@ -106,9 +97,7 @@ export default function Login() {
   const handleMockLogin = () => {
     setLoading(true);
     // Direct mock mode login
-    const mockToken = `mock_token_v3_${Date.now()}`;
-    localStorage.setItem("fyers_token", mockToken);
-    localStorage.setItem("auth_mode", "mock");
+    const mockResult = authService.mockLogin();
 
     setTimeout(() => {
       setLoading(false);
@@ -126,41 +115,28 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/fyers-oauth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          appId: credentials.appId,
-          secretId: credentials.secretId,
-          pin: credentials.pin,
-        }),
+      const result = await authService.initiateOAuth({
+        appId: credentials.appId,
+        secretId: credentials.secretId,
+        pin: credentials.pin,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.auth_url) {
-          // Show manual auth code option and open OAuth in new tab
-          setOauthUrl(data.auth_url);
-          setShowManualAuth(true);
-          setError(
-            "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
-          );
-        } else {
-          setError(data.message || "Failed to initiate OAuth");
-        }
+      if (result.success && result.auth_url) {
+        // Show manual auth code option and open OAuth in new tab
+        setOauthUrl(result.auth_url);
+        setShowManualAuth(true);
+        setError(
+          "OAuth URL generated. You can either click 'Open OAuth' or manually enter the auth code below after completing authentication.",
+        );
       } else {
-        throw new Error("OAuth initiation failed");
+        setError(result.message || "Failed to initiate OAuth");
       }
     } catch (err) {
       console.error("OAuth error:", err);
       setError("OAuth initiation failed. Using fallback authentication.");
 
       // Fallback to mock mode
-      const mockToken = `mock_oauth_v3_${Date.now()}`;
-      localStorage.setItem("fyers_token", mockToken);
-      localStorage.setItem("auth_mode", "mock");
+      const mockResult = authService.mockLogin();
 
       setTimeout(() => {
         navigate("/dashboard");
@@ -185,30 +161,17 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/fyers-manual", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          authCode: manualAuthCode.trim(),
-          appId: credentials.appId,
-          secretId: credentials.secretId,
-          pin: credentials.pin,
-        }),
+      const result = await authService.processManualAuthCode({
+        authCode: manualAuthCode.trim(),
+        appId: credentials.appId,
+        secretId: credentials.secretId,
+        pin: credentials.pin,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.token) {
-          localStorage.setItem("fyers_token", data.token);
-          localStorage.setItem("auth_mode", data.mode || "live");
-          navigate("/dashboard");
-        } else {
-          setError(data.message || "Manual authentication failed");
-        }
+      if (result.success && result.token) {
+        navigate("/dashboard");
       } else {
-        throw new Error("Manual authentication failed");
+        setError(result.message || "Manual authentication failed");
       }
     } catch (err) {
       console.error("Manual auth error:", err);

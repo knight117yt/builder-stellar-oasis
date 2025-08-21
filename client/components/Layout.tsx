@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { authService } from "@/services/authService";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +40,18 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const authMode = localStorage.getItem("auth_mode") || "mock";
+  const navigate = useNavigate();
+  const authMode = authService.getAuthMode() || "mock";
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="bg-background" style={{ minHeight: "1100px" }}>
@@ -55,14 +67,17 @@ export function Layout({ children }: LayoutProps) {
           onClick={() => setSidebarOpen(false)}
         />
         <div className="fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border">
-          <SidebarContent onNavigate={() => setSidebarOpen(false)} />
+          <SidebarContent
+            onNavigate={() => setSidebarOpen(false)}
+            onLogout={handleLogout}
+          />
         </div>
       </div>
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
         <div className="flex grow flex-col overflow-y-auto bg-sidebar border-r border-sidebar-border">
-          <SidebarContent />
+          <SidebarContent onLogout={handleLogout} />
         </div>
       </div>
 
@@ -129,7 +144,13 @@ export function Layout({ children }: LayoutProps) {
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({
+  onNavigate,
+  onLogout,
+}: {
+  onNavigate?: () => void;
+  onLogout?: () => void;
+}) {
   const location = useLocation();
 
   return (
@@ -178,6 +199,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <Button
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+            onClick={() => {
+              onLogout?.();
+              onNavigate?.();
+            }}
           >
             <LogOut className="h-5 w-5 mr-3" />
             Logout

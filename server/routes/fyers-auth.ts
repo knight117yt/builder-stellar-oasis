@@ -51,7 +51,7 @@ def authenticate_fyers_v3(app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
+                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -170,7 +170,7 @@ def process_oauth_callback_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
+                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -253,17 +253,17 @@ if __name__ == "__main__":
     // Redirect back to frontend with token
     if (result.success) {
       res.redirect(
-        `http://127.0.0.1:8080/?token=${result.token}&status=success&mode=${result.mode || "live"}`,
+        `/login?token=${result.token}&status=success&mode=${result.mode || "live"}`,
       );
     } else {
       res.redirect(
-        `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent(result.message)}`,
+        `/login?status=error&message=${encodeURIComponent(result.message)}`,
       );
     }
   } catch (error) {
     console.error("OAuth callback error:", error);
     res.redirect(
-      `http://127.0.0.1:8080/?status=error&message=${encodeURIComponent("Authentication failed")}`,
+      `/login?status=error&message=${encodeURIComponent("Authentication failed")}`,
     );
   }
 };
@@ -298,7 +298,7 @@ def initiate_oauth_v3(app_id, secret_id):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
+                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )
@@ -382,7 +382,7 @@ def process_manual_auth_code_v3(auth_code, app_id, secret_id, pin):
             session = fyersModel.SessionModel(
                 client_id=app_id,
                 secret_key=secret_id,
-                redirect_uri="http://127.0.0.1:8080/api/auth/fyers/callback",
+                redirect_uri="http://localhost:8080/api/auth/fyers/callback",
                 response_type="code",
                 grant_type="authorization_code"
             )

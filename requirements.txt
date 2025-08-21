@@ -1,5 +1,5 @@
-# Fyers API for market data and trading
-fyers-api
+# Fyers API v3 for market data and trading
+fyers-apiv3
 
 # Technical analysis libraries
 TA-Lib

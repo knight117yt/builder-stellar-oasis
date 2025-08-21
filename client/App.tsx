@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AlertProvider } from "@/contexts/AlertContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -25,15 +26,13 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected Route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = localStorage.getItem("fyers_token");
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Layout>{children}</Layout>;
+// Protected Route wrapper with Layout
+function ProtectedRouteWithLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <Layout>{children}</Layout>
+    </ProtectedRoute>
+  );
 }
 
 const App = () => (
@@ -50,73 +49,73 @@ const App = () => (
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Dashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/option-chain"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <OptionChain />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/analysis"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Analysis />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/ai-analysis"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <AIAnalysis />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/straddle-chart"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <StraddleChart />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/screener"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Screener />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/algo-creator"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <AlgoCreator />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/alerts"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Alerts />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithLayout>
                     <Settings />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithLayout>
                 }
               />
               <Route path="*" element={<NotFound />} />
