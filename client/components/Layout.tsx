@@ -72,7 +72,7 @@ export function Layout({ children }: LayoutProps) {
           onClick={() => setSidebarOpen(false)}
         />
         <div className="fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border">
-          <SidebarContent onNavigate={() => setSidebarOpen(false)} />
+          <SidebarContent onNavigate={() => setSidebarOpen(false)} onLogout={handleLogout} />
         </div>
       </div>
 
