@@ -528,8 +528,8 @@ export default function AIAnalysis() {
                     MACD Signal
                   </div>
                   <div className="text-lg font-bold">
-                    {analysisData?.analysis?.technical_indicators?.macd_signal ||
-                      "Bullish"}
+                    {analysisData?.analysis?.technical_indicators
+                      ?.macd_signal || "Bullish"}
                   </div>
                   <Badge variant="default">Strong</Badge>
                 </div>
