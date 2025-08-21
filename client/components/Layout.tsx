@@ -195,6 +195,10 @@ function SidebarContent({ onNavigate, onLogout }: { onNavigate?: () => void; onL
           <Button
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+            onClick={() => {
+              onLogout?.();
+              onNavigate?.();
+            }}
           >
             <LogOut className="h-5 w-5 mr-3" />
             Logout
