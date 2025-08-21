@@ -146,7 +146,7 @@ export function Layout({ children }: LayoutProps) {
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout?: () => void }) {
   const location = useLocation();
 
   return (
